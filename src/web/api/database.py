@@ -157,6 +157,7 @@ def create_initial_data():
             hashed_password=pwd_context.hash("admin"),
             is_active=True,
             is_superuser=True,
+            password_change_required=True,
         )
         admin_user.roles = [admin_role]
         db.add(admin_user)
@@ -169,6 +170,7 @@ def create_initial_data():
             hashed_password=pwd_context.hash("user"),
             is_active=True,
             is_superuser=False,
+            password_change_required=True,
         )
         regular_user.roles = [user_role]
         db.add(regular_user)

@@ -1036,6 +1036,334 @@ Returns the status of an update.
 }
 ```
 
+### AI and Monitoring
+
+#### Get AI Provider Status
+
+```
+GET /monitoring/ai-status
+```
+
+Returns the status of all configured AI providers.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "providers": {
+      "claude": {
+        "name": "claude",
+        "enabled": true,
+        "available": true,
+        "type": "built-in",
+        "model": "claude-3-opus",
+        "capabilities": {
+          "streaming": true,
+          "vision": true,
+          "batching": false,
+          "function_calling": true,
+          "token_counting": true,
+          "free_to_use": false,
+          "local_execution": false
+        }
+      },
+      "gemini": {
+        "name": "gemini",
+        "enabled": true,
+        "available": true,
+        "type": "built-in",
+        "model": "gemini-pro"
+      },
+      "ollama": {
+        "name": "ollama",
+        "enabled": true,
+        "available": true,
+        "type": "built-in",
+        "model": "llama3",
+        "capabilities": {
+          "streaming": true,
+          "vision": false,
+          "batching": false,
+          "function_calling": false,
+          "token_counting": true,
+          "free_to_use": true,
+          "local_execution": true
+        }
+      }
+    },
+    "default_provider": "ollama"
+  },
+  "error": null
+}
+```
+
+#### Get AI Usage Statistics
+
+```
+GET /monitoring/ai-usage
+```
+
+Returns AI usage statistics and budget information.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "date": "2025-03-17",
+    "daily_usage": {
+      "date": "2025-03-17",
+      "providers": {
+        "claude": {
+          "models": {
+            "claude-3-opus": {
+              "input_tokens": 5000,
+              "output_tokens": 2000,
+              "cost_usd": 0.1875
+            }
+          },
+          "total_cost_usd": 0.1875
+        },
+        "ollama": {
+          "models": {
+            "llama3": {
+              "input_tokens": 10000,
+              "output_tokens": 5000,
+              "cost_usd": 0.0
+            }
+          },
+          "total_cost_usd": 0.0
+        }
+      },
+      "total_cost_usd": 0.1875
+    },
+    "monthly_usage": {
+      "year": 2025,
+      "month": 3,
+      "providers": {
+        "claude": {
+          "models": {
+            "claude-3-opus": {
+              "input_tokens": 50000,
+              "output_tokens": 20000,
+              "cost_usd": 1.875
+            }
+          },
+          "total_cost_usd": 1.875
+        },
+        "ollama": {
+          "models": {
+            "llama3": {
+              "input_tokens": 100000,
+              "output_tokens": 50000,
+              "cost_usd": 0.0
+            }
+          },
+          "total_cost_usd": 0.0
+        }
+      },
+      "total_cost_usd": 1.875,
+      "budget": {
+        "claude": 10.0
+      },
+      "total_budget_usd": 10.0
+    },
+    "budget_status": {
+      "year": 2025,
+      "month": 3,
+      "providers": {
+        "claude": {
+          "usage_usd": 1.875,
+          "budget_usd": 10.0,
+          "remaining_usd": 8.125,
+          "percentage": 18.75
+        }
+      },
+      "total_usage_usd": 1.875,
+      "total_budget_usd": 10.0,
+      "total_remaining_usd": 8.125,
+      "total_percentage": 18.75
+    },
+    "days_in_month": 31,
+    "days_passed": 17,
+    "days_remaining": 14,
+    "daily_average_usd": 0.11029,
+    "projected_total_usd": 3.42,
+    "budget_remaining_usd": 8.125,
+    "budget_percentage": 18.75,
+    "projected_percentage": 34.2
+  },
+  "error": null
+}
+```
+
+#### Analyze Container
+
+```
+POST /monitoring/troubleshoot/container/{container_id}
+```
+
+Analyzes a container using AI to identify issues and suggest solutions.
+
+**Path Parameters:**
+
+- `container_id`: Container ID or name
+
+**Request Body:**
+
+```json
+{
+  "confirm_cost": true  // Optional, default: true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "container_id": "abc123def456",
+    "container_name": "web-server",
+    "container_status": "running",
+    "analysis": "The container is experiencing high memory usage (85% of limit). This appears to be caused by a memory leak in the application. The logs show repeated allocation of resources without proper cleanup. Consider implementing better memory management or increasing the container's memory limit.",
+    "provider": "claude",
+    "model": "claude-3-opus",
+    "timestamp": "2025-03-17T11:30:00Z"
+  },
+  "error": null
+}
+```
+
+#### Analyze Logs
+
+```
+POST /monitoring/troubleshoot/logs
+```
+
+Analyzes Docker logs using AI to identify issues and suggest solutions.
+
+**Request Body:**
+
+```json
+{
+  "logs": "2025-03-17T11:20:00Z ERROR Connection refused to database\n2025-03-17T11:21:00Z ERROR Retry failed after 3 attempts\n2025-03-17T11:22:00Z ERROR Connection refused to database",
+  "confirm_cost": true  // Optional, default: true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "analysis": "The logs show persistent database connection issues. The application is unable to connect to the database and is retrying but failing. This could be due to:\n\n1. The database service is not running\n2. Network connectivity issues between the container and database\n3. Incorrect database credentials or connection string\n\nRecommendations:\n- Verify the database service is running\n- Check network configuration and firewall rules\n- Validate database credentials and connection parameters",
+    "provider": "claude",
+    "model": "claude-3-opus",
+    "timestamp": "2025-03-17T11:30:00Z"
+  },
+  "error": null
+}
+```
+
+#### Analyze Docker Compose File
+
+```
+POST /monitoring/troubleshoot/compose
+```
+
+Analyzes a Docker Compose file using AI to identify issues and suggest improvements.
+
+**Request Body:**
+
+```json
+{
+  "content": "version: '3'\nservices:\n  web:\n    image: nginx:latest\n    ports:\n      - \"80:80\"\n  db:\n    image: mysql:5.7\n",
+  "confirm_cost": true  // Optional, default: true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "analysis": "The Docker Compose file has several areas for improvement:\n\n1. No environment variables for MySQL - The MySQL container requires environment variables like MYSQL_ROOT_PASSWORD\n2. No volumes defined - Data will be lost when containers are removed\n3. No healthchecks - Services don't wait for dependencies to be ready\n4. Using latest tag - This can lead to unexpected changes when rebuilding\n\nRecommendations:\n- Add required environment variables for MySQL\n- Define volumes for persistent data\n- Add healthchecks and depends_on\n- Use specific version tags instead of latest",
+    "provider": "claude",
+    "model": "claude-3-opus",
+    "timestamp": "2025-03-17T11:30:00Z"
+  },
+  "error": null
+}
+```
+
+#### Analyze Dockerfile
+
+```
+POST /monitoring/troubleshoot/dockerfile
+```
+
+Analyzes a Dockerfile using AI to identify issues and suggest improvements.
+
+**Request Body:**
+
+```json
+{
+  "content": "FROM ubuntu:latest\nRUN apt-get update\nRUN apt-get install -y nginx\nCOPY . /app\nCMD [\"nginx\", \"-g\", \"daemon off;\"]\n",
+  "confirm_cost": true  // Optional, default: true
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "analysis": "The Dockerfile has several issues and areas for improvement:\n\n1. Multiple RUN instructions - These should be combined to reduce image layers\n2. No cleanup of apt cache - This increases image size unnecessarily\n3. Using latest tag - This can lead to unexpected changes\n4. No WORKDIR defined - Files are copied to root directory\n5. No EXPOSE instruction - Port 80 should be exposed\n\nRecommendations:\n- Combine RUN instructions and clean up apt cache\n- Use specific version tags\n- Add WORKDIR /app before COPY\n- Add EXPOSE 80\n- Consider using a more specific base image like nginx:alpine",
+    "provider": "claude",
+    "model": "claude-3-opus",
+    "timestamp": "2025-03-17T11:30:00Z"
+  },
+  "error": null
+}
+```
+
+#### Check Docker Connection
+
+```
+GET /monitoring/troubleshoot/connection
+```
+
+Checks Docker connection and troubleshoots any issues.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "connected": false,
+    "issues": [
+      "Docker socket not found at /var/run/docker.sock",
+      "Docker service is not running"
+    ],
+    "fixes": [
+      "Make sure Docker is installed and running",
+      "sudo systemctl start docker",
+      "Add user to the docker group: sudo usermod -aG docker $USER",
+      "Log out and log back in for the changes to take effect"
+    ]
+  },
+  "error": null
+}
+```
+
 ### AI Integration
 
 #### Analyze Container Logs

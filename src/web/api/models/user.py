@@ -31,6 +31,7 @@ class User(BaseModel, TimestampMixin):
     hashed_password = Column(String(100), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
+    password_change_required = Column(Boolean, default=False, nullable=False)
     
     # Relationships
     roles = relationship("Role", secondary=user_roles, back_populates="users")

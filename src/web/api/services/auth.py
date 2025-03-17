@@ -116,6 +116,58 @@ def authenticate_user(username: str, password: str, db: Session) -> Optional[Use
     return user
 
 
+def change_password(user: UserModel, current_password: str, new_password: str, db: Session) -> bool:
+    """
+    Change a user's password.
+    
+    Returns True if successful, False otherwise.
+    """
+    # Verify current password
+    if not verify_password(current_password, user.hashed_password):
+        return False
+    
+    # Hash new password
+    user.hashed_password = get_password_hash(new_password)
+    
+    # Clear password change required flag
+    user.password_change_required = False
+    
+    # Update user
+    db.commit()
+    
+    return True
+
+
+def reset_password_with_local_auth(username: str, local_username: str, local_password: str, 
+                                  new_password: str, db: Session) -> bool:
+    """
+    Reset a user's password using local system authentication.
+    
+    Returns True if successful, False otherwise.
+    """
+    # Get user
+    user = get_user(username, db)
+    if not user:
+        return False
+    
+    # Verify local credentials (this would normally call the system's auth)
+    # For this implementation, we'll just check if the credentials match any user in our system
+    local_user = authenticate_user(local_username, local_password, db)
+    if not local_user:
+        return False
+    
+    # Hash new password
+    user.hashed_password = get_password_hash(new_password)
+    
+    # Clear password change required flag
+    user.password_change_required = False
+    
+    # Update user
+    db.commit()
+    
+    return True
+
+
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a JWT access token.

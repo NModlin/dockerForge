@@ -13,6 +13,7 @@ class Token(BaseModel):
     """
     access_token: str
     token_type: str
+    password_change_required: bool = False
 
 
 class TokenData(BaseModel):
@@ -144,3 +145,28 @@ class Permission(PermissionBase):
 
     class Config:
         orm_mode = True
+
+
+class PasswordChange(BaseModel):
+    """
+    Password change schema.
+    """
+    current_password: str
+    new_password: str
+
+
+class PasswordReset(BaseModel):
+    """
+    Password reset schema.
+    """
+    username: str
+
+
+class PasswordResetVerify(BaseModel):
+    """
+    Password reset verification schema using local login.
+    """
+    username: str
+    local_username: str
+    local_password: str
+    new_password: str

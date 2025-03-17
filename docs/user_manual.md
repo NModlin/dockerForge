@@ -393,7 +393,7 @@ dockerforge config set ai.providers.ollama.enabled true
 dockerforge config set ai.providers.ollama.host http://localhost:11434
 ```
 
-### AI-Powered Analysis
+### AI-Powered Analysis (CLI)
 
 ```bash
 # Analyze container logs with AI
@@ -406,7 +406,7 @@ dockerforge analyze --provider claude CONTAINER_NAME
 dockerforge compose analyze docker-compose.yml
 ```
 
-### AI-Powered Troubleshooting
+### AI-Powered Troubleshooting (CLI)
 
 ```bash
 # Troubleshoot container issues
@@ -415,6 +415,54 @@ dockerforge troubleshoot CONTAINER_NAME
 # Troubleshoot with specific focus
 dockerforge troubleshoot --focus networking CONTAINER_NAME
 ```
+
+### Web UI AI Features
+
+DockerForge now provides AI troubleshooting capabilities through the web interface. Access these features by navigating to the Monitoring & AI section in the web UI.
+
+#### AI Provider Status
+
+The web UI displays the status of all configured AI providers, including:
+- Availability status
+- Model information
+- Provider capabilities (streaming, vision, function calling, etc.)
+- Default provider indication
+
+#### AI Usage Statistics
+
+Monitor your AI usage through the web UI:
+- Daily and monthly token usage
+- Cost tracking by provider and model
+- Budget monitoring with visual indicators
+- Usage projections and trends
+
+#### Troubleshooting Tools
+
+The web UI provides several AI-powered troubleshooting tools:
+
+1. **Container Analysis**
+   - Analyze running containers for issues
+   - Get detailed recommendations for resolving problems
+   - View container status and performance metrics alongside analysis
+
+2. **Log Analysis**
+   - Upload and analyze Docker logs
+   - Identify patterns and issues in log data
+   - Receive actionable recommendations
+
+3. **Docker Compose Analysis**
+   - Analyze Docker Compose files for best practices
+   - Identify potential issues and security concerns
+   - Get suggestions for improvements
+
+4. **Dockerfile Analysis**
+   - Analyze Dockerfiles for best practices
+   - Identify inefficiencies and security issues
+   - Get optimization recommendations
+
+5. **Docker Connection Troubleshooting**
+   - Diagnose Docker connection issues
+   - Get step-by-step instructions to resolve connection problems
 
 ## Troubleshooting
 

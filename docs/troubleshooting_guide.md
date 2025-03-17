@@ -520,6 +520,7 @@ This guide provides solutions for common issues you might encounter when using D
   ```bash
   dockerforge ai test-provider claude
   ```
+- In the web UI, check the AI Provider Status page to see if providers are available
 
 ### Ollama Connection Issues
 
@@ -543,6 +544,7 @@ This guide provides solutions for common issues you might encounter when using D
   # If Ollama is in a Docker container
   dockerforge config set ai.providers.ollama.host http://ollama-container:11434
   ```
+- In the web UI, check the AI Provider Status page to verify Ollama connection
 
 ### AI Analysis Timeout
 
@@ -560,6 +562,64 @@ This guide provides solutions for common issues you might encounter when using D
 - Try a different AI provider:
   ```bash
   dockerforge analyze container-name --provider gemini
+  ```
+- In the web UI, try analyzing smaller portions of logs or files
+
+### Web UI AI Features Not Working
+
+**Issue**: AI troubleshooting features in the web UI are not functioning.
+
+**Solution**:
+- Check if the monitoring router is enabled in the API:
+  ```bash
+  # Check the main.py file
+  grep "monitoring.router" /path/to/src/web/api/main.py
+  ```
+- Verify that the web server is running:
+  ```bash
+  # Check if the web server process is running
+  ps aux | grep "uvicorn"
+  ```
+- Check browser console for JavaScript errors:
+  - Open browser developer tools (F12)
+  - Look for errors in the Console tab
+- Verify API endpoints are accessible:
+  ```bash
+  # Test the AI status endpoint
+  curl http://localhost:54321/api/monitoring/ai-status
+  ```
+- Restart the web server:
+  ```bash
+  # Stop and restart the web server
+  docker restart dockerforge-web
+  # Or if running directly
+  kill -TERM $(pgrep -f "uvicorn main:app") && cd /path/to/src/web/api && uvicorn main:app --host 0.0.0.0 --port 54321
+  ```
+
+### AI Usage Statistics Not Showing
+
+**Issue**: AI usage statistics are not displaying in the web UI.
+
+**Solution**:
+- Check if the AI usage tracker database exists:
+  ```bash
+  # Check if the database file exists
+  ls -la ~/.dockerforge/data/ai_usage.db
+  ```
+- Initialize the database if needed:
+  ```bash
+  # Run a command that initializes the database
+  dockerforge ai usage-report
+  ```
+- Check permissions on the database file:
+  ```bash
+  # Ensure the web server has read access
+  chmod 644 ~/.dockerforge/data/ai_usage.db
+  ```
+- If running in Docker, ensure volume mounts are correct:
+  ```bash
+  # Check Docker volume mounts
+  docker inspect dockerforge-web | grep -A 10 "Mounts"
   ```
 
 ## Performance Issues

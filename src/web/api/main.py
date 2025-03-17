@@ -60,6 +60,21 @@ async def root():
         "redoc_url": "/redoc",
     }
 
+# Import and include routers
+from .routers import auth, containers, images, backup, monitoring
+# Import additional routers as they are implemented
+from .models import __all__ as models  # Import all models to ensure they are registered
+
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(containers.router, prefix="/api/containers", tags=["Containers"])
+app.include_router(images.router, prefix="/api/images", tags=["Images"])
+app.include_router(backup.router, prefix="/api/backup", tags=["Backup"])
+# app.include_router(volumes.router, prefix="/api/volumes", tags=["Volumes"])
+# app.include_router(networks.router, prefix="/api/networks", tags=["Networks"])
+# app.include_router(compose.router, prefix="/api/compose", tags=["Compose"])
+# app.include_router(security.router, prefix="/api/security", tags=["Security"])
+app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
+
 # Serve index.html for the root URL
 @app.get("/", include_in_schema=False)
 async def serve_index():
@@ -79,21 +94,6 @@ async def catch_all(path: str):
     if not path.startswith("api/") and path != "api":
         return FileResponse("/app/static/index.html")
     raise HTTPException(status_code=404, detail="Not Found")
-
-# Import and include routers
-from .routers import auth, containers, images
-# Import additional routers as they are implemented
-from .models import __all__ as models  # Import all models to ensure they are registered
-
-app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-app.include_router(containers.router, prefix="/api/containers", tags=["Containers"])
-app.include_router(images.router, prefix="/api/images", tags=["Images"])
-# app.include_router(volumes.router, prefix="/api/volumes", tags=["Volumes"])
-# app.include_router(networks.router, prefix="/api/networks", tags=["Networks"])
-# app.include_router(compose.router, prefix="/api/compose", tags=["Compose"])
-# app.include_router(security.router, prefix="/api/security", tags=["Security"])
-# app.include_router(backup.router, prefix="/api/backup", tags=["Backup"])
-# app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
 
 # Error handlers
 @app.exception_handler(HTTPException)
