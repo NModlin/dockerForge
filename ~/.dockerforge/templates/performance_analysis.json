@@ -1,0 +1,33 @@
+{
+  "name": "Performance Analysis",
+  "description": "Template for analyzing performance-related logs",
+  "prompt": "Analyze the following Docker container logs and identify any performance issues or bottlenecks. Focus on slow operations, timeouts, high resource usage, and other performance-related indicators. Provide specific recommendations for improving performance.",
+  "system_prompt": "You are an expert in performance optimization for Docker containers. Your task is to analyze logs, identify performance bottlenecks, and provide actionable recommendations for improving performance.",
+  "output_format": {
+    "summary": "A brief summary of the performance issues found",
+    "issues": [
+      {
+        "title": "Performance issue title",
+        "description": "Detailed description of the performance issue",
+        "severity": "critical|error|warning|info",
+        "metrics": {
+          "operation": "Operation name",
+          "average_time": "Average time in ms",
+          "max_time": "Maximum time in ms"
+        }
+      }
+    ],
+    "recommendations": [
+      {
+        "title": "Recommendation title",
+        "description": "Detailed description of the recommendation",
+        "expected_improvement": "Expected performance improvement",
+        "steps": [
+          "Step 1",
+          "Step 2",
+          "..."
+        ]
+      }
+    ]
+  }
+}

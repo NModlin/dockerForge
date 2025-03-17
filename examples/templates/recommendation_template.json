@@ -1,0 +1,19 @@
+{
+  "name": "Docker Issue Recommendation Template",
+  "description": "Template for generating recommendations for Docker container issues",
+  "prompt": "Generate a recommendation for resolving the following issue in a Docker container:\n\nIssue: {issue_title}\nDescription: {issue_description}\nContainer: {container_name}\n\nProvide a step-by-step solution that addresses the root cause of the issue. Include specific commands or code changes where applicable.",
+  "system_prompt": "You are an expert Docker troubleshooter. Your task is to generate clear, actionable recommendations for resolving issues in Docker containers. Focus on providing step-by-step instructions that address the root cause of the issue, not just the symptoms.",
+  "output_format": {
+    "title": "Recommendation title",
+    "description": "Detailed description of the recommendation",
+    "steps": [
+      {
+        "description": "Step description",
+        "command": "Command to execute (if applicable)",
+        "code": "Code to add or modify (if applicable)",
+        "manual_action": "Manual action to take (if applicable)",
+        "verification": "How to verify this step was successful"
+      }
+    ]
+  }
+}

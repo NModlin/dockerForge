@@ -1,0 +1,8 @@
+{
+  "name": "example_plugin",
+  "version": "0.1.0",
+  "description": "DockerForge AI provider plugin: example_plugin",
+  "author": "Your Name",
+  "provider_class": "Example_pluginProvider",
+  "dependencies": []
+}

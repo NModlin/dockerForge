@@ -1,0 +1,8 @@
+{
+  "name": "openai",
+  "version": "0.1.0",
+  "description": "OpenAI provider plugin for DockerForge",
+  "author": "DockerForge Team",
+  "provider_class": "OpenAIProvider",
+  "dependencies": ["openai>=1.0.0"]
+}

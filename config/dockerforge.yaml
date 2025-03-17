@@ -1,0 +1,230 @@
+# DockerForge Configuration File
+
+# General settings
+general:
+  log_level: INFO
+  log_file: dockerforge.log
+  data_dir: ~/.dockerforge/data
+  backup_dir: ~/.dockerforge/backups
+  check_for_updates: true
+
+# Docker settings
+docker:
+  # Docker connection settings
+  # If not specified, DockerForge will try to connect using the default methods
+  # host: tcp://localhost:2375
+  # socket_path: /var/run/docker.sock
+  # ssh_host: user@remote-host
+
+  # TLS settings for Docker connection
+  tls:
+    enabled: false
+    verify: true
+    # cert_path: ~/.docker/cert.pem
+    # key_path: ~/.docker/key.pem
+    # ca_path: ~/.docker/ca.pem
+
+  # Docker Compose settings
+  compose:
+    file_path: ""
+    project_name: ""
+    discovery:
+      enabled: true
+      recursive: true
+      include_common_locations: true
+      search_paths:
+        - "."
+        - "~/docker"
+        - "~/projects"
+      exclude_patterns:
+        - "**/node_modules/**"
+        - "**/.git/**"
+    
+    parser:
+      schema_dir: ~/.dockerforge/schemas/compose
+      expand_env_vars: true
+      validate: true
+    
+    change_management:
+      backup_dir: ~/.dockerforge/backups/compose
+      auto_backup: true
+      max_backups: 10
+      atomic_updates: true
+    
+    templates:
+      directory: ~/.dockerforge/templates/compose
+      auto_load: true
+      variable_pattern: "{{variable}}"
+    
+    visualization:
+      output_dir: ~/.dockerforge/visualizations
+      default_format: "mermaid"
+      include_networks: true
+      include_volumes: true
+      include_resources: true
+    
+    operations:
+      validate_before_up: true
+      health_check_timeout: 30
+      controlled_restart: true
+      remove_orphans: true
+
+# AI provider settings
+ai:
+  default_provider: ollama
+  providers:
+    claude:
+      enabled: false
+      # api_key: your-api-key
+      model: claude-3-opus
+      max_tokens: 4000
+      temperature: 0.7
+    gemini:
+      enabled: false
+      # api_key: your-api-key
+      model: gemini-pro
+      max_tokens: 2048
+      temperature: 0.7
+    ollama:
+      enabled: true
+      endpoint: http://localhost:11434
+      model: llama3
+      auto_discover: true
+      container_discovery: true
+      container_name_patterns:
+        - "ollama"
+        - "llama"
+  
+  # Cost management settings
+  cost_management:
+    require_confirmation: true
+    confirmation_threshold_usd: 0.5
+    max_daily_cost_usd: 10.0
+    max_monthly_cost_usd: 50.0
+  
+  # Usage limits
+  usage_limits:
+    max_daily_requests: 100
+    max_monthly_cost_usd: 50.0
+  
+  # Plugin system settings
+  plugins:
+    enabled: true
+    directory: ~/.dockerforge/plugins
+    auto_discover: true
+  
+  # Template system settings
+  templates:
+    directory: ~/.dockerforge/templates
+    default_version: "1.0.0"
+    track_performance: true
+
+# Monitoring settings
+monitoring:
+  enabled: true
+  check_interval_seconds: 300
+  alert_on_container_exit: true
+  notify_on_high_resource_usage: true
+  resource_thresholds:
+    cpu_percent: 80
+    memory_percent: 85
+    disk_percent: 90
+  
+  # Log monitoring settings
+  log_monitoring:
+    enabled: true
+    log_buffer_size: 100000
+    max_recent_matches: 1000
+    max_analysis_history: 100
+    max_search_history: 100
+    container_filter: {}  # Filter for containers to monitor
+  
+  # Pattern recognition settings
+  patterns_dir: ~/.dockerforge/patterns
+  
+  # Log analysis settings
+  templates_dir: ~/.dockerforge/templates
+  
+  # Issue detection settings
+  issues_dir: ~/.dockerforge/issues
+  
+  # Recommendation settings
+  recommendations_dir: ~/.dockerforge/recommendations
+  recommendation_templates_dir: ~/.dockerforge/recommendation_templates
+
+# Notification settings
+notifications:
+  enabled: true
+  default_channel: "slack"
+  
+  # Notification channels
+  channels:
+    email:
+      enabled: false
+      # smtp_server: smtp.example.com
+      # smtp_port: 587
+      # use_tls: true
+      # username: user@example.com
+      # password: your-password
+      # from_address: dockerforge@example.com
+      # recipients:
+      #   - admin@example.com
+      #   - ops@example.com
+    slack:
+      enabled: false
+      # webhook_url: https://hooks.slack.com/services/XXX/YYY/ZZZ
+      channel: "#docker-alerts"
+      username: "DockerForge"
+      icon_emoji: ":whale:"
+    discord:
+      enabled: false
+      # webhook_url: https://discord.com/api/webhooks/XXX/YYY
+      username: "DockerForge"
+      avatar_url: "https://www.docker.com/sites/default/files/d8/2019-07/Moby-logo.png"
+    webhook:
+      enabled: false
+      # url: https://example.com/webhook
+      # headers:
+      #   Authorization: Bearer your-token
+      #   Content-Type: application/json
+    
+  # Notification preferences
+  preferences:
+    throttling:
+      enabled: true
+      max_notifications_per_hour: 10
+      max_notifications_per_day: 50
+      group_similar: true
+      quiet_hours:
+        enabled: false
+        start: "22:00"
+        end: "08:00"
+    
+    severity_thresholds:
+      info: false
+      warning: true
+      error: true
+      critical: true
+    
+    notification_types:
+      container_exit: true
+      container_oom: true
+      high_resource_usage: true
+      security_issue: true
+      update_available: true
+      fix_proposal: true
+      fix_applied: true
+  
+  # Notification templates
+  templates:
+    directory: ~/.dockerforge/notification_templates
+    default_template: "default"
+    
+  # Fix application settings
+  fixes:
+    require_approval: true
+    auto_approve_low_risk: false
+    dry_run_by_default: true
+    backup_before_fix: true
+    rollback_on_failure: true
+    max_fix_attempts: 3

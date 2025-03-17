@@ -1,0 +1,36 @@
+# DockerForge Web UI Backend Dependencies
+
+# FastAPI and ASGI server
+fastapi>=0.95.0
+uvicorn[standard]>=0.21.0
+
+# Database
+sqlalchemy>=2.0.0
+alembic>=1.10.0
+asyncpg>=0.27.0
+psycopg2-binary>=2.9.5  # PostgreSQL driver
+
+# Data validation
+pydantic>=2.0.0
+email-validator>=2.0.0  # Email validation
+
+# Authentication
+python-jose[cryptography]>=3.3.0  # For JWT
+passlib[bcrypt]>=1.7.4  # For password hashing
+python-multipart>=0.0.5  # For form data
+
+# WebSockets
+websockets>=11.0.0
+
+# Caching
+redis>=4.5.0
+
+# Docker SDK
+docker>=6.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+httpx>=0.24.0  # Async HTTP client
+tenacity>=8.2.0  # For retries
+aiofiles>=23.0.0  # Async file operations
+python-dateutil>=2.8.2  # Date handling

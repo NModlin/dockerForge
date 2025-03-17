@@ -1,0 +1,24 @@
+{
+  "id": "a3e09c5b_manual_1742142480",
+  "container_id": "a3e09c5b0b7a4a2ac2ea7679ddebe75cfa0341da66136b0f49eb80856deb59d1",
+  "container_name": "dockerforge-test",
+  "title": "Manual: Database Connection Error",
+  "description": "Error connecting to database",
+  "severity": "error",
+  "status": "open",
+  "created_at": "2025-03-16T12:28:00.824804",
+  "updated_at": "2025-03-16T12:28:00.824809",
+  "resolved_at": null,
+  "source": "manual",
+  "pattern_id": null,
+  "pattern_matches": [],
+  "analysis_id": null,
+  "tags": [
+    "manual",
+    "test"
+  ],
+  "assignee": null,
+  "notes": [],
+  "related_issues": [],
+  "resolution": null
+}

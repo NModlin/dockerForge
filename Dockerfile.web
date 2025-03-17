@@ -1,0 +1,79 @@
+# DockerForge Web UI Dockerfile
+# Multi-stage build for FastAPI backend and Vue.js frontend
+
+# Stage 1: Build Vue.js frontend
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Copy package.json and package-lock.json
+COPY src/web/frontend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy frontend source code
+COPY src/web/frontend/ ./
+
+# Build frontend
+RUN npm run build
+
+# Stage 2: Build Python backend
+FROM python:3.10-slim AS backend-builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements file
+COPY src/web/api/requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Stage 3: Final image
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy backend from builder stage
+COPY --from=backend-builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
+COPY --from=backend-builder /usr/local/bin /usr/local/bin
+
+# Copy frontend build from builder stage
+COPY --from=frontend-builder /app/frontend/dist /app/static
+
+# Copy application code
+COPY src/web/api /app/api
+
+# Create necessary directories
+RUN mkdir -p /app/media /app/logs
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PORT=54321
+
+# Expose port
+EXPOSE 54321
+
+# Set entrypoint
+ENTRYPOINT ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "54321"]
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:54321/api/health || exit 1
+
+# Metadata
+LABEL maintainer="DockerForge Team <info@dockerforge.example.com>" \
+      version="0.1.0" \
+      description="DockerForge Web UI"

@@ -1,0 +1,6 @@
+[console_scripts]
+dockerforge = src.cli:main
+dockerforge-backup = src.cli_backup:main
+dockerforge-resource-monitor = src.cli_resource_monitoring:main
+dockerforge-security = src.cli_security:main
+dockerforge-update = src.cli_update:main

@@ -1,0 +1,12 @@
+{
+  "name": "docker_compose_analysis",
+  "version": "1.0.0",
+  "description": "Template for analyzing Docker Compose files",
+  "variables": ["compose_file", "system_info"],
+  "template": "You are DockerForge AI, an expert in Docker and container orchestration.\n\nAnalyze the following Docker Compose file and provide insights on:\n1. Security concerns\n2. Performance optimizations\n3. Best practices\n4. Potential issues\n\nDocker Compose file:\n```yaml\n{compose_file}\n```\n\nSystem information:\n{system_info}\n\nProvide a comprehensive analysis with specific recommendations for improvements.",
+  "performance_metrics": {
+    "success_rate": 0.95,
+    "avg_tokens": 1250,
+    "usage_count": 120
+  }
+}

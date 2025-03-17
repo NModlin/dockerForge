@@ -1,0 +1,91 @@
+# DockerForge Telemetry Configuration
+
+# General telemetry settings
+enabled: true  # Set to false to disable all telemetry
+privacy_level: high  # high, medium, low
+
+# Data collection settings
+collection:
+  # Usage statistics
+  usage_statistics:
+    enabled: true
+    commands: true  # Track command usage
+    features: true  # Track feature usage
+    performance: true  # Track performance metrics
+    errors: true  # Track error occurrences (no sensitive data)
+  
+  # Crash reporting
+  crash_reporting:
+    enabled: true
+    include_stack_trace: true
+    include_system_info: true
+    include_docker_version: true
+    include_python_version: true
+  
+  # Feature usage tracking
+  feature_usage:
+    enabled: true
+    ai_providers: true  # Track which AI providers are used
+    monitoring: true  # Track monitoring feature usage
+    security: true  # Track security feature usage
+    backup: true  # Track backup feature usage
+    update: true  # Track update feature usage
+    compose: true  # Track compose feature usage
+  
+  # Performance metrics
+  performance_metrics:
+    enabled: true
+    command_execution_time: true  # Track how long commands take
+    ai_response_time: true  # Track AI response times
+    resource_usage: true  # Track DockerForge resource usage
+
+# Data submission settings
+submission:
+  # Submission frequency
+  frequency: weekly  # never, daily, weekly, monthly
+  
+  # Submission method
+  method: https  # https, local
+  
+  # Server settings (for https method)
+  server:
+    url: "https://telemetry.dockerforge.example.com/submit"
+    timeout: 10  # seconds
+  
+  # Local settings (for local method)
+  local:
+    path: "/var/lib/dockerforge/telemetry"
+    max_size: 10  # MB
+    rotation: 5  # Number of files to keep
+
+# Privacy settings
+privacy:
+  # Data anonymization
+  anonymize:
+    user_id: true  # Anonymize user ID
+    hostname: true  # Anonymize hostname
+    ip_address: true  # Anonymize IP address
+    container_names: true  # Anonymize container names
+    image_names: false  # Do not anonymize image names (useful for vulnerability tracking)
+  
+  # Data retention
+  retention:
+    server_retention_days: 90  # Days to keep data on server
+    local_retention_days: 30  # Days to keep data locally
+
+# User control settings
+user_control:
+  # Opt-out options
+  opt_out:
+    allow_complete_opt_out: true  # Allow users to completely opt out
+    allow_partial_opt_out: true  # Allow users to opt out of specific data types
+  
+  # Data review
+  data_review:
+    enabled: true  # Allow users to review data before submission
+    timeout: 300  # seconds before automatic submission if not reviewed
+  
+  # Notification
+  notification:
+    notify_before_submission: true  # Notify users before data submission
+    notification_timeout: 86400  # seconds (1 day)

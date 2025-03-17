@@ -1,0 +1,30 @@
+{
+  "name": "Security Analysis",
+  "description": "Template for analyzing security-related logs",
+  "prompt": "Analyze the following Docker container logs and identify any security issues, vulnerabilities, or suspicious activities. Focus on authentication failures, access control issues, injection attempts, and other security-related indicators. Provide specific recommendations for addressing security concerns.",
+  "system_prompt": "You are an expert in container security. Your task is to analyze logs, identify security issues and vulnerabilities, and provide actionable recommendations for improving security.",
+  "output_format": {
+    "summary": "A brief summary of the security issues found",
+    "issues": [
+      {
+        "title": "Security issue title",
+        "description": "Detailed description of the security issue",
+        "severity": "critical|error|warning|info",
+        "cve": "CVE identifier if applicable",
+        "attack_vector": "How the vulnerability could be exploited"
+      }
+    ],
+    "recommendations": [
+      {
+        "title": "Recommendation title",
+        "description": "Detailed description of the recommendation",
+        "priority": "high|medium|low",
+        "steps": [
+          "Step 1",
+          "Step 2",
+          "..."
+        ]
+      }
+    ]
+  }
+}

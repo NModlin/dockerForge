@@ -1,0 +1,468 @@
+2025-03-16 10:24:44,396 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 10:24:44,424 - dockerforge.cli - INFO - Checking Docker installation and connectivity
+2025-03-16 10:24:44,425 - dockerforge.cli - INFO - Platform: linux
+2025-03-16 10:24:44,425 - dockerforge.cli - INFO - Distribution: garuda Soaring
+2025-03-16 10:24:44,425 - dockerforge.cli - INFO - Init system: systemd
+2025-03-16 10:24:44,463 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 10:24:44,470 - dockerforge.cli - INFO - Docker version: 28.0.1
+2025-03-16 10:24:44,470 - dockerforge.cli - INFO - API version: 1.48
+2025-03-16 10:24:44,482 - dockerforge.cli - INFO - Containers: 7
+2025-03-16 10:24:44,483 - dockerforge.cli - INFO - Running: 1
+2025-03-16 10:24:44,483 - dockerforge.cli - INFO - Paused: 0
+2025-03-16 10:24:44,483 - dockerforge.cli - INFO - Stopped: 6
+2025-03-16 10:24:44,483 - dockerforge.cli - INFO - Images: 21
+2025-03-16 10:24:48,956 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 10:24:48,986 - dockerforge.cli - INFO - Showing Docker and system information
+2025-03-16 10:24:48,995 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 10:24:54,789 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 10:24:54,822 - dockerforge.cli - INFO - Listing Docker containers
+2025-03-16 10:24:54,831 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 11:50:27,032 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 11:50:27,304 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 11:50:27,366 - dockerforge.plugin_manager - INFO - Created plugin template: /home/katalyst/GitHub/dockerForge/examples/plugins/example_plugin
+2025-03-16 11:50:27,388 - dockerforge.ai_provider - ERROR - Ollama API streaming request failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-03-16 11:50:27,393 - dockerforge.ai_provider - ERROR - Ollama API request failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-03-16 11:50:39,976 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 11:50:40,057 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 11:50:41,091 - dockerforge.troubleshooter - ERROR - Error analyzing container: Object of type MagicMock is not JSON serializable
+2025-03-16 11:51:26,331 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 11:54:07,248 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 11:54:13,490 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 11:54:13,581 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 11:54:13,612 - dockerforge.ai_provider - ERROR - Ollama API streaming request failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-03-16 11:54:13,613 - dockerforge.ai_provider - ERROR - Ollama API request failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-03-16 12:25:22,215 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:25:29,305 - dockerforge.log_collector - INFO - Log collection started
+2025-03-16 12:25:29,379 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 12:25:34,321 - dockerforge.pattern_recognition - INFO - Created patterns directory: ~/.dockerforge/patterns
+2025-03-16 12:25:34,362 - dockerforge.log_analyzer - INFO - Created templates directory: ~/.dockerforge/templates
+2025-03-16 12:25:34,363 - dockerforge.issue_detector - INFO - Created issues directory: ~/.dockerforge/issues
+2025-03-16 12:25:34,377 - dockerforge.recommendation_engine - INFO - Created recommendations directory: ~/.dockerforge/recommendations
+2025-03-16 12:25:34,378 - dockerforge.recommendation_engine - INFO - Created templates directory: ~/.dockerforge/recommendation_templates
+2025-03-16 12:27:55,736 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:27:55,771 - dockerforge.log_collector - INFO - Log collection started
+2025-03-16 12:27:55,852 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 12:28:00,825 - dockerforge.issue_detector - INFO - Created new manual issue: a3e09c5b_manual_1742142480 - Manual: Database Connection Error
+2025-03-16 12:28:00,840 - dockerforge.recommendation_engine - INFO - Created manual recommendation: a3e09c5b_manual_1742142480_manual_1742142480 - Recommendation for Manual: Database Connection Error
+2025-03-16 12:28:00,886 - dockerforge.ai_provider - ERROR - Ollama API request failed: 404 Client Error: Not Found for url: http://localhost:11434/api/generate
+2025-03-16 12:28:12,782 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:28:12,818 - dockerforge.cli - INFO - Monitoring logs for container dockerforge-test
+2025-03-16 12:28:12,829 - dockerforge.log_collector - INFO - Log collection started
+2025-03-16 12:28:16,486 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:28:16,517 - dockerforge.cli - INFO - Showing detected issues
+2025-03-16 12:28:16,540 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 12:28:21,124 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:28:21,152 - dockerforge.cli - INFO - Showing recommendations
+2025-03-16 12:28:21,174 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 12:28:25,203 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:28:25,234 - dockerforge.cli - INFO - Showing statistics for container dockerforge-test
+2025-03-16 12:28:25,253 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 13:00:53,902 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:00:53,945 - dockerforge.cli_notifications - INFO - Sending notification: Test Notification
+2025-03-16 13:00:53,984 - dockerforge.cli_notifications - ERROR - Error sending notification: No module named 'slack_sdk'
+2025-03-16 13:00:54,312 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:00:54,359 - dockerforge.cli_notifications - INFO - Listing notifications
+2025-03-16 13:00:54,402 - dockerforge.cli_notifications - ERROR - Error listing notifications: No module named 'slack_sdk'
+2025-03-16 13:00:54,896 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:00:54,944 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:00:54,945 - dockerforge.fix_proposal - INFO - Loaded 0 fixes
+2025-03-16 13:00:54,945 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:00:54,946 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_ece86ff99331 - Test Fix
+2025-03-16 13:00:54,988 - dockerforge.cli_notifications - ERROR - Error creating fix proposal: No module named 'slack_sdk'
+2025-03-16 13:00:55,337 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:00:55,380 - dockerforge.cli_notifications - INFO - Listing fix proposals
+2025-03-16 13:00:55,380 - dockerforge.fix_proposal - INFO - Loaded 1 fixes
+2025-03-16 13:00:55,380 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:00:55,820 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:00:55,867 - dockerforge.cli_notifications - INFO - Showing fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_ece86ff99331
+2025-03-16 13:00:55,868 - dockerforge.fix_proposal - INFO - Loaded 1 fixes
+2025-03-16 13:00:55,868 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:00:56,165 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:00:56,209 - dockerforge.cli_notifications - INFO - Approving fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_ece86ff99331
+2025-03-16 13:00:56,210 - dockerforge.fix_proposal - INFO - Loaded 1 fixes
+2025-03-16 13:00:56,210 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:00:56,210 - dockerforge.fix_proposal - WARNING - Fix not found: fix_proposal
+fix_proposal
+fix_proposal
+fix_ece86ff99331
+2025-03-16 13:00:56,562 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:00:56,632 - dockerforge.cli_notifications - INFO - Applying fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_ece86ff99331
+2025-03-16 13:00:56,633 - dockerforge.fix_proposal - INFO - Loaded 1 fixes
+2025-03-16 13:00:56,634 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:00:56,713 - dockerforge.cli_notifications - ERROR - Error applying fix: No module named 'slack_sdk'
+2025-03-16 13:01:36,143 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:01:36,179 - dockerforge.cli_notifications - INFO - Sending notification: Test Notification
+2025-03-16 13:01:36,277 - dockerforge.cli_notifications - ERROR - Error sending notification: No module named 'discord_webhook'
+2025-03-16 13:01:36,604 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:01:36,667 - dockerforge.cli_notifications - INFO - Listing notifications
+2025-03-16 13:01:36,747 - dockerforge.cli_notifications - ERROR - Error listing notifications: No module named 'discord_webhook'
+2025-03-16 13:01:37,260 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:01:37,306 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:01:37,307 - dockerforge.fix_proposal - INFO - Loaded 1 fixes
+2025-03-16 13:01:37,307 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:01:37,307 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_33f00f6c6b37 - Test Fix
+2025-03-16 13:01:37,413 - dockerforge.cli_notifications - ERROR - Error creating fix proposal: No module named 'discord_webhook'
+2025-03-16 13:01:37,735 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:01:37,778 - dockerforge.cli_notifications - INFO - Listing fix proposals
+2025-03-16 13:01:37,778 - dockerforge.fix_proposal - INFO - Loaded 2 fixes
+2025-03-16 13:01:37,778 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:01:38,112 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:01:38,176 - dockerforge.cli_notifications - INFO - Showing fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_33f00f6c6b37
+2025-03-16 13:01:38,176 - dockerforge.fix_proposal - INFO - Loaded 2 fixes
+2025-03-16 13:01:38,176 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:01:38,526 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:01:38,564 - dockerforge.cli_notifications - INFO - Approving fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_33f00f6c6b37
+2025-03-16 13:01:38,565 - dockerforge.fix_proposal - INFO - Loaded 2 fixes
+2025-03-16 13:01:38,565 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:01:38,565 - dockerforge.fix_proposal - WARNING - Fix not found: fix_proposal
+fix_proposal
+fix_proposal
+fix_33f00f6c6b37
+2025-03-16 13:01:38,840 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:01:38,877 - dockerforge.cli_notifications - INFO - Applying fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_33f00f6c6b37
+2025-03-16 13:01:38,878 - dockerforge.fix_proposal - INFO - Loaded 2 fixes
+2025-03-16 13:01:38,878 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:01:38,959 - dockerforge.cli_notifications - ERROR - Error applying fix: No module named 'discord_webhook'
+2025-03-16 13:02:05,681 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:05,729 - dockerforge.cli_notifications - INFO - Sending notification: Test Notification
+2025-03-16 13:02:05,809 - dockerforge.template_manager - INFO - Created templates directory: /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:02:05,809 - dockerforge.template_manager - INFO - Created default notification template
+2025-03-16 13:02:05,809 - dockerforge.template_manager - INFO - Created container exit notification template
+2025-03-16 13:02:05,810 - dockerforge.template_manager - INFO - Created fix proposal notification template
+2025-03-16 13:02:05,810 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:02:05,810 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:02:06,103 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:06,153 - dockerforge.cli_notifications - INFO - Listing notifications
+2025-03-16 13:02:06,241 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:02:06,242 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:02:06,242 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:02:06,686 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:06,730 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:02:06,731 - dockerforge.fix_proposal - INFO - Loaded 2 fixes
+2025-03-16 13:02:06,731 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:02:06,731 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_a0e531c8d3f7 - Test Fix
+2025-03-16 13:02:06,827 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:02:06,828 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:02:06,828 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:02:06,829 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-16 13:02:06,829 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-16 13:02:06,829 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_a0e531c8d3f7
+2025-03-16 13:02:07,237 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:07,322 - dockerforge.cli_notifications - INFO - Listing fix proposals
+2025-03-16 13:02:07,327 - dockerforge.fix_proposal - INFO - Loaded 3 fixes
+2025-03-16 13:02:07,330 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:02:07,740 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:07,806 - dockerforge.cli_notifications - INFO - Showing fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_a0e531c8d3f7
+fix_proposal
+fix_a0e531c8d3f7
+fix_a0e531c8d3f7
+2025-03-16 13:02:07,806 - dockerforge.fix_proposal - INFO - Loaded 3 fixes
+2025-03-16 13:02:07,808 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:02:08,144 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:08,224 - dockerforge.cli_notifications - INFO - Approving fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_a0e531c8d3f7
+fix_proposal
+fix_a0e531c8d3f7
+fix_a0e531c8d3f7
+2025-03-16 13:02:08,227 - dockerforge.fix_proposal - INFO - Loaded 3 fixes
+2025-03-16 13:02:08,227 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:02:08,227 - dockerforge.fix_proposal - WARNING - Fix not found: fix_proposal
+fix_proposal
+fix_proposal
+fix_a0e531c8d3f7
+fix_proposal
+fix_a0e531c8d3f7
+fix_a0e531c8d3f7
+2025-03-16 13:02:08,657 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:08,743 - dockerforge.cli_notifications - INFO - Applying fix proposal: fix_proposal
+fix_proposal
+fix_proposal
+fix_a0e531c8d3f7
+fix_proposal
+fix_a0e531c8d3f7
+fix_a0e531c8d3f7
+2025-03-16 13:02:08,744 - dockerforge.fix_proposal - INFO - Loaded 3 fixes
+2025-03-16 13:02:08,744 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:02:08,847 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:02:08,847 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:02:08,847 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:02:08,847 - dockerforge.fix_applier - INFO - Fix applier initialized
+2025-03-16 13:02:08,848 - dockerforge.fix_applier - WARNING - Fix not found: fix_proposal
+fix_proposal
+fix_proposal
+fix_a0e531c8d3f7
+fix_proposal
+fix_a0e531c8d3f7
+fix_a0e531c8d3f7
+2025-03-16 13:02:28,941 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:56,144 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:02:56,185 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:02:56,186 - dockerforge.fix_proposal - INFO - Loaded 3 fixes
+2025-03-16 13:02:56,186 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:02:56,186 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_73d29162888e - Test Fix
+2025-03-16 13:02:56,264 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:02:56,264 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:02:56,264 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:02:56,265 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-16 13:02:56,265 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-16 13:02:56,265 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_73d29162888e
+2025-03-16 13:03:16,262 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:16,318 - dockerforge.cli_notifications - INFO - Sending notification: Test Notification
+2025-03-16 13:03:16,396 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:16,396 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:16,397 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:16,731 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:16,795 - dockerforge.cli_notifications - INFO - Listing notifications
+2025-03-16 13:03:16,875 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:16,876 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:16,876 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:17,285 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:17,362 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:03:17,363 - dockerforge.fix_proposal - INFO - Loaded 4 fixes
+2025-03-16 13:03:17,363 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:03:17,364 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_33344da4450f - Test Fix
+2025-03-16 13:03:17,480 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:17,482 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:17,482 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:17,482 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-16 13:03:17,482 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-16 13:03:17,484 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_33344da4450f
+2025-03-16 13:03:17,819 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:17,932 - dockerforge.cli_notifications - INFO - Listing fix proposals
+2025-03-16 13:03:17,933 - dockerforge.fix_proposal - INFO - Loaded 5 fixes
+2025-03-16 13:03:17,934 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:03:18,364 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:18,404 - dockerforge.cli_notifications - INFO - Showing fix proposal: fix_proposal
+2025-03-16 13:03:18,405 - dockerforge.fix_proposal - INFO - Loaded 5 fixes
+2025-03-16 13:03:18,405 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:03:18,730 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:18,809 - dockerforge.cli_notifications - INFO - Approving fix proposal: fix_proposal
+2025-03-16 13:03:18,810 - dockerforge.fix_proposal - INFO - Loaded 5 fixes
+2025-03-16 13:03:18,810 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:03:18,812 - dockerforge.fix_proposal - WARNING - Fix not found: fix_proposal
+2025-03-16 13:03:19,125 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:19,158 - dockerforge.cli_notifications - INFO - Applying fix proposal: fix_proposal
+2025-03-16 13:03:19,159 - dockerforge.fix_proposal - INFO - Loaded 5 fixes
+2025-03-16 13:03:19,159 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:03:19,227 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:19,228 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:19,228 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:19,228 - dockerforge.fix_applier - INFO - Fix applier initialized
+2025-03-16 13:03:19,228 - dockerforge.fix_applier - WARNING - Fix not found: fix_proposal
+2025-03-16 13:03:33,109 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:33,160 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:03:33,161 - dockerforge.fix_proposal - INFO - Loaded 5 fixes
+2025-03-16 13:03:33,161 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:03:33,161 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_bea018388641 - Test Fix
+2025-03-16 13:03:33,260 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:33,260 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:33,260 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:33,260 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-16 13:03:33,261 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-16 13:03:33,261 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_bea018388641
+2025-03-16 13:03:58,720 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:58,792 - dockerforge.cli_notifications - INFO - Sending notification: Test Notification
+2025-03-16 13:03:58,866 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:58,866 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:58,867 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:59,187 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:59,226 - dockerforge.cli_notifications - INFO - Listing notifications
+2025-03-16 13:03:59,320 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:59,320 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:59,320 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:59,620 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:03:59,695 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:03:59,697 - dockerforge.fix_proposal - INFO - Loaded 6 fixes
+2025-03-16 13:03:59,697 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:03:59,698 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_32099991538f - Test Fix
+2025-03-16 13:03:59,846 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:03:59,849 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:03:59,849 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:03:59,852 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-16 13:03:59,852 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-16 13:03:59,852 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_32099991538f
+2025-03-16 13:04:00,288 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:00,352 - dockerforge.cli_notifications - INFO - Listing fix proposals
+2025-03-16 13:04:00,354 - dockerforge.fix_proposal - INFO - Loaded 7 fixes
+2025-03-16 13:04:00,355 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:00,731 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:00,800 - dockerforge.cli_notifications - INFO - Showing fix proposal: fix_proposal
+2025-03-16 13:04:00,802 - dockerforge.fix_proposal - INFO - Loaded 7 fixes
+2025-03-16 13:04:00,803 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:01,235 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:01,297 - dockerforge.cli_notifications - INFO - Approving fix proposal: fix_proposal
+2025-03-16 13:04:01,299 - dockerforge.fix_proposal - INFO - Loaded 7 fixes
+2025-03-16 13:04:01,299 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:01,299 - dockerforge.fix_proposal - WARNING - Fix not found: fix_proposal
+2025-03-16 13:04:01,568 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:01,600 - dockerforge.cli_notifications - INFO - Applying fix proposal: fix_proposal
+2025-03-16 13:04:01,601 - dockerforge.fix_proposal - INFO - Loaded 7 fixes
+2025-03-16 13:04:01,601 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:01,668 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:04:01,668 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:04:01,668 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:04:01,668 - dockerforge.fix_applier - INFO - Fix applier initialized
+2025-03-16 13:04:01,669 - dockerforge.fix_applier - WARNING - Fix not found: fix_proposal
+2025-03-16 13:04:19,588 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:19,618 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:04:19,619 - dockerforge.fix_proposal - INFO - Loaded 7 fixes
+2025-03-16 13:04:19,619 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:19,620 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_dc8d6eeee515 - Test Fix
+2025-03-16 13:04:19,682 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:04:19,682 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:04:19,682 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:04:19,683 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-16 13:04:19,683 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-16 13:04:19,683 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_dc8d6eeee515
+2025-03-16 13:04:35,068 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:35,120 - dockerforge.cli_notifications - INFO - Sending notification: Test Notification
+2025-03-16 13:04:35,199 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:04:35,199 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:04:35,200 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:04:35,472 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:35,512 - dockerforge.cli_notifications - INFO - Listing notifications
+2025-03-16 13:04:35,590 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:04:35,590 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:04:35,591 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:04:35,994 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:36,078 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-16 13:04:36,083 - dockerforge.fix_proposal - INFO - Loaded 8 fixes
+2025-03-16 13:04:36,083 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:36,083 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_ddb01bc93357 - Test Fix
+2025-03-16 13:04:36,223 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:04:36,224 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:04:36,224 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:04:36,224 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-16 13:04:36,224 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-16 13:04:36,224 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_ddb01bc93357
+2025-03-16 13:04:36,516 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:36,548 - dockerforge.cli_notifications - INFO - Listing fix proposals
+2025-03-16 13:04:36,549 - dockerforge.fix_proposal - INFO - Loaded 9 fixes
+2025-03-16 13:04:36,549 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:36,816 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:36,870 - dockerforge.cli_notifications - INFO - Showing fix proposal: fix_ddb01bc93357
+2025-03-16 13:04:36,871 - dockerforge.fix_proposal - INFO - Loaded 9 fixes
+2025-03-16 13:04:36,872 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:37,155 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:37,187 - dockerforge.cli_notifications - INFO - Approving fix proposal: fix_ddb01bc93357
+2025-03-16 13:04:37,188 - dockerforge.fix_proposal - INFO - Loaded 9 fixes
+2025-03-16 13:04:37,188 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:37,188 - dockerforge.fix_proposal - INFO - Approved fix: fix_ddb01bc93357
+2025-03-16 13:04:37,256 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:04:37,256 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:04:37,256 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:04:37,527 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:04:37,579 - dockerforge.cli_notifications - INFO - Applying fix proposal: fix_ddb01bc93357
+2025-03-16 13:04:37,581 - dockerforge.fix_proposal - INFO - Loaded 9 fixes
+2025-03-16 13:04:37,581 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-16 13:04:37,654 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-16 13:04:37,655 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 13:04:37,655 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-16 13:04:37,655 - dockerforge.fix_applier - INFO - Fix applier initialized
+2025-03-16 13:04:37,655 - dockerforge.fix_applier - INFO - Starting dry run of fix: fix_ddb01bc93357 - Test Fix
+2025-03-16 13:04:37,656 - dockerforge.fix_applier - INFO - Applying step 1/2: Test Step 1
+2025-03-16 13:04:37,656 - dockerforge.fix_applier - INFO - Dry run: Would execute command: echo 'Hello from test step 1'
+2025-03-16 13:04:37,656 - dockerforge.fix_applier - INFO - Applying step 2/2: Test Step 2
+2025-03-16 13:04:37,656 - dockerforge.fix_applier - INFO - Dry run: Would execute command: echo 'Hello from test step 2'
+2025-03-16 13:24:01,374 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:25:54,793 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:25:55,010 - dockerforge.src.compose.template_manager - INFO - Loaded 0 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:25:55,249 - dockerforge.cli_compose - INFO - Listing Docker Compose files
+2025-03-16 13:25:55,254 - dockerforge.src.compose.compose_discovery - INFO - Discovered Docker Compose file: /home/katalyst/GitHub/dockerForge/docker-compose.yml (version: 3.8, services: 2)
+2025-03-16 13:25:55,259 - dockerforge.src.compose.compose_discovery - INFO - Discovered Docker Compose file: /home/katalyst/GitHub/dockerForge/test_compose/docker-compose.yml (version: 3, services: 2)
+2025-03-16 13:25:55,570 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:25:55,716 - dockerforge.src.compose.template_manager - INFO - Loaded 0 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:25:55,863 - dockerforge.cli_compose - INFO - Validating Docker Compose file: test_compose/docker-compose.yml
+2025-03-16 13:25:56,138 - dockerforge.src.compose.compose_operations - INFO - Docker Compose file test_compose/docker-compose.yml is valid
+2025-03-16 13:25:56,141 - dockerforge.src.compose.compose_parser - WARNING - No schema available for Docker Compose version 3
+2025-03-16 13:25:56,672 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:25:56,865 - dockerforge.src.compose.template_manager - INFO - Loaded 0 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:25:57,002 - dockerforge.cli_compose - INFO - Generating dependency visualization for Docker Compose file test_compose/docker-compose.yml
+2025-03-16 13:25:57,407 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:25:57,525 - dockerforge.src.compose.template_manager - INFO - Loaded 0 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:25:57,640 - dockerforge.cli_compose - INFO - Creating backup of Docker Compose file test_compose/docker-compose.yml
+2025-03-16 13:25:57,641 - dockerforge.src.compose.change_manager - INFO - Created backup of test_compose/docker-compose.yml at /home/katalyst/.dockerforge/backups/compose/docker-compose.yml.20250316_132557.bak
+2025-03-16 13:25:58,100 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:25:58,238 - dockerforge.src.compose.template_manager - INFO - Loaded 0 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:25:58,430 - dockerforge.cli_compose - INFO - Showing backup history for Docker Compose file test_compose/docker-compose.yml
+2025-03-16 13:25:59,039 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:25:59,185 - dockerforge.src.compose.template_manager - INFO - Loaded 0 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:25:59,271 - dockerforge.cli_compose - INFO - Creating template web-template from service web in test_compose/docker-compose.yml
+2025-03-16 13:25:59,274 - dockerforge.src.compose.template_manager - INFO - Saved template web-template to /home/katalyst/.dockerforge/templates/compose/web-template.yml
+2025-03-16 13:25:59,943 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:26:00,080 - dockerforge.src.compose.template_manager - INFO - Loaded 1 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:26:00,234 - dockerforge.cli_compose - INFO - Listing Docker Compose templates
+2025-03-16 13:26:00,621 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:26:00,801 - dockerforge.src.compose.template_manager - INFO - Loaded 1 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:26:00,984 - dockerforge.cli_compose - INFO - Applying template web-template to create test_compose/new-compose.yml
+2025-03-16 13:26:01,458 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 13:26:01,602 - dockerforge.src.compose.template_manager - INFO - Loaded 1 templates from /home/katalyst/.dockerforge/templates/compose
+2025-03-16 13:26:01,770 - dockerforge.cli_compose - INFO - Starting Docker Compose services from test_compose/docker-compose.yml
+2025-03-16 13:26:01,771 - dockerforge.src.compose.compose_operations - INFO - Starting Docker Compose services: docker compose -f test_compose/docker-compose.yml up
+2025-03-16 20:56:21,956 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 20:59:51,885 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 21:00:29,810 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 21:02:25,108 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 21:02:25,218 - dockerforge.cli - INFO - Checking Docker installation and connectivity
+2025-03-16 21:02:25,218 - dockerforge.cli - INFO - Platform: linux
+2025-03-16 21:02:25,218 - dockerforge.cli - INFO - Distribution: garuda Soaring
+2025-03-16 21:02:25,218 - dockerforge.cli - INFO - Init system: systemd
+2025-03-16 21:02:25,295 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-03-16 21:02:25,306 - dockerforge.cli - INFO - Docker version: 28.0.1
+2025-03-16 21:02:25,307 - dockerforge.cli - INFO - API version: 1.48
+2025-03-16 21:02:25,323 - dockerforge.cli - INFO - Containers: 9
+2025-03-16 21:02:25,324 - dockerforge.cli - INFO - Running: 3
+2025-03-16 21:02:25,324 - dockerforge.cli - INFO - Paused: 0
+2025-03-16 21:02:25,324 - dockerforge.cli - INFO - Stopped: 6
+2025-03-16 21:02:25,324 - dockerforge.cli - INFO - Images: 45
+2025-03-16 21:02:40,300 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 21:02:40,436 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-03-16 21:02:40,437 - dockerforge.cli - ERROR - Unhandled exception: Can't instantiate abstract class PlatformAdapter without an implementation for abstract methods 'execute_command', 'fix_permissions', 'get_docker_compose_command', 'get_docker_info', 'restart_docker', 'start_on_boot'
+Traceback (most recent call last):
+  File "/home/katalyst/GitHub/dockerForge/src/cli.py", line 2237, in main
+    cli()
+    ~~~^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1161, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1082, in main
+    rv = self.invoke(ctx)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1697, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1694, in invoke
+    super().invoke(ctx)
+    ~~~~~~~~~~~~~~^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1443, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/decorators.py", line 33, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/src/cli_update.py", line 32, in update_cli
+    platform_adapter = PlatformAdapter()
+TypeError: Can't instantiate abstract class PlatformAdapter without an implementation for abstract methods 'execute_command', 'fix_permissions', 'get_docker_compose_command', 'get_docker_info', 'restart_docker', 'start_on_boot'

@@ -1,0 +1,77 @@
+# DockerForge Quick Start Configuration
+# This is a minimal configuration to get started with DockerForge
+
+# General settings
+general:
+  log_level: INFO
+  data_dir: ~/.dockerforge/data
+  telemetry:
+    enabled: false
+
+# Docker connection settings
+docker:
+  connection_type: auto  # auto, socket, tcp
+  socket_path: /var/run/docker.sock  # Used if connection_type is socket
+  tcp_host: localhost  # Used if connection_type is tcp
+  tcp_port: 2375  # Used if connection_type is tcp
+  tls_enabled: false  # Used if connection_type is tcp
+
+# AI provider settings
+ai:
+  default_provider: ollama  # claude, gemini, ollama
+  providers:
+    claude:
+      enabled: false
+      api_key: ""  # Set your API key here or use environment variable DOCKERFORGE_CLAUDE_API_KEY
+      model: claude-3-sonnet-20240229
+    gemini:
+      enabled: false
+      api_key: ""  # Set your API key here or use environment variable DOCKERFORGE_GEMINI_API_KEY
+      model: gemini-pro
+    ollama:
+      enabled: true
+      host: http://localhost:11434
+      model: llama3
+
+# Monitoring settings
+monitoring:
+  log_buffer_size: 1000
+  poll_interval: 5  # seconds
+  pattern_database: examples/patterns/docker_error_patterns.json
+
+# Notification settings
+notifications:
+  default_channel: console  # console, email, slack, discord, webhook
+  channels:
+    email:
+      enabled: false
+      smtp_server: smtp.example.com
+      smtp_port: 587
+      smtp_user: ""
+      smtp_password: ""
+      from_address: dockerforge@example.com
+      to_address: admin@example.com
+    slack:
+      enabled: false
+      webhook_url: ""
+    discord:
+      enabled: false
+      webhook_url: ""
+    webhook:
+      enabled: false
+      url: ""
+
+# Security settings
+security:
+  scan_on_image_pull: false
+  audit_schedule: daily  # never, daily, weekly, monthly
+
+# Backup settings
+backup:
+  backup_dir: ~/.dockerforge/backups
+  max_backups: 10
+
+# Update settings
+update:
+  check_interval: weekly  # never, daily, weekly, monthly
+  auto_update: false

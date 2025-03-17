@@ -1,0 +1,18 @@
+{
+  "name": "Resource Issue",
+  "description": "Template for resolving resource-related issues",
+  "prompt": "Generate a recommendation for resolving the following resource issue in a Docker container:\n\nIssue: {issue_title}\nDescription: {issue_description}\nContainer: {container_name}\n\nProvide a step-by-step solution that addresses the resource issue (CPU, memory, disk, etc.). Include specific commands to adjust resource limits and verify the solution.",
+  "system_prompt": "You are an expert in Docker resource management. Your task is to generate clear, actionable recommendations for resolving resource issues in Docker containers. Focus on providing solutions that optimize resource usage and prevent recurrence.",
+  "output_format": {
+    "title": "Recommendation title",
+    "description": "Detailed description of the recommendation",
+    "steps": [
+      {
+        "description": "Step description",
+        "command": "Command to execute (if applicable)",
+        "code": "Configuration changes (if applicable)",
+        "verification": "How to verify this step was successful"
+      }
+    ]
+  }
+}

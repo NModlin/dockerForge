@@ -1,0 +1,133 @@
+[
+  {
+    "id": "docker_daemon_error",
+    "name": "Docker Daemon Error",
+    "description": "Error from the Docker daemon",
+    "regex": "(?i)error from daemon: (.+)",
+    "severity": "error",
+    "tags": ["docker", "daemon", "error"],
+    "examples": [
+      "Error from daemon: conflict: unable to delete image (must be forced) - image is being used by running container",
+      "Error from daemon: Get https://registry-1.docker.io/v2/: net/http: request canceled while waiting for connection"
+    ],
+    "solution": "Check Docker daemon logs for more details. Ensure Docker daemon is running properly and has sufficient resources."
+  },
+  {
+    "id": "container_exit_nonzero",
+    "name": "Container Exit with Non-Zero Code",
+    "description": "Container exited with a non-zero exit code, indicating an error",
+    "regex": "(?i)exited with code (?!0)(\\d+)",
+    "severity": "warning",
+    "tags": ["container", "exit", "error"],
+    "examples": [
+      "Container exited with code 1",
+      "Process exited with code 137"
+    ],
+    "solution": "Check container logs for error messages. Exit code 137 typically indicates the container was killed due to memory issues."
+  },
+  {
+    "id": "out_of_memory",
+    "name": "Out of Memory",
+    "description": "Container or process ran out of memory",
+    "regex": "(?i)(out of memory|memory exhausted|cannot allocate memory|killed process|oom-killer)",
+    "severity": "critical",
+    "tags": ["memory", "oom", "error"],
+    "examples": [
+      "Out of memory: Killed process 123",
+      "Container was killed as it was using too much memory",
+      "java.lang.OutOfMemoryError: Java heap space"
+    ],
+    "solution": "Increase container memory limit or optimize application memory usage. Consider adding swap space or tuning JVM memory settings for Java applications."
+  },
+  {
+    "id": "permission_denied",
+    "name": "Permission Denied",
+    "description": "Permission denied error when accessing files or resources",
+    "regex": "(?i)(permission denied|access denied|not permitted|unauthorized)",
+    "severity": "error",
+    "tags": ["permission", "access", "error"],
+    "examples": [
+      "Permission denied: '/var/lib/docker'",
+      "Access denied for user 'root'@'localhost'"
+    ],
+    "solution": "Check file permissions and ownership. Ensure the container has the necessary permissions to access the required resources."
+  },
+  {
+    "id": "connection_refused",
+    "name": "Connection Refused",
+    "description": "Connection refused error when trying to connect to a service",
+    "regex": "(?i)(connection refused|could not connect|failed to connect|connection reset|connection timed out)",
+    "severity": "error",
+    "tags": ["connection", "network", "error"],
+    "examples": [
+      "Connection refused: localhost:5432",
+      "Failed to connect to database"
+    ],
+    "solution": "Ensure the target service is running and accessible. Check network configuration, firewall settings, and service health."
+  },
+  {
+    "id": "file_not_found",
+    "name": "File Not Found",
+    "description": "File or directory not found error",
+    "regex": "(?i)(no such file|file not found|directory not found|not found|no such directory)",
+    "severity": "error",
+    "tags": ["file", "path", "error"],
+    "examples": [
+      "No such file or directory: '/etc/config.json'",
+      "Could not find file 'app.js'"
+    ],
+    "solution": "Verify file paths and ensure required files are included in the container. Check volume mounts and file permissions."
+  },
+  {
+    "id": "disk_space",
+    "name": "Disk Space Issue",
+    "description": "Disk space related error",
+    "regex": "(?i)(no space left on device|disk full|not enough space|insufficient space)",
+    "severity": "critical",
+    "tags": ["disk", "storage", "error"],
+    "examples": [
+      "No space left on device",
+      "Disk full, cannot write to file"
+    ],
+    "solution": "Free up disk space by removing unused containers, images, and volumes. Consider increasing disk size or adding storage."
+  },
+  {
+    "id": "database_connection",
+    "name": "Database Connection Error",
+    "description": "Error connecting to database",
+    "regex": "(?i)(database connection|db connection|sql connection|mongodb connection).*?(error|failed|refused|timeout)",
+    "severity": "error",
+    "tags": ["database", "connection", "error"],
+    "examples": [
+      "Database connection error: Connection refused",
+      "Failed to connect to MySQL database"
+    ],
+    "solution": "Verify database credentials and connection settings. Ensure the database server is running and accessible from the container."
+  },
+  {
+    "id": "api_error",
+    "name": "API Error",
+    "description": "Error from API call",
+    "regex": "(?i)(api|http|https).*?(error|failed|status code [^2]\\d{2})",
+    "severity": "warning",
+    "tags": ["api", "http", "error"],
+    "examples": [
+      "API error: Status code 500",
+      "HTTP request failed with status 404"
+    ],
+    "solution": "Check API endpoint and request parameters. Verify API credentials and rate limits. Inspect API server logs for more details."
+  },
+  {
+    "id": "config_error",
+    "name": "Configuration Error",
+    "description": "Error in configuration",
+    "regex": "(?i)(config|configuration|settings|env|environment).*?(error|invalid|missing|not found)",
+    "severity": "error",
+    "tags": ["config", "settings", "error"],
+    "examples": [
+      "Configuration error: Missing required setting 'API_KEY'",
+      "Invalid configuration value for 'PORT'"
+    ],
+    "solution": "Review configuration files and environment variables. Ensure all required settings are provided with valid values."
+  }
+]

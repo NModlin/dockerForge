@@ -1,0 +1,153 @@
+# DockerForge Development Configuration
+# This is a configuration optimized for development environments
+
+# General settings
+general:
+  log_level: DEBUG
+  data_dir: ./data
+  log_file: ./logs/dockerforge.log
+  telemetry:
+    enabled: false
+
+# Docker connection settings
+docker:
+  connection_type: auto
+  socket_path: /var/run/docker.sock
+  connection_timeout: 10  # seconds
+  request_timeout: 30  # seconds
+
+# AI provider settings
+ai:
+  default_provider: ollama  # Using local Ollama for development
+  providers:
+    claude:
+      enabled: false
+      api_key: ""
+      model: claude-3-sonnet-20240229
+    gemini:
+      enabled: false
+      api_key: ""
+      model: gemini-pro
+    ollama:
+      enabled: true
+      host: http://localhost:11434
+      model: llama3
+
+# Monitoring settings
+monitoring:
+  daemon_mode: false  # Run in foreground for development
+  log_buffer_size: 1000
+  poll_interval: 2  # seconds, faster for development
+  pattern_database: ./examples/patterns/docker_error_patterns.json
+  retention_period: 7  # days
+  anomaly_detection:
+    enabled: true
+    sensitivity: high  # More sensitive for testing
+    learning_period: 1  # days
+
+# Resource monitoring settings
+resource_monitoring:
+  enabled: true
+  collection_interval: 10  # seconds, faster for development
+  metrics:
+    cpu: true
+    memory: true
+    disk: true
+    network: true
+  thresholds:
+    cpu_percent: 90  # Higher threshold for development
+    memory_percent: 90
+    disk_percent: 95
+  retention:
+    high_resolution: 6  # hours
+    medium_resolution: 2  # days
+    low_resolution: 7  # days
+
+# Notification settings
+notifications:
+  default_channel: console  # Use console for development
+  throttling:
+    enabled: false  # No throttling in development
+  channels:
+    email:
+      enabled: false
+    slack:
+      enabled: false
+    discord:
+      enabled: false
+    webhook:
+      enabled: false
+    console:
+      enabled: true
+      color: true
+
+# Security settings
+security:
+  scan_on_image_pull: true
+  audit_schedule: never  # Manual triggering in development
+  vulnerability_database_update: daily
+  severity_threshold: LOW  # Lower threshold to catch more issues in development
+  compliance:
+    cis_benchmark: true
+    pci_dss: false
+    hipaa: false
+  reporting:
+    enabled: true
+    format: html
+    output_dir: ./reports
+
+# Backup settings
+backup:
+  backup_dir: ./backups
+  schedule: never  # Manual triggering in development
+  retention:
+    max_backups: 5
+    max_age_days: 7
+  compression: true
+  encryption:
+    enabled: false  # Simpler for development
+
+# Update settings
+update:
+  check_interval: daily
+  auto_update: false  # Manual updates in development
+  update_channel: dev  # Use development channel
+  auto_restart: false
+
+# Compose settings
+compose:
+  discovery:
+    enabled: true
+    paths:
+      - ./test_compose
+    recursive: true
+  validation:
+    enabled: true
+    strict: true  # Stricter validation in development
+  backup_before_changes: true
+
+# Plugin settings
+plugins:
+  enabled: true
+  directory: ./plugins
+  auto_update: false  # Manual updates in development
+  allowed_sources:
+    - official
+    - verified
+    - development  # Allow development sources
+
+# Development-specific settings
+development:
+  hot_reload: true
+  mock_services: true
+  test_data_generation: true
+  profiling:
+    enabled: true
+    output_dir: ./profiling
+  debug:
+    break_on_error: false
+    verbose_logging: true
+    log_api_calls: true
+  testing:
+    use_fixtures: true
+    fixture_path: ./tests/fixtures

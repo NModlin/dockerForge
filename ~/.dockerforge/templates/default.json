@@ -1,0 +1,28 @@
+{
+  "name": "Default Log Analysis",
+  "description": "Default template for analyzing container logs",
+  "prompt": "Analyze the following Docker container logs and identify any issues, errors, or potential problems. Focus on critical errors, warnings, and patterns that might indicate problems with the container or application. Provide a summary of the issues found and specific recommendations for resolving each issue.",
+  "system_prompt": "You are an expert Docker container log analyzer. Your task is to analyze container logs, identify issues, and provide actionable recommendations. Focus on identifying patterns, errors, and anomalies that might indicate problems with the container or application.",
+  "output_format": {
+    "summary": "A brief summary of the analysis",
+    "issues": [
+      {
+        "title": "Issue title",
+        "description": "Detailed description of the issue",
+        "severity": "critical|error|warning|info",
+        "evidence": "Log lines or patterns that indicate this issue"
+      }
+    ],
+    "recommendations": [
+      {
+        "title": "Recommendation title",
+        "description": "Detailed description of the recommendation",
+        "steps": [
+          "Step 1",
+          "Step 2",
+          "..."
+        ]
+      }
+    ]
+  }
+}

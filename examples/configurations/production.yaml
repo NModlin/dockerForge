@@ -1,0 +1,166 @@
+# DockerForge Production Configuration
+# This is a comprehensive configuration for production environments
+
+# General settings
+general:
+  log_level: WARNING
+  data_dir: /var/lib/dockerforge/data
+  log_file: /var/log/dockerforge/dockerforge.log
+  telemetry:
+    enabled: true
+    privacy_level: high  # high, medium, low
+
+# Docker connection settings
+docker:
+  connection_type: socket
+  socket_path: /var/run/docker.sock
+  connection_timeout: 30  # seconds
+  request_timeout: 60  # seconds
+
+# AI provider settings
+ai:
+  default_provider: claude
+  providers:
+    claude:
+      enabled: true
+      api_key: ""  # Set your API key here or use environment variable DOCKERFORGE_CLAUDE_API_KEY
+      model: claude-3-opus-20240229
+      max_tokens: 4000
+      temperature: 0.2
+    gemini:
+      enabled: true  # Fallback provider
+      api_key: ""  # Set your API key here or use environment variable DOCKERFORGE_GEMINI_API_KEY
+      model: gemini-pro
+      max_tokens: 4000
+      temperature: 0.2
+    ollama:
+      enabled: false
+      host: http://localhost:11434
+      model: llama3
+
+# Monitoring settings
+monitoring:
+  daemon_mode: true
+  daemon_user: dockerforge
+  daemon_group: docker
+  log_buffer_size: 10000
+  poll_interval: 10  # seconds
+  pattern_database: /var/lib/dockerforge/patterns/docker_error_patterns.json
+  retention_period: 30  # days
+  anomaly_detection:
+    enabled: true
+    sensitivity: medium  # low, medium, high
+    learning_period: 7  # days
+
+# Resource monitoring settings
+resource_monitoring:
+  enabled: true
+  collection_interval: 60  # seconds
+  metrics:
+    cpu: true
+    memory: true
+    disk: true
+    network: true
+  thresholds:
+    cpu_percent: 80
+    memory_percent: 80
+    disk_percent: 90
+  retention:
+    high_resolution: 24  # hours
+    medium_resolution: 7  # days
+    low_resolution: 90  # days
+
+# Notification settings
+notifications:
+  default_channel: slack
+  throttling:
+    enabled: true
+    max_notifications_per_hour: 10
+    grouping_window: 300  # seconds
+  channels:
+    email:
+      enabled: true
+      smtp_server: smtp.example.com
+      smtp_port: 587
+      smtp_user: "notifications@example.com"
+      smtp_password: ""  # Set your password here or use environment variable DOCKERFORGE_SMTP_PASSWORD
+      from_address: dockerforge@example.com
+      to_address: admin@example.com
+      use_tls: true
+    slack:
+      enabled: true
+      webhook_url: ""  # Set your webhook URL here or use environment variable DOCKERFORGE_SLACK_WEBHOOK
+      channel: "#docker-alerts"
+      username: "DockerForge"
+      icon_emoji: ":whale:"
+    discord:
+      enabled: false
+      webhook_url: ""
+    webhook:
+      enabled: true
+      url: "https://example.com/webhooks/dockerforge"
+      headers:
+        Authorization: "Bearer your-token-here"
+        Content-Type: "application/json"
+
+# Security settings
+security:
+  scan_on_image_pull: true
+  audit_schedule: daily  # never, daily, weekly, monthly
+  vulnerability_database_update: daily  # never, daily, weekly, monthly
+  severity_threshold: MEDIUM  # CRITICAL, HIGH, MEDIUM, LOW
+  compliance:
+    cis_benchmark: true
+    pci_dss: true
+    hipaa: false
+  reporting:
+    enabled: true
+    schedule: weekly  # daily, weekly, monthly
+    format: html  # html, json, pdf
+    output_dir: /var/lib/dockerforge/reports
+
+# Backup settings
+backup:
+  backup_dir: /var/lib/dockerforge/backups
+  schedule: daily  # never, hourly, daily, weekly
+  retention:
+    max_backups: 30
+    max_age_days: 90
+  compression: true
+  encryption:
+    enabled: true
+    key_file: /etc/dockerforge/backup_key.pem
+
+# Update settings
+update:
+  check_interval: daily  # never, daily, weekly, monthly
+  auto_update: true
+  update_channel: stable  # stable, beta, dev
+  auto_restart: true
+  maintenance_window:
+    enabled: true
+    day_of_week: Sunday
+    hour: 2  # 24-hour format
+    minute: 0
+
+# Compose settings
+compose:
+  discovery:
+    enabled: true
+    paths:
+      - /etc/docker/compose
+      - /opt/docker/compose
+    recursive: true
+  validation:
+    enabled: true
+    strict: false
+  backup_before_changes: true
+
+# Plugin settings
+plugins:
+  enabled: true
+  directory: /var/lib/dockerforge/plugins
+  auto_update: true
+  allowed_sources:
+    - official
+    - verified

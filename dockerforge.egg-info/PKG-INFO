@@ -1,0 +1,180 @@
+Metadata-Version: 2.2
+Name: dockerforge
+Version: 0.1.0
+Summary: A comprehensive Docker management tool with AI-powered troubleshooting
+Home-page: https://github.com/dockerforge/dockerforge
+Author: DockerForge Team
+Author-email: info@dockerforge.example.com
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: docker>=6.0.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: click>=8.1.3
+Requires-Dist: pytest>=7.0.0
+Requires-Dist: pytest-cov>=4.0.0
+Requires-Dist: distro>=1.8.0
+Requires-Dist: psutil>=5.9.0
+Requires-Dist: typing_extensions>=4.5.0
+Requires-Dist: colorama>=0.4.6
+Requires-Dist: schema>=0.7.5
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: slack-sdk>=3.19.0
+Requires-Dist: discord-webhook>=1.0.0
+Requires-Dist: aiohttp>=3.8.0
+Requires-Dist: html2text>=2020.1.16
+Requires-Dist: email-validator>=2.0.0
+Requires-Dist: requests>=2.28.0
+Requires-Dist: tiktoken>=0.3.0
+Requires-Dist: anthropic>=0.5.0
+Requires-Dist: google-generativeai>=0.3.0
+Requires-Dist: openai>=1.0.0
+Requires-Dist: cryptography>=40.0.0
+Requires-Dist: keyring>=24.0.0
+Requires-Dist: pyjwt>=2.6.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: importlib-metadata>=6.0.0
+Requires-Dist: semver>=3.0.0
+Requires-Dist: pluggy>=1.0.0
+Requires-Dist: jinja2>=3.1.0
+Requires-Dist: markupsafe>=2.1.0
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: matplotlib>=3.7.0
+Requires-Dist: seaborn>=0.12.0
+Requires-Dist: tabulate>=0.9.0
+Requires-Dist: nltk>=3.8.0
+Requires-Dist: scikit-learn>=1.2.0
+Requires-Dist: dateparser>=1.1.0
+Requires-Dist: jsonschema>=4.17.0
+Requires-Dist: graphviz>=0.20.0
+Requires-Dist: networkx>=3.0.0
+Requires-Dist: prometheus-client>=0.16.0
+Requires-Dist: statsmodels>=0.14.0
+Requires-Dist: bokeh>=3.2.0
+Requires-Dist: influxdb-client>=1.36.0
+Requires-Dist: pyarrow>=12.0.0
+Requires-Dist: fastparquet>=2023.0.0
+Requires-Dist: schedule>=1.2.0
+Requires-Dist: safety>=2.3.0
+Requires-Dist: bandit>=1.7.0
+Requires-Dist: semver>=3.0.0
+Requires-Dist: requests>=2.28.0
+Requires-Dist: responses>=0.23.0
+Requires-Dist: pytest-mock>=3.10.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# DockerForge
+
+A comprehensive Docker management and monitoring tool with AI-powered troubleshooting capabilities.
+
+## Features
+
+- **Cross-Platform Compatibility**: Works on Linux, Windows, and macOS
+- **AI-Powered Analysis**: Multiple AI provider support (Claude, Gemini, extensible)
+- **Advanced Monitoring**: Real-time log monitoring and resource tracking
+- **Notification System**: Multi-channel notifications with intelligent alerting
+- **Docker Compose Management**: Discovery, validation, and visualization
+- **Security Module**: Vulnerability scanning, configuration auditing, and comprehensive reporting
+- **Backup & Restore**: Container, image, and volume backup, restore, export, and import
+- **Resource Optimization**: Intelligent resource monitoring and optimization recommendations
+- **Update System**: Version checking, in-place updates, and rollback capability
+- **User Experience**: Intuitive CLI interface with intelligent defaults
+
+## Installation
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Docker installed and running
+- Docker SDK for Python
+
+### Install from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/dockerforge/dockerforge.git
+cd dockerforge
+
+# Install the package
+pip install -e .
+```
+
+## Usage
+
+```bash
+# Get help
+dockerforge --help
+
+# Check Docker installation
+dockerforge check
+
+# Monitor containers
+dockerforge monitor
+
+# Analyze container logs with AI
+dockerforge analyze <container_name>
+
+# Manage Docker Compose files
+dockerforge compose list
+
+# Security scanning and auditing
+dockerforge security scan --image nginx:latest
+dockerforge security audit
+dockerforge security report --format html --output security-report.html
+
+# Backup and restore
+dockerforge backup container my-container
+dockerforge backup list
+dockerforge backup restore <backup-id>
+
+# Export and import
+dockerforge backup export image nginx:latest --output nginx-backup.tar.gz
+dockerforge backup import image nginx-backup.tar.gz --repository nginx --tag imported
+
+# Check for updates
+dockerforge update check
+dockerforge update apply
+dockerforge update rollback
+```
+
+## Development
+
+### Setup Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/dockerforge/dockerforge.git
+cd dockerforge
+
+# Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install development dependencies
+pip install -e ".[dev]"
+```
+
+### Run Tests
+
+```bash
+pytest
+```
+
+## License
+
+MIT

@@ -1,0 +1,11 @@
+2025-03-16 12:53:13,979 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:53:53,108 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-16 12:53:53,221 - dockerforge.preference_manager - INFO - Preference manager initialized
+2025-03-16 12:53:53,221 - dockerforge.preference_manager - INFO - Updated preferences for user test-user
+2025-03-16 12:53:53,229 - dockerforge.template_manager - INFO - Loaded 0 templates from /tmp/tmpz2iz1njr
+2025-03-16 12:53:53,230 - dockerforge.template_manager - INFO - Created default notification template
+2025-03-16 12:53:53,230 - dockerforge.template_manager - INFO - Created container exit notification template
+2025-03-16 12:53:53,230 - dockerforge.template_manager - INFO - Created fix proposal notification template
+2025-03-16 12:53:53,230 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-16 12:53:53,239 - dockerforge.fix_proposal - INFO - Loaded 0 fixes
+2025-03-16 12:53:53,239 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized

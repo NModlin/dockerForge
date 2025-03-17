@@ -1,0 +1,31 @@
+{
+  "id": "a3e09c5b_manual_1742142480_manual_1742142480",
+  "issue_id": "a3e09c5b_manual_1742142480",
+  "title": "Recommendation for Manual: Database Connection Error",
+  "description": "This is a manual recommendation for resolving the issue: Manual: Database Connection Error",
+  "steps": [
+    {
+      "description": "Check container logs for more details",
+      "command": "docker logs a3e09c5b0b7a4a2ac2ea7679ddebe75cfa0341da66136b0f49eb80856deb59d1",
+      "code": null,
+      "manual_action": null,
+      "verification": "Look for specific error messages in the logs"
+    },
+    {
+      "description": "Restart the container",
+      "command": "docker restart a3e09c5b0b7a4a2ac2ea7679ddebe75cfa0341da66136b0f49eb80856deb59d1",
+      "code": null,
+      "manual_action": null,
+      "verification": "Verify that the container is running with 'docker ps'"
+    }
+  ],
+  "created_at": "2025-03-16T12:28:00.840690",
+  "updated_at": "2025-03-16T12:28:00.840693",
+  "applied_at": null,
+  "source": "manual",
+  "success_rate": null,
+  "tags": [
+    "manual",
+    "test"
+  ]
+}
