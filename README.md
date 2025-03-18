@@ -1,6 +1,6 @@
 # DockerForge
 
-A comprehensive Docker management and monitoring tool with AI-powered troubleshooting capabilities.
+A comprehensive Docker management and monitoring tool with AI-powered troubleshooting capabilities and an integrated web interface.
 
 ## Features
 
@@ -13,7 +13,8 @@ A comprehensive Docker management and monitoring tool with AI-powered troublesho
 - **Backup & Restore**: Container, image, and volume backup, restore, export, and import
 - **Resource Optimization**: Intelligent resource monitoring and optimization recommendations
 - **Update System**: Version checking, in-place updates, and rollback capability
-- **User Experience**: Intuitive CLI interface with intelligent defaults
+- **User Experience**: Intuitive CLI interface and web UI with intelligent defaults
+- **Advanced AI Chat System**: Multi-agent framework with contextual memory and specialized agents
 
 ## Installation
 
@@ -23,7 +24,7 @@ A comprehensive Docker management and monitoring tool with AI-powered troublesho
 - Docker installed and running
 - Docker SDK for Python
 
-### Install from Source
+### Option 1: Install from Source
 
 ```bash
 # Clone the repository
@@ -34,7 +35,22 @@ cd dockerforge
 pip install -e .
 ```
 
+### Option 2: Docker Installation
+
+```bash
+# Pull the Docker image
+docker pull natedog115/dockerforge:latest
+
+# Run with Docker Compose
+curl -O https://raw.githubusercontent.com/dockerforge/dockerforge/main/docker-compose.yml
+docker-compose up -d
+```
+
+This will start DockerForge with both the CLI and web interface.
+
 ## Usage
+
+### CLI Usage
 
 ```bash
 # Get help
@@ -70,7 +86,29 @@ dockerforge backup import image nginx-backup.tar.gz --repository nginx --tag imp
 dockerforge update check
 dockerforge update apply
 dockerforge update rollback
+
+# Use the AI chat system
+dockerforge chat
 ```
+
+### Docker Container Usage
+
+```bash
+# Run DockerForge in different modes:
+
+# CLI mode only
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock natedog115/dockerforge:latest cli check
+
+# Web interface only
+docker run -d -p 54321:54321 -v /var/run/docker.sock:/var/run/docker.sock natedog115/dockerforge:latest web
+
+# Both CLI and web interface (default)
+docker run -d -p 8080:8080 -p 54321:54321 -v /var/run/docker.sock:/var/run/docker.sock natedog115/dockerforge:latest all
+```
+
+### Web Interface
+
+Access the web interface at http://localhost:54321 after starting DockerForge with web or all mode.
 
 ## Development
 

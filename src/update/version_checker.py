@@ -30,10 +30,11 @@ class VersionChecker:
             config_manager: The configuration manager instance.
         """
         self.config_manager = config_manager
-        self.config = config_manager.get_config().get("update", {})
+        self.config = config_manager.get("update", {})
         self.current_version = self._get_current_version()
         self.cache_file = os.path.join(
-            config_manager.get_data_dir(), "update_cache.json"
+            os.path.expanduser(config_manager.get("general.data_dir", "~/.dockerforge/data")), 
+            "update_cache.json"
         )
         self.cache_ttl = self.config.get("cache_ttl", 24)  # hours
         self.api_url = self.config.get(

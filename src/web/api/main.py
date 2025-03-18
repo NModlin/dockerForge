@@ -4,11 +4,12 @@ DockerForge Web UI - FastAPI Backend
 This module provides the main FastAPI application for the DockerForge Web UI.
 """
 import os
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
+from typing import List, Dict, Any
 
 from .database import get_db, init_db, create_initial_data
 
@@ -61,7 +62,7 @@ async def root():
     }
 
 # Import and include routers
-from .routers import auth, containers, images, backup, monitoring
+from .routers import auth, containers, images, backup, monitoring, chat, websocket
 # Import additional routers as they are implemented
 from .models import __all__ as models  # Import all models to ensure they are registered
 
@@ -69,11 +70,13 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(containers.router, prefix="/api/containers", tags=["Containers"])
 app.include_router(images.router, prefix="/api/images", tags=["Images"])
 app.include_router(backup.router, prefix="/api/backup", tags=["Backup"])
+app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 # app.include_router(volumes.router, prefix="/api/volumes", tags=["Volumes"])
 # app.include_router(networks.router, prefix="/api/networks", tags=["Networks"])
 # app.include_router(compose.router, prefix="/api/compose", tags=["Compose"])
 # app.include_router(security.router, prefix="/api/security", tags=["Security"])
 app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
+app.include_router(websocket.router, tags=["WebSocket"])
 
 # Serve index.html for the root URL
 @app.get("/", include_in_schema=False)
@@ -89,11 +92,20 @@ async def catch_all(path: str):
     """
     Catch-all route to handle client-side routing.
     If the path starts with 'api/', let the request pass through to the API endpoints.
-    Otherwise, serve the index.html file.
+    If the path appears to be a static file (has an extension), check if it exists and serve it.
+    Otherwise, serve the index.html file for client-side routing.
     """
-    if not path.startswith("api/") and path != "api":
-        return FileResponse("/app/static/index.html")
-    raise HTTPException(status_code=404, detail="Not Found")
+    if path.startswith("api/") or path == "api":
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    # Check if the requested path exists in the static directory
+    if "." in path:  # This is likely a file request
+        static_path = f"/app/static/{path}"
+        if os.path.isfile(static_path):
+            return FileResponse(static_path)
+    
+    # For any other path, serve the index.html file
+    return FileResponse("/app/static/index.html")
 
 # Error handlers
 @app.exception_handler(HTTPException)

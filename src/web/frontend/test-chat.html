@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat Sidebar Test</title>
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <style>
+    .chat-sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 350px;
+      background-color: white;
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .chat-sidebar-header {
+      background-color: #1976d2;
+      color: white;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chat-messages-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .chat-messages {
+      height: 100%;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    
+    .chat-message {
+      display: flex;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    
+    .chat-message__avatar {
+      margin-right: 12px;
+    }
+    
+    .chat-message__content {
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 10px 12px;
+      max-width: 80%;
+    }
+    
+    .chat-message--user .chat-message__content {
+      background-color: #e3f2fd;
+    }
+    
+    .chat-input {
+      padding: 12px;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    
+    .chat-input-field {
+      display: flex;
+    }
+    
+    .app-bar {
+      background-color: #1976d2;
+      color: white;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 24px;
+    }
+    
+    button.send-button {
+      background-color: #1976d2;
+      color: white;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+    }
+    
+    input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+    }
+    
+    .v-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #1976d2;
+      color: white;
+    }
+    
+    .user-avatar {
+      background-color: #757575;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .container {
+      padding: 20px;
+    }
+
+    .chat-loading {
+      text-align: center;
+      padding: 8px;
+      font-style: italic;
+      color: #777;
+    }
+
+    .chat-system-message .chat-message__content {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="app-bar">
+      <div>DockerForge</div>
+      <div>
+        <select v-model="currentContext" @change="updateContext" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); margin-right: 12px; padding: 4px 8px;">
+          <option value="dashboard">Dashboard</option>
+          <option value="containers">Containers</option>
+          <option value="images">Images</option>
+          <option value="volumes">Volumes</option>
+          <option value="networks">Networks</option>
+          <option value="security">Security</option>
+        </select>
+        <button @click="toggleChat">
+          <span class="mdi mdi-robot"></span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="container">
+      <h1>AI Chat Test Page</h1>
+      <p>Click the robot icon in the top-right corner to toggle the AI chat sidebar.</p>
+      <p>This is a test page for the AI Chat Interface Upgrade - Phase 2.</p>
+      <p>Updates in Phase 2:</p>
+      <ul>
+        <li>Implemented state management via chat store module</li>
+        <li>Added message persistence between sessions</li>
+        <li>Added context awareness (see the select box above)</li>
+        <li>Enhanced mock responses based on context and message content</li>
+      </ul>
+      <div>
+        <h3>Actions:</h3>
+        <button @click="clearMessages" style="background-color: #f44336; padding: 8px 16px; border-radius: 4px; color: white; font-size: 14px; margin-top: 10px;">Clear Messages</button>
+      </div>
+    </div>
+    
+    <div v-if="isChatOpen" class="chat-sidebar">
+      <div class="chat-sidebar-header">
+        <h3>AI Assistant</h3>
+        <button @click="toggleChat">
+          <span class="mdi mdi-close"></span>
+        </button>
+      </div>
+      
+      <div class="chat-messages-container">
+        <div class="chat-messages">
+          <div v-for="(message, index) in messages" :key="index" :class="['chat-message', `chat-message--${message.type}`]">
+            <div class="chat-message__avatar" v-if="message.type === 'ai'">
+              <div class="v-avatar">
+                <span class="mdi mdi-robot"></span>
+              </div>
+            </div>
+            <div class="chat-message__avatar" v-else-if="message.type === 'user'">
+              <div class="v-avatar user-avatar">
+                <span class="mdi mdi-account"></span>
+              </div>
+            </div>
+            <div class="chat-message__content">
+              <div v-if="message.type === 'ai'" style="font-weight: 500; font-size: 0.8rem; margin-bottom: 4px; color: rgba(0, 0, 0, 0.6);">DockerForge AI</div>
+              <div v-else-if="message.type === 'user'" style="font-weight: 500; font-size: 0.8rem; margin-bottom: 4px; color: rgba(0, 0, 0, 0.6);">You</div>
+              <div v-else-if="message.type === 'system'" style="font-weight: 500; font-size: 0.8rem; margin-bottom: 4px; color: rgba(0, 0, 0, 0.6);">System</div>
+              <div>{{ message.text }}</div>
+              <div style="font-size: 0.7rem; color: rgba(0, 0, 0, 0.4); text-align: right; margin-top: 4px;">{{ formatTime(message.timestamp) }}</div>
+            </div>
+          </div>
+          <div v-if="isLoading" class="chat-loading">
+            DockerForge AI is thinking...
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-input">
+        <div class="chat-input-field">
+          <input 
+            v-model="newMessage" 
+            placeholder="Type a message..." 
+            @keyup.enter="sendMessage"
+            :disabled="isLoading"
+          />
+          <button class="send-button" @click="sendMessage" :disabled="isLoading">
+            <span class="mdi mdi-send"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script>
+    // Simple mock version of chat store module (test only)
+    const chatStore = {
+      state: {
+        messages: JSON.parse(localStorage.getItem('chatMessages')) || [
+          {
+            type: 'ai',
+            text: 'Hello! I\'m your DockerForge AI assistant. How can I help you with your Docker containers today?',
+            timestamp: new Date().toISOString()
+          }
+        ],
+        isActive: localStorage.getItem('chatSidebarOpen') === 'true',
+        loading: false,
+        error: null,
+        context: {
+          currentPage: 'dashboard',
+          currentContainerId: null,
+          currentImageId: null
+        }
+      },
+      
+      // Generate mock responses based on context
+      generateMockResponse(message, context) {
+        message = message.toLowerCase();
+        
+        // Container-related queries
+        if (message.includes('container') && message.includes('list')) {
+          return 'I can help you list your containers. In a future update, I\'ll be able to show your containers directly here, but for now, you can go to the Containers page to see them.';
+        }
+        
+        if (message.includes('container') && message.includes('stop')) {
+          return 'I can help you stop containers. In a future update, I\'ll be able to stop containers directly from here, but for now, you can do this from the Containers page.';
+        }
+        
+        if (message.includes('container') && message.includes('start')) {
+          return 'I can help you start containers. In a future update, I\'ll be able to start containers directly from here, but for now, you can do this from the Containers page.';
+        }
+        
+        // Image-related queries
+        if (message.includes('image') && (message.includes('list') || message.includes('show'))) {
+          return 'I can help you view your Docker images. In a future update, I\'ll be able to show your images directly here, but for now, you can go to the Images page to see them.';
+        }
+        
+        if (message.includes('pull') && message.includes('image')) {
+          return 'I can help you pull Docker images. In a future update, I\'ll be able to pull images directly from here, but for now, you can do this from the Images page.';
+        }
+        
+        // Troubleshooting-related queries
+        if ((message.includes('troubleshoot') || message.includes('debug') || message.includes('problem') || message.includes('error')) && (message.includes('container') || message.includes('docker'))) {
+          return 'I can help you troubleshoot Docker container issues. What specific problem are you encountering? In a future update, I\'ll have more advanced troubleshooting capabilities.';
+        }
+        
+        // Help-related queries
+        if (message.includes('help') || message.includes('what can you do')) {
+          return 'I can help you with Docker-related tasks such as managing containers and images, troubleshooting issues, and providing guidance on best practices. In future updates, I\'ll have more capabilities, including direct control of your Docker environment.';
+        }
+        
+        // Context-aware responses based on current page
+        if (context.currentPage) {
+          if (context.currentPage === 'containers') {
+            return `I see you're on the Containers page. I can help you understand container configurations, troubleshoot issues, or suggest optimizations. In future updates, I'll be able to provide more detailed assistance with your containers.`;
+          }
+          
+          if (context.currentPage === 'images') {
+            return `I see you're on the Images page. I can help you understand Docker images, suggest optimizations, or provide guidance on using them. In future updates, I'll be able to provide more detailed assistance with your images.`;
+          }
+
+          if (context.currentPage === 'volumes') {
+            return `I see you're on the Volumes page. I can help you understand Docker volumes, their usage patterns, and best practices. In future updates, I'll be able to provide more detailed assistance with your volumes.`;
+          }
+
+          if (context.currentPage === 'networks') {
+            return `I see you're on the Networks page. I can help you understand Docker networking, troubleshoot connectivity issues, and suggest best practices. In future updates, I'll be able to provide more detailed assistance with your networks.`;
+          }
+
+          if (context.currentPage === 'security') {
+            return `I see you're on the Security page. I can help you understand container security best practices, vulnerability management, and provide guidance on secure Docker configurations. In future updates, I'll be able to provide more detailed security assistance.`;
+          }
+        }
+        
+        // General fallback response
+        return 'I understand you\'re asking about "' + message + '". In future updates, I\'ll have more capabilities to assist with this. Is there anything specific about Docker or containers that I can help with now?';
+      }
+    };
+
+    new Vue({
+      el: '#app',
+      data: {
+        isChatOpen: chatStore.state.isActive,
+        isLoading: false,
+        newMessage: '',
+        messages: chatStore.state.messages,
+        currentContext: chatStore.state.context.currentPage
+      },
+      methods: {
+        toggleChat() {
+          this.isChatOpen = !this.isChatOpen;
+          localStorage.setItem('chatSidebarOpen', this.isChatOpen);
+        },
+        sendMessage() {
+          const trimmedMessage = this.newMessage.trim();
+          if (trimmedMessage) {
+            // Add user message
+            const userMessage = {
+              type: 'user',
+              text: trimmedMessage,
+              timestamp: new Date().toISOString()
+            };
+            
+            this.messages.push(userMessage);
+            this.saveMessages();
+            
+            this.newMessage = '';
+            this.isLoading = true;
+            
+            // Simulate AI response with context awareness
+            setTimeout(() => {
+              const response = {
+                type: 'ai',
+                text: chatStore.generateMockResponse(trimmedMessage, { currentPage: this.currentContext }),
+                timestamp: new Date().toISOString()
+              };
+              
+              this.messages.push(response);
+              this.saveMessages();
+              this.isLoading = false;
+              this.scrollToBottom();
+            }, 1000);
+          }
+        },
+        updateContext() {
+          // Add system message about context change
+          this.messages.push({
+            type: 'system',
+            text: `You navigated to the ${this.formatPageName(this.currentContext)} page.`,
+            timestamp: new Date().toISOString()
+          });
+          
+          this.saveMessages();
+          this.scrollToBottom();
+        },
+        formatPageName(page) {
+          // Capitalize first letter and add spaces
+          return page.charAt(0).toUpperCase() + page.slice(1);
+        },
+        clearMessages() {
+          // Reset to just the welcome message
+          this.messages = [
+            {
+              type: 'ai',
+              text: 'Hello! I\'m your DockerForge AI assistant. How can I help you with your Docker containers today?',
+              timestamp: new Date().toISOString()
+            }
+          ];
+          this.saveMessages();
+        },
+        saveMessages() {
+          // Save to localStorage
+          localStorage.setItem('chatMessages', JSON.stringify(this.messages));
+        },
+        formatTime(timestamp) {
+          const date = new Date(timestamp);
+          return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        },
+        scrollToBottom() {
+          this.$nextTick(() => {
+            const chatMessages = document.querySelector('.chat-messages');
+            if (chatMessages) {
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+          });
+        }
+      },
+      mounted() {
+        this.scrollToBottom();
+      }
+    });
+  </script>
+</body>
+</html>

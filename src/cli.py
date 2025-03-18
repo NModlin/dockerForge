@@ -17,6 +17,156 @@ from src.utils.logging_manager import setup_logging, get_logger
 from src.platforms.platform_detector import get_platform_info
 from src.platforms.platform_adapter import get_platform_adapter
 from src.docker.connection_manager import get_docker_client, DockerConnectionError
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import os
+import sys
+import logging
+import click
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import time
+
+from src.config.config_manager import get_config_manager, get_config, set_config, save_config
+from src.utils.logging_manager import setup_logging, get_logger
+from src.platforms.platform_detector import get_platform_info
+from src.platforms.platform_adapter import get_platform_adapter
+from src.docker.connection_manager import get_docker_client, DockerConnectionError
+from src.cli_notifications import notify
+from src.cli_compose import compose
+from src.cli_security import main as security_main
+from src.cli_backup import main as backup_main
+from src.cli_update import update_cli
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import os
+import sys
+import logging
+import click
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import time
+
+from src.config.config_manager import get_config_manager, get_config, set_config, save_config
+from src.utils.logging_manager import setup_logging, get_logger
+from src.platforms.platform_detector import get_platform_info
+from src.platforms.platform_adapter import get_platform_adapter
+from src.docker.connection_manager import get_docker_client, DockerConnectionError
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import os
+import sys
+import logging
+import click
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import time
+
+from src.config.config_manager import get_config_manager, get_config, set_config, save_config
+from src.utils.logging_manager import setup_logging, get_logger
+from src.platforms.platform_detector import get_platform_info
+from src.platforms.platform_adapter import get_platform_adapter
+from src.docker.connection_manager import get_docker_client, DockerConnectionError
+from src.cli_notifications import notify
+from src.cli_compose import compose
+from src.cli_security import main as security_main
+from src.cli_backup import main as backup_main
+from src.cli_update import update_cli
+from src.cli_checkpoint import setup_checkpoint_parser
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import os
+import sys
+import logging
+import click
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import time
+
+from src.config.config_manager import get_config_manager, get_config, set_config, save_config
+from src.utils.logging_manager import setup_logging, get_logger
+from src.platforms.platform_detector import get_platform_info
+from src.platforms.platform_adapter import get_platform_adapter
+from src.docker.connection_manager import get_docker_client, DockerConnectionError
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import os
+import sys
+import logging
+import click
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import time
+
+from src.config.config_manager import get_config_manager, get_config, set_config, save_config
+from src.utils.logging_manager import setup_logging, get_logger
+from src.platforms.platform_detector import get_platform_info
+from src.platforms.platform_adapter import get_platform_adapter
+from src.docker.connection_manager import get_docker_client, DockerConnectionError
+from src.cli_notifications import notify
+from src.cli_compose import compose
+from src.cli_security import main as security_main
+from src.cli_backup import main as backup_main
+from src.cli_update import update_cli
+from src.cli_checkpoint import setup_checkpoint_parser
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import os
+import sys
+import logging
+import click
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import time
+
+from src.config.config_manager import get_config_manager, get_config, set_config, save_config
+from src.utils.logging_manager import setup_logging, get_logger
+from src.platforms.platform_detector import get_platform_info
+from src.platforms.platform_adapter import get_platform_adapter
+from src.docker.connection_manager import get_docker_client, DockerConnectionError
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import os
+import sys
+import logging
+import click
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import time
+
+from src.config.config_manager import get_config_manager, get_config, set_config, save_config
+from src.utils.logging_manager import setup_logging, get_logger
+from src.platforms.platform_detector import get_platform_info
+from src.platforms.platform_adapter import get_platform_adapter
+from src.docker.connection_manager import get_docker_client, DockerConnectionError
 from src.cli_notifications import notify
 from src.cli_compose import compose
 from src.cli_security import main as security_main

@@ -466,3 +466,152 @@ Traceback (most recent call last):
   File "/home/katalyst/GitHub/dockerForge/src/cli_update.py", line 32, in update_cli
     platform_adapter = PlatformAdapter()
 TypeError: Can't instantiate abstract class PlatformAdapter without an implementation for abstract methods 'execute_command', 'fix_permissions', 'get_docker_compose_command', 'get_docker_info', 'restart_docker', 'start_on_boot'
+2025-03-18 10:31:53,076 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:32:33,451 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:33:12,645 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:34:37,699 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:34:37,843 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-03-18 10:34:37,843 - dockerforge.cli - ERROR - Unhandled exception: Can't instantiate abstract class PlatformAdapter without an implementation for abstract methods 'execute_command', 'fix_permissions', 'get_docker_compose_command', 'get_docker_info', 'restart_docker', 'start_on_boot'
+Traceback (most recent call last):
+  File "/home/katalyst/GitHub/dockerForge/src/cli.py", line 2387, in main
+    cli()
+    ~~~^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1161, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1082, in main
+    rv = self.invoke(ctx)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1697, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1694, in invoke
+    super().invoke(ctx)
+    ~~~~~~~~~~~~~~^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1443, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/decorators.py", line 33, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/src/cli_update.py", line 32, in update_cli
+    platform_adapter = PlatformAdapter()
+TypeError: Can't instantiate abstract class PlatformAdapter without an implementation for abstract methods 'execute_command', 'fix_permissions', 'get_docker_compose_command', 'get_docker_info', 'restart_docker', 'start_on_boot'
+2025-03-18 10:38:19,824 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:38:19,957 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-03-18 10:38:19,958 - dockerforge.cli - ERROR - Unhandled exception: 'ConfigManager' object has no attribute 'get_config'
+Traceback (most recent call last):
+  File "/home/katalyst/GitHub/dockerForge/src/cli.py", line 2387, in main
+    cli()
+    ~~~^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1161, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1082, in main
+    rv = self.invoke(ctx)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1697, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1694, in invoke
+    super().invoke(ctx)
+    ~~~~~~~~~~~~~~^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1443, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/decorators.py", line 33, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/src/cli_update.py", line 35, in update_cli
+    version_checker = VersionChecker(config_manager)
+  File "/home/katalyst/GitHub/dockerForge/src/update/version_checker.py", line 33, in __init__
+    self.config = config_manager.get_config().get("update", {})
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ConfigManager' object has no attribute 'get_config'
+2025-03-18 10:40:37,436 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:40:37,567 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-03-18 10:40:37,568 - dockerforge.cli - ERROR - Unhandled exception: 'ConfigManager' object has no attribute 'get_config'
+Traceback (most recent call last):
+  File "/home/katalyst/GitHub/dockerForge/src/cli.py", line 2387, in main
+    cli()
+    ~~~^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1161, in __call__
+    return self.main(*args, **kwargs)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1082, in main
+    rv = self.invoke(ctx)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1697, in invoke
+    return _process_result(sub_ctx.command.invoke(sub_ctx))
+                           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1694, in invoke
+    super().invoke(ctx)
+    ~~~~~~~~~~~~~~^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 1443, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/core.py", line 788, in invoke
+    return __callback(*args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/click/decorators.py", line 33, in new_func
+    return f(get_current_context(), *args, **kwargs)
+  File "/home/katalyst/GitHub/dockerForge/src/cli_update.py", line 38, in update_cli
+    update_manager = UpdateManager(config_manager, platform_adapter)
+  File "/home/katalyst/GitHub/dockerForge/src/update/update_manager.py", line 40, in __init__
+    self.config = config_manager.get_config().get("update", {})
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ConfigManager' object has no attribute 'get_config'
+2025-03-18 10:42:16,074 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:16,237 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-03-18 10:42:16,244 - dockerforge.src.update.version_checker - INFO - Checking for updates...
+2025-03-18 10:42:16,429 - dockerforge.src.update.version_checker - WARNING - Error checking for updates: 404 Client Error: Not Found for url: https://api.github.com/repos/dockerforge/dockerforge/releases/latest
+2025-03-18 10:42:24,533 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:24,656 - dockerforge.cli_notifications - INFO - Sending notification: Test Notification
+2025-03-18 10:42:25,112 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-18 10:42:25,112 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-18 10:42:25,112 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-18 10:42:25,663 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:25,787 - dockerforge.cli_notifications - INFO - Listing notifications
+2025-03-18 10:42:26,064 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-18 10:42:26,065 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-18 10:42:26,066 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-18 10:42:26,483 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:26,703 - dockerforge.cli_notifications - INFO - Creating fix proposal: Test Fix
+2025-03-18 10:42:26,710 - dockerforge.fix_proposal - INFO - Loaded 9 fixes
+2025-03-18 10:42:26,711 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-18 10:42:26,711 - dockerforge.fix_proposal - INFO - Created fix proposal: fix_4d1cf34cbbe9 - Test Fix
+2025-03-18 10:42:26,885 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-18 10:42:26,885 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-18 10:42:26,885 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-18 10:42:26,885 - dockerforge.notification_manager - WARNING - No notification channels are enabled
+2025-03-18 10:42:26,885 - dockerforge.notification_manager - WARNING - No channels available to send notification: Fix Proposal: Test Fix
+2025-03-18 10:42:26,885 - dockerforge.fix_proposal - WARNING - Failed to send notification for fix proposal: fix_4d1cf34cbbe9
+2025-03-18 10:42:27,221 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:27,337 - dockerforge.cli_notifications - INFO - Listing fix proposals
+2025-03-18 10:42:27,338 - dockerforge.fix_proposal - INFO - Loaded 10 fixes
+2025-03-18 10:42:27,338 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-18 10:42:27,658 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:27,762 - dockerforge.cli_notifications - INFO - Showing fix proposal: fix_4d1cf34cbbe9
+2025-03-18 10:42:27,763 - dockerforge.fix_proposal - INFO - Loaded 10 fixes
+2025-03-18 10:42:27,764 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-18 10:42:28,095 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:28,235 - dockerforge.cli_notifications - INFO - Approving fix proposal: fix_4d1cf34cbbe9
+2025-03-18 10:42:28,236 - dockerforge.fix_proposal - INFO - Loaded 10 fixes
+2025-03-18 10:42:28,237 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-18 10:42:28,238 - dockerforge.fix_proposal - INFO - Approved fix: fix_4d1cf34cbbe9
+2025-03-18 10:42:28,397 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-18 10:42:28,398 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-18 10:42:28,398 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-18 10:42:28,743 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 10:42:28,856 - dockerforge.cli_notifications - INFO - Applying fix proposal: fix_4d1cf34cbbe9
+2025-03-18 10:42:28,858 - dockerforge.fix_proposal - INFO - Loaded 10 fixes
+2025-03-18 10:42:28,858 - dockerforge.fix_proposal - INFO - Fix proposal manager initialized
+2025-03-18 10:42:29,009 - dockerforge.template_manager - INFO - Loaded 3 templates from /home/katalyst/.dockerforge/notification_templates
+2025-03-18 10:42:29,010 - dockerforge.template_manager - INFO - Template manager initialized
+2025-03-18 10:42:29,010 - dockerforge.notification_manager - INFO - Notification manager initialized
+2025-03-18 10:42:29,011 - dockerforge.fix_applier - INFO - Fix applier initialized
+2025-03-18 10:42:29,011 - dockerforge.fix_applier - INFO - Starting dry run of fix: fix_4d1cf34cbbe9 - Test Fix
+2025-03-18 10:42:29,012 - dockerforge.fix_applier - INFO - Applying step 1/2: Test Step 1
+2025-03-18 10:42:29,012 - dockerforge.fix_applier - INFO - Dry run: Would execute command: echo 'Hello from test step 1'
+2025-03-18 10:42:29,013 - dockerforge.fix_applier - INFO - Applying step 2/2: Test Step 2
+2025-03-18 10:42:29,014 - dockerforge.fix_applier - INFO - Dry run: Would execute command: echo 'Hello from test step 2'
+2025-03-18 14:59:41,071 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-03-18 14:59:49,725 - dockerforge - INFO - Logging to file: dockerforge.log

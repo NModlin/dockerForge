@@ -37,8 +37,8 @@ class UpdateManager:
         """
         self.config_manager = config_manager
         self.platform_adapter = platform_adapter
-        self.config = config_manager.get_config().get("update", {})
-        self.data_dir = config_manager.get_data_dir()
+        self.config = config_manager.get("update", {})
+        self.data_dir = os.path.expanduser(config_manager.get("general.data_dir", "~/.dockerforge/data"))
         self.backup_dir = os.path.join(self.data_dir, "backups")
         self.version_checker = VersionChecker(config_manager)
         
@@ -62,7 +62,7 @@ class UpdateManager:
             config_backup_path = os.path.join(backup_path, "config")
             os.makedirs(config_backup_path, exist_ok=True)
             
-            config_dir = os.path.dirname(self.config_manager.config_file)
+            config_dir = os.path.dirname(self.config_manager.config_path or './config')
             for file in os.listdir(config_dir):
                 if file.endswith(".yaml") or file.endswith(".yml"):
                     src = os.path.join(config_dir, file)
@@ -73,7 +73,7 @@ class UpdateManager:
             metadata = {
                 "timestamp": timestamp,
                 "version": self.version_checker._get_current_version(),
-                "platform": self.platform_adapter.get_platform_info(),
+                "platform": self.platform_adapter.platform_info.to_dict(),
                 "backup_type": "pre_update"
             }
             
@@ -116,7 +116,7 @@ class UpdateManager:
             # Restore configuration
             config_backup_path = os.path.join(backup_path, "config")
             if os.path.exists(config_backup_path):
-                config_dir = os.path.dirname(self.config_manager.config_file)
+                config_dir = os.path.dirname(self.config_manager.config_path or './config')
                 for file in os.listdir(config_backup_path):
                     src = os.path.join(config_backup_path, file)
                     dst = os.path.join(config_dir, file)
@@ -144,23 +144,23 @@ class UpdateManager:
             logger.info(f"Migrating configuration from version {from_version} to {to_version}")
             
             # Load current configuration
-            current_config = self.config_manager.get_config()
+            # We're using the config directly from the manager, so no loading needed
+            # Just apply migrations as needed
             
-            # Apply version-specific migrations
-            # This would contain logic for each version transition
-            # For example:
-            
+            # Example of migration logic (not implemented yet):
             # if from_version == "0.1.0" and semver.compare(to_version, "0.2.0") >= 0:
             #     # Migrate from 0.1.0 to 0.2.0
-            #     if "old_section" in current_config:
-            #         # Move settings from old_section to new_section
-            #         if "new_section" not in current_config:
-            #             current_config["new_section"] = {}
-            #         current_config["new_section"].update(current_config["old_section"])
-            #         del current_config["old_section"]
+            #     old_section = self.config_manager.get("old_section", {})
+            #     if old_section:
+            #         # Transfer settings to new section
+            #         for key, value in old_section.items():
+            #             self.config_manager.set(f"new_section.{key}", value)
+            #         
+            #         # Remove old section
+            #         # (This would require modifying ConfigManager to add a delete method)
             
-            # Save the migrated configuration
-            self.config_manager.save_config(current_config)
+            # Save any changes
+            self.config_manager.save()
             
             logger.info("Configuration migration completed successfully")
             return True

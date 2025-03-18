@@ -8,13 +8,22 @@
             <v-spacer></v-spacer>
           </v-toolbar>
           <v-card-text>
-            <v-form ref="form" v-model="valid" lazy-validation>
+            <v-alert
+              v-if="error"
+              type="error"
+              dismissible
+              @click="error = null"
+            >
+              {{ error }}
+            </v-alert>
+            <v-form ref="form" v-model="valid" lazy-validation @submit.prevent="login">
               <v-text-field
                 v-model="username"
                 :rules="usernameRules"
                 label="Username"
                 prepend-icon="mdi-account"
                 required
+                :disabled="loading"
               ></v-text-field>
 
               <v-text-field
@@ -24,6 +33,8 @@
                 prepend-icon="mdi-lock"
                 type="password"
                 required
+                :disabled="loading"
+                @keyup.enter="login"
               ></v-text-field>
             </v-form>
           </v-card-text>
@@ -31,7 +42,8 @@
             <v-spacer></v-spacer>
             <v-btn
               color="primary"
-              :disabled="!valid"
+              :disabled="!valid || loading"
+              :loading="loading"
               @click="login"
             >
               Login
@@ -44,6 +56,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'Login',
   data() {
@@ -57,23 +71,48 @@ export default {
       passwordRules: [
         v => !!v || 'Password is required',
       ],
+      error: null,
+      loading: false,
     };
   },
   methods: {
-    login() {
+    async login() {
       if (this.$refs.form.validate()) {
-        // This is a mock login for demonstration purposes
-        // In a real implementation, this would call the API
-        this.$store.dispatch('auth/login', {
-          token: 'mock-jwt-token',
-          user: {
-            id: 1,
-            username: this.username,
-            name: 'Admin User',
-            role: 'admin',
-          },
-        });
-        this.$router.push('/');
+        try {
+          this.loading = true;
+          this.error = null;
+          
+          // Create form data for OAuth2 password flow
+          const formData = new FormData();
+          formData.append('username', this.username);
+          formData.append('password', this.password);
+          
+          // Call the API login endpoint
+          const response = await axios.post('/api/auth/token', formData);
+          
+          // Store the token and user info
+          this.$store.dispatch('auth/login', {
+            token: response.data.access_token,
+            user: {
+              username: this.username,
+              password_change_required: response.data.password_change_required
+            },
+          });
+          
+          // Check if password change is required
+          if (response.data.password_change_required) {
+            // Redirect to password change page with the forced parameter
+            this.$router.push({ path: '/change-password', query: { forced: 'true' } });
+          } else {
+            // Redirect to dashboard
+            this.$router.push('/');
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          this.error = error.response?.data?.detail || 'Login failed. Please check your credentials.';
+        } finally {
+          this.loading = false;
+        }
       }
     },
   },

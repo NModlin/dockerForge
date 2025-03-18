@@ -3,24 +3,31 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: dockerforge:latest
+    image: natedog115/dockerforge:latest
     container_name: dockerforge
     restart: unless-stopped
     volumes:
       - ./config:/app/config
       - ./data:/app/data
+      - ./media:/app/media
+      - ./static:/app/static
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DOCKERFORGE_CONFIG_PATH=/app/config/dockerforge.yaml
       - DOCKERFORGE_DATA_DIR=/app/data
       - OLLAMA_API_HOST=http://ollama:11435
+      - DATABASE_URL=postgresql://dockerforge:dockerforge@db:5432/dockerforge
+      - REDIS_URL=redis://redis:6379/0
     ports:
       - "8080:8080"
+      - "54321:54321"
     depends_on:
       - ollama
+      - db
+      - redis
     networks:
       - dockerforge-network
-    command: ["info"]
+    command: ["all"]  # Run both services
 
   ollama:
     image: ollama/ollama:latest
@@ -38,31 +45,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile.web
-    image: dockerforge-web:latest
-    container_name: dockerforge-web
-    restart: unless-stopped
-    volumes:
-      - ./src/web:/app/src/web
-      - ./static:/app/static
-      - ./media:/app/media
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "54321:54321"
-    depends_on:
-      - dockerforge
-      - db
-      - redis
-    environment:
-      - DOCKERFORGE_API_URL=http://dockerforge:8080
-      - DATABASE_URL=postgresql://dockerforge:dockerforge@db:5432/dockerforge
-      - REDIS_URL=redis://redis:6379/0
-    networks:
-      - dockerforge-network
 
   db:
     image: postgres:15-alpine

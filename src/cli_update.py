@@ -12,7 +12,7 @@ from typing import Optional
 from tabulate import tabulate
 
 from src.config.config_manager import ConfigManager
-from src.platforms.platform_adapter import PlatformAdapter
+from src.platforms.platform_adapter import get_platform_adapter
 from src.update.version_checker import VersionChecker
 from src.update.update_manager import UpdateManager
 from src.utils.logging_manager import get_logger
@@ -29,7 +29,7 @@ def update_cli(ctx):
     config_manager = ConfigManager()
     
     # Initialize the platform adapter
-    platform_adapter = PlatformAdapter()
+    platform_adapter = get_platform_adapter()
     
     # Initialize the version checker
     version_checker = VersionChecker(config_manager)

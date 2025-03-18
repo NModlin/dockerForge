@@ -211,6 +211,16 @@
             >
               <v-icon small>mdi-refresh</v-icon>
             </v-btn>
+            <v-btn
+              icon
+              small
+              @click="resolveWithAI(item)"
+              title="Resolve with AI"
+              :disabled="item.status === 'in-progress' || item.critical_count === 0 && item.high_count === 0"
+              color="primary"
+            >
+              <v-icon small>mdi-robot</v-icon>
+            </v-btn>
           </template>
         </v-data-table>
       </v-card>
@@ -253,14 +263,24 @@
                     </li>
                   </ul>
                 </div>
-                <v-btn
-                  color="primary"
-                  text
-                  class="mt-2"
-                  @click="applyRecommendation(recommendation)"
-                >
-                  Apply Recommendation
-                </v-btn>
+                <div class="d-flex mt-2">
+                  <v-btn
+                    color="primary"
+                    text
+                    class="mr-2"
+                    @click="applyRecommendation(recommendation)"
+                  >
+                    Apply Recommendation
+                  </v-btn>
+                  <v-btn
+                    color="info"
+                    text
+                    @click="resolveRecommendationWithAI(recommendation)"
+                  >
+                    <v-icon left small>mdi-robot</v-icon>
+                    Resolve with AI
+                  </v-btn>
+                </div>
               </v-expansion-panel-content>
             </v-expansion-panel>
           </v-expansion-panels>
@@ -271,7 +291,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
+import axios from 'axios';
 
 export default {
   name: 'SecurityDashboard',
@@ -311,6 +332,10 @@ export default {
     this.fetchSecurityData();
   },
   methods: {
+    ...mapActions({
+      setActive: 'chat/SET_ACTIVE',
+      updateContext: 'chat/updateContext'
+    }),
     async fetchSecurityData() {
       this.loading = true;
       this.error = null;
@@ -550,6 +575,66 @@ export default {
         this.$set(scan, 'status', 'completed');
       }, 3000);
     },
+    async resolveWithAI(scan) {
+      try {
+        // Start a security workflow for the vulnerability
+        const response = await axios.post(`/api/chat/security/start-workflow?vulnerability_id=${scan.id}`);
+        
+        // Set context data for chat
+        this.updateContext({
+          currentPage: 'security',
+          currentContainerId: scan.resource_type === 'container' ? scan.resource_id : null,
+          currentImageId: scan.resource_type === 'image' ? scan.resource_id : null,
+          vulnerability_id: scan.id,
+          workflow_id: response.data.message.context?.workflow_id
+        });
+        
+        // Open chat sidebar
+        this.setActive(true);
+        
+        // Show notification
+        this.$emit('show-notification', {
+          type: 'info',
+          message: 'AI-assisted resolution workflow started. Check the chat sidebar.',
+        });
+      } catch (error) {
+        console.error('Error starting security workflow:', error);
+        this.$emit('show-notification', {
+          type: 'error',
+          message: 'Failed to start AI resolution workflow.',
+        });
+      }
+    },
+    
+    async resolveRecommendationWithAI(recommendation) {
+      try {
+        // Start a security workflow for the recommendation
+        const response = await axios.post(`/api/chat/security/start-workflow?vulnerability_id=${recommendation.id}`);
+        
+        // Prepare context with recommendation data
+        this.updateContext({
+          currentPage: 'security',
+          recommendation_id: recommendation.id,
+          workflow_id: response.data.message.context?.workflow_id
+        });
+        
+        // Open chat sidebar
+        this.setActive(true);
+        
+        // Show notification
+        this.$emit('show-notification', {
+          type: 'info',
+          message: 'AI-assisted resolution workflow started. Check the chat sidebar.',
+        });
+      } catch (error) {
+        console.error('Error starting recommendation workflow:', error);
+        this.$emit('show-notification', {
+          type: 'error',
+          message: 'Failed to start AI resolution workflow.',
+        });
+      }
+    },
+    
     applyRecommendation(recommendation) {
       // In a real implementation, this would call the API to apply the recommendation
       // await axios.post(`/api/security/recommendations/${recommendation.id}/apply`, {}, {

@@ -745,6 +745,9 @@ export default {
   },
   created() {
     this.fetchSettings();
+    
+    // Initialize the dark mode setting from the store
+    this.settings.general.darkMode = this.$store.getters.darkMode;
   },
   methods: {
     async fetchSettings() {
@@ -771,6 +774,9 @@ export default {
       if (!this.$refs.generalForm.validate()) return;
       
       try {
+        // Update the dark mode setting in the store
+        this.$store.commit('SET_DARK_MODE', this.settings.general.darkMode);
+        
         // In a real implementation, this would call the API
         // await axios.put('/api/settings/general', this.settings.general, {
         //   headers: { Authorization: `Bearer ${this.token}` },

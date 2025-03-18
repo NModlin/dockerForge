@@ -275,6 +275,15 @@
         </v-card-text>
         
         <v-card-actions>
+          <v-btn
+            color="info"
+            text
+            @click="resolveWithAI(selectedVulnerability)"
+            :disabled="!selectedVulnerability.fixed_version"
+          >
+            <v-icon left>mdi-robot</v-icon>
+            Resolve with AI
+          </v-btn>
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="detailsDialog = false">Close</v-btn>
         </v-card-actions>
@@ -292,7 +301,8 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapActions, mapMutations } from 'vuex';
+import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 
 export default {
@@ -358,6 +368,12 @@ export default {
   
   methods: {
     ...mapActions('images', ['getImageScan']),
+    ...mapActions({
+      updateContext: 'chat/updateContext'
+    }),
+    ...mapMutations({
+      setActive: 'chat/SET_ACTIVE'
+    }),
     
     async fetchScanDetails() {
       this.loading = true;
@@ -420,6 +436,39 @@ export default {
       this.snackbarText = message;
       this.snackbarColor = 'success';
       this.snackbar = true;
+    },
+    
+    async resolveWithAI(vulnerability) {
+      try {
+        // Start a security workflow for the vulnerability
+        const response = await axios.post(`/api/chat/security/start-workflow?vulnerability_id=${vulnerability.cve_id || vulnerability.name}`);
+        
+        // Set context data for chat
+        this.updateContext({
+          currentPage: 'security',
+          currentImageId: this.imageId,
+          vulnerability_id: vulnerability.cve_id || vulnerability.name,
+          vulnerability_severity: vulnerability.severity,
+          vulnerability_description: vulnerability.description,
+          affected_package: vulnerability.package_name,
+          current_version: vulnerability.package_version,
+          fixed_version: vulnerability.fixed_version,
+          cve_id: vulnerability.cve_id,
+          workflow_id: response.data.message.context?.workflow_id
+        });
+        
+        // Open chat sidebar
+        this.setActive(true);
+        
+        // Close the details dialog
+        this.detailsDialog = false;
+        
+        // Show success notification
+        this.showSuccess('AI-assisted resolution workflow started. Check the chat sidebar.');
+      } catch (error) {
+        console.error('Error starting security workflow:', error);
+        this.showError('Failed to start AI resolution workflow.');
+      }
     },
     
     showError(message) {

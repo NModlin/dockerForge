@@ -17,13 +17,16 @@ DockerForge is a comprehensive Docker management and monitoring tool with AI-pow
 9. [Update System](#update-system)
 10. [AI Integration](#ai-integration)
 11. [Troubleshooting](#troubleshooting)
-12. [Advanced Usage](#advanced-usage)
+12. [Help Center and User Onboarding](#help-center-and-user-onboarding)
+13. [Advanced Usage](#advanced-usage)
 
 ## Getting Started
 
 ### First Run
 
-After [installing DockerForge](installation_guide.md), run the initialization command:
+#### Local Installation
+
+After [installing DockerForge](installation_guide.md) locally, run the initialization command:
 
 ```bash
 dockerforge init
@@ -31,12 +34,23 @@ dockerforge init
 
 This will create the necessary configuration files and directories.
 
+#### Docker Installation
+
+If you're using the Docker image, the application is initialized automatically. You can access:
+
+- CLI: `docker exec -it dockerforge python -m src.cli`
+- Web UI: http://localhost:54321 in your browser
+
 ### Quick Check
 
 Verify that DockerForge can connect to Docker:
 
 ```bash
+# Local installation
 dockerforge check
+
+# Docker installation
+docker exec dockerforge python -m src.cli check
 ```
 
 This command checks:
@@ -416,53 +430,187 @@ dockerforge troubleshoot CONTAINER_NAME
 dockerforge troubleshoot --focus networking CONTAINER_NAME
 ```
 
-### Web UI AI Features
+### AI Chat System (CLI)
 
-DockerForge now provides AI troubleshooting capabilities through the web interface. Access these features by navigating to the Monitoring & AI section in the web UI.
+```bash
+# Start interactive chat with the AI assistant
+dockerforge chat
 
-#### AI Provider Status
+# Start chat with specific focus
+dockerforge chat --focus security
 
-The web UI displays the status of all configured AI providers, including:
-- Availability status
-- Model information
-- Provider capabilities (streaming, vision, function calling, etc.)
-- Default provider indication
+# Start chat about a specific container
+dockerforge chat --container CONTAINER_NAME
 
-#### AI Usage Statistics
+# Start chat with a specific agent
+dockerforge chat --agent container
 
-Monitor your AI usage through the web UI:
-- Daily and monthly token usage
-- Cost tracking by provider and model
-- Budget monitoring with visual indicators
-- Usage projections and trends
+# Enable autonomous mode for agents
+dockerforge chat --autonomous
 
-#### Troubleshooting Tools
+# Set permission level for agent actions
+dockerforge chat --permission-level medium
+```
 
-The web UI provides several AI-powered troubleshooting tools:
+### AI Agent Framework
 
-1. **Container Analysis**
+DockerForge includes a powerful agent framework that provides specialized AI agents for autonomous task execution.
+
+#### Available Agents
+
+```bash
+# List all available agents
+dockerforge agent list
+
+# Show agent status
+dockerforge agent status
+
+# Show agent capabilities
+dockerforge agent capabilities AGENT_NAME
+```
+
+#### Agent Operations
+
+```bash
+# Assign a task to a specific agent
+dockerforge agent run AGENT_NAME TASK_DESCRIPTION
+
+# View agent execution history
+dockerforge agent history
+
+# Configure agent settings
+dockerforge agent configure AGENT_NAME SETTING_KEY SETTING_VALUE
+```
+
+#### Agent Types
+
+- **Container Agent**: `dockerforge agent run container TASK`
+  - Container lifecycle management
+  - Performance optimization
+  - Troubleshooting and diagnostics
+
+- **Security Agent**: `dockerforge agent run security TASK`
+  - Vulnerability scanning
+  - Security remediation
+  - Compliance checking
+
+- **Optimization Agent**: `dockerforge agent run optimization TASK`
+  - Resource usage analysis
+  - Performance improvements
+  - Configuration optimization
+
+- **Documentation Agent**: `dockerforge agent run docs TASK`
+  - Contextual help retrieval
+  - Command suggestions
+  - Best practices guidance
+
+#### Agent Permissions
+
+Configure how agents execute tasks:
+
+```bash
+# Set permission level globally
+dockerforge config set agents.permission_level LEVEL
+
+# Set permission level for specific agent
+dockerforge config set agents.AGENT_NAME.permission_level LEVEL
+```
+
+Permission levels:
+- `read-only`: Only information retrieval operations
+- `low`: Minimal risk operations (pulling images, creating volumes)
+- `medium`: Container state changes (starting/stopping)
+- `high`: Data affecting operations (with approval)
+- `critical`: Significant system changes (with detailed approval)
+
+### Web UI Features
+
+DockerForge provides comprehensive features through the web interface at http://localhost:54321. 
+
+#### Web UI Access
+
+- When running DockerForge with Docker Compose: http://localhost:54321
+- When running the Docker container manually in 'web' or 'all' mode: http://localhost:54321
+
+#### Web UI Main Features
+
+The web interface provides access to all DockerForge features in a user-friendly dashboard:
+
+1. **Dashboard**
+   - Overview of your Docker environment
+   - Quick access to containers, images, and volumes
+   - System health metrics and alerts
+   - Recent activity
+
+2. **Container Management**
+   - List, search, and filter containers
+   - Start, stop, restart, and remove containers
+   - View detailed container information
+   - Access container logs and resource metrics
+
+3. **Image Management**
+   - Browse and search available images
+   - Pull, build, and remove images
+   - View detailed image information
+   - Scan images for vulnerabilities
+
+4. **Volume & Network Management**
+   - Manage Docker volumes and networks
+   - Create, modify, and remove volumes/networks
+   - View detailed information
+
+5. **Compose Projects**
+   - Manage Docker Compose projects
+   - Start, stop, and modify compose deployments
+   - Visualize service relationships
+
+6. **Security Center**
+   - Security scanning and audit results
+   - Vulnerability tracking and remediation
+   - Security policy management
+   - Compliance checking
+
+7. **Settings**
+   - Configuration management
+   - User preferences
+   - API keys and integration settings
+   - AI provider configuration
+
+#### AI Features in the Web UI
+
+The web UI provides several AI-powered features:
+
+1. **AI Chat System**
+   - Interactive chat assistant
+   - Context-aware help and recommendations
+   - Specialized agents for different tasks
+   - Command execution through chat
+
+2. **Container Analysis**
    - Analyze running containers for issues
    - Get detailed recommendations for resolving problems
    - View container status and performance metrics alongside analysis
 
-2. **Log Analysis**
+3. **Log Analysis**
    - Upload and analyze Docker logs
    - Identify patterns and issues in log data
    - Receive actionable recommendations
 
-3. **Docker Compose Analysis**
+4. **Docker Compose Analysis**
    - Analyze Docker Compose files for best practices
    - Identify potential issues and security concerns
    - Get suggestions for improvements
 
-4. **Dockerfile Analysis**
+5. **Dockerfile Analysis**
    - Analyze Dockerfiles for best practices
    - Identify inefficiencies and security issues
    - Get optimization recommendations
 
-5. **Docker Connection Troubleshooting**
-   - Diagnose Docker connection issues
-   - Get step-by-step instructions to resolve connection problems
+6. **AI Provider Management**
+   - Configure and manage AI providers
+   - View status of all configured AI providers
+   - Monitor token usage and costs
+   - Set budget limits and preferences
 
 ## Troubleshooting
 
@@ -507,6 +655,71 @@ dockerforge logs
 # Generate diagnostic report
 dockerforge diagnose --full --output diagnostic-report.zip
 ```
+
+## Help Center and User Onboarding
+
+DockerForge includes a comprehensive Help Center and user onboarding system to help you get the most out of the application.
+
+### Help Center
+
+Access the Help Center from any page by clicking the help icon (?) in the top-right corner or by using keyboard shortcut `F1`.
+
+```bash
+# Open Help Center from CLI
+dockerforge help center
+```
+
+The Help Center provides:
+
+- **General Help**: Overview of DockerForge features and concepts
+- **Command Reference**: Detailed documentation for all CLI commands
+- **Chat/Agent Help**: Guides for using the AI chat and agent system
+- **Contextual Help**: Dynamic help based on your current activity
+- **Troubleshooting FAQs**: Solutions to common problems
+
+### Guided Tour
+
+Take an interactive tour of DockerForge features:
+
+```bash
+# Start the guided tour from CLI
+dockerforge help tour
+
+# Start tour for a specific feature
+dockerforge help tour --feature chat
+```
+
+In the web UI, you can start the guided tour by:
+1. Clicking "Take a Tour" in the Help Center
+2. Selecting "Guided Tour" from the user menu
+3. Clicking tour prompts that appear for new users
+
+### Contextual Help
+
+Contextual help provides information relevant to your current activity:
+
+- Help panels appear automatically in complex workflows
+- Hover over interface elements to see tooltips with helpful information
+- Click the "Help" button in any modal or page for specific guidance
+
+```bash
+# Get contextual help for a command
+dockerforge COMMAND --help
+
+# Get help for a specific topic
+dockerforge help TOPIC
+```
+
+### Keyboard Shortcuts
+
+View all keyboard shortcuts in the Help Center or by pressing `?` in the web UI.
+
+Common shortcuts:
+- `F1`: Open Help Center
+- `Ctrl+/` or `Cmd+/`: Open command palette
+- `Ctrl+Shift+C` or `Cmd+Shift+C`: Open chat interface
+- `Ctrl+F` or `Cmd+F`: Search current view
+- `Esc`: Close current panel or modal
 
 ## Advanced Usage
 

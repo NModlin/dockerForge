@@ -1,5 +1,8 @@
 // Vuex store configuration for DockerForge Web UI
 
+// Import axios for API calls
+import axios from 'axios';
+
 // Define store modules
 const auth = {
   namespaced: true,
@@ -14,8 +17,12 @@ const auth = {
       state.isAuthenticated = !!token;
       if (token) {
         localStorage.setItem('token', token);
+        // Set the token in axios default headers for all future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       } else {
         localStorage.removeItem('token');
+        // Remove the token from axios default headers
+        delete axios.defaults.headers.common['Authorization'];
       }
     },
     SET_USER(state, user) {
@@ -26,21 +33,50 @@ const auth = {
         localStorage.removeItem('user');
       }
     },
+    SET_PASSWORD_CHANGED(state) {
+      if (state.user) {
+        state.user.password_change_required = false;
+        localStorage.setItem('user', JSON.stringify(state.user));
+      }
+    },
   },
   actions: {
     login({ commit }, { token, user }) {
       commit('SET_TOKEN', token);
       commit('SET_USER', user);
     },
-    logout({ commit }) {
-      commit('SET_TOKEN', null);
-      commit('SET_USER', null);
+    async logout({ commit }) {
+      try {
+        // Call the logout API endpoint
+        await axios.post('/api/auth/logout');
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        // Clear token and user data regardless of API call success
+        commit('SET_TOKEN', null);
+        commit('SET_USER', null);
+      }
+    },
+    // Initialize auth state from localStorage
+    init({ commit }) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        commit('SET_TOKEN', token);
+        // Set the token in axios default headers
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const user = localStorage.getItem('user');
+      if (user) {
+        commit('SET_USER', JSON.parse(user));
+      }
     },
   },
   getters: {
     isAuthenticated: (state) => state.isAuthenticated,
     user: (state) => state.user,
     token: (state) => state.token,
+    passwordChangeRequired: (state) => state.user?.password_change_required || false,
   },
 };
 
@@ -76,8 +112,10 @@ const containers = {
   },
 };
 
-// Import the images module
+// Import modules
 import images from './store/modules/images';
+import chat from './store/modules/chat';
+import help from './store/modules/help';
 
 // Main store configuration
 export default {
@@ -85,14 +123,15 @@ export default {
     auth,
     containers,
     images,
-    // Additional modules will be added in Phase 2
+    chat,
+    help,
   },
   state: {
     appName: 'DockerForge',
     version: '0.1.0',
     loading: false,
     error: null,
-    darkMode: localStorage.getItem('darkMode') === 'true',
+    darkMode: localStorage.getItem('darkMode') !== 'false',
   },
   mutations: {
     SET_LOADING(state, loading) {

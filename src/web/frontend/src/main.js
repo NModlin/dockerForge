@@ -6,17 +6,23 @@ import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
+import axios from 'axios';
 
 import App from './App.vue';
 import routes from './router';
 import storeConfig from './store';
+
+// Configure axios
+axios.defaults.baseURL = window.location.origin; // Use the same origin as the frontend
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.headers.common['Accept'] = 'application/json';
 
 // Create Vuetify instance
 const vuetify = createVuetify({
   components,
   directives,
   theme: {
-    defaultTheme: 'light',
+    defaultTheme: 'dark',
     themes: {
       light: {
         dark: false,
@@ -46,14 +52,27 @@ const vuetify = createVuetify({
   },
 });
 
+// Create store
+const store = createStore(storeConfig);
+
 // Create router
 const router = createRouter({
   history: createWebHistory(),
   routes,
 });
 
-// Create store
-const store = createStore(storeConfig);
+// Add request interceptor to handle errors
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle session expiration
+    if (error.response && error.response.status === 401) {
+      store.dispatch('auth/logout');
+      router.push('/login');
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Create and mount app
 const app = createApp(App);

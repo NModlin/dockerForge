@@ -65,35 +65,138 @@ This will create the necessary configuration files in `~/.dockerforge/`.
 ### Prerequisites
 
 - Docker installed and running
+- Docker Compose (recommended)
 
-### Steps
+### Option 1: Using Docker Compose (Recommended)
+
+1. Download the Docker Compose file:
+
+```bash
+curl -O https://raw.githubusercontent.com/dockerforge/dockerforge/main/docker-compose.yml
+```
+
+2. Start DockerForge with Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+This will automatically pull the required images and set up the necessary volumes and networks.
+
+### Option 2: Manual Docker Setup
 
 1. Pull the DockerForge image:
 
 ```bash
-docker pull dockerforge/dockerforge:latest
+docker pull natedog115/dockerforge:latest
 ```
 
-2. Create a Docker volume for persistent data:
+2. Create necessary Docker volumes:
 
 ```bash
 docker volume create dockerforge-data
+docker volume create postgres_data
+docker volume create redis_data
+docker volume create ollama-data
 ```
 
-3. Run DockerForge:
+3. Create a Docker network:
+
+```bash
+docker network create dockerforge-network
+```
+
+4. Start the PostgreSQL database:
+
+```bash
+docker run -d \
+  --name dockerforge-db \
+  --network dockerforge-network \
+  -v postgres_data:/var/lib/postgresql/data \
+  -e POSTGRES_USER=dockerforge \
+  -e POSTGRES_PASSWORD=dockerforge \
+  -e POSTGRES_DB=dockerforge \
+  postgres:15-alpine
+```
+
+5. Start the Redis instance:
+
+```bash
+docker run -d \
+  --name dockerforge-redis \
+  --network dockerforge-network \
+  -v redis_data:/data \
+  redis:alpine
+```
+
+6. Start the Ollama instance:
+
+```bash
+docker run -d \
+  --name dockerforge-ollama \
+  --network dockerforge-network \
+  -v ollama-data:/root/.ollama \
+  -p 11435:11434 \
+  ollama/ollama:latest
+```
+
+7. Start DockerForge:
+
+```bash
+docker run -d \
+  --name dockerforge \
+  --network dockerforge-network \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v ./config:/app/config \
+  -v ./data:/app/data \
+  -v ./media:/app/media \
+  -p 8080:8080 \
+  -p 54321:54321 \
+  -e DOCKERFORGE_CONFIG_PATH=/app/config/dockerforge.yaml \
+  -e DOCKERFORGE_DATA_DIR=/app/data \
+  -e OLLAMA_API_HOST=http://dockerforge-ollama:11434 \
+  -e DATABASE_URL=postgresql://dockerforge:dockerforge@dockerforge-db:5432/dockerforge \
+  -e REDIS_URL=redis://dockerforge-redis:6379/0 \
+  natedog115/dockerforge:latest
+```
+
+### Running DockerForge in Different Modes
+
+The DockerForge Docker image supports different run modes:
+
+1. Run both CLI and web UI (default):
 
 ```bash
 docker run -d \
   --name dockerforge \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v dockerforge-data:/var/lib/dockerforge \
-  dockerforge/dockerforge:latest
+  -p 8080:8080 \
+  -p 54321:54321 \
+  natedog115/dockerforge:latest all
+```
+
+2. Run only the CLI service:
+
+```bash
+docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  natedog115/dockerforge:latest cli check
+```
+
+3. Run only the web UI:
+
+```bash
+docker run -d \
+  --name dockerforge-web \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -p 54321:54321 \
+  natedog115/dockerforge:latest web
 ```
 
 4. Verify the installation:
 
 ```bash
-docker exec dockerforge dockerforge --version
+docker exec dockerforge python -m src.cli --version
 ```
 
 ## Installation from Source
@@ -265,15 +368,41 @@ pip install --upgrade dockerforge
 
 ### Using Docker
 
+#### Using Docker Compose
+
 ```bash
-docker pull dockerforge/dockerforge:latest
+# Pull the latest images
+docker-compose pull
+
+# Restart the services
+docker-compose down
+docker-compose up -d
+```
+
+#### Manual Docker Setup
+
+```bash
+# Pull the latest image
+docker pull natedog115/dockerforge:latest
+
+# Restart the container
 docker stop dockerforge
 docker rm dockerforge
 docker run -d \
   --name dockerforge \
+  --network dockerforge-network \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v dockerforge-data:/var/lib/dockerforge \
-  dockerforge/dockerforge:latest
+  -v ./config:/app/config \
+  -v ./data:/app/data \
+  -v ./media:/app/media \
+  -p 8080:8080 \
+  -p 54321:54321 \
+  -e DOCKERFORGE_CONFIG_PATH=/app/config/dockerforge.yaml \
+  -e DOCKERFORGE_DATA_DIR=/app/data \
+  -e OLLAMA_API_HOST=http://dockerforge-ollama:11434 \
+  -e DATABASE_URL=postgresql://dockerforge:dockerforge@dockerforge-db:5432/dockerforge \
+  -e REDIS_URL=redis://dockerforge-redis:6379/0 \
+  natedog115/dockerforge:latest
 ```
 
 ### From Source
@@ -294,11 +423,25 @@ pip uninstall dockerforge
 
 ### Using Docker
 
+#### Using Docker Compose
+
 ```bash
-docker stop dockerforge
-docker rm dockerforge
-# Optionally remove the data volume
-docker volume rm dockerforge-data
+# Stop and remove all services
+docker-compose down -v
+```
+
+#### Manual Docker Setup
+
+```bash
+# Stop and remove containers
+docker stop dockerforge dockerforge-db dockerforge-redis dockerforge-ollama
+docker rm dockerforge dockerforge-db dockerforge-redis dockerforge-ollama
+
+# Optionally remove the data volumes
+docker volume rm dockerforge-data postgres_data redis_data ollama-data
+
+# Optionally remove the network
+docker network rm dockerforge-network
 ```
 
 ### From Source
