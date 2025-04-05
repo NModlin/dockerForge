@@ -8,9 +8,9 @@ from datetime import datetime
 import logging
 from sqlalchemy.orm import Session
 
-from schemas.containers import Container, ContainerCreate, ContainerUpdate
-from services import docker
-from models import Container as ContainerModel
+from src.web.api.schemas.containers import Container, ContainerCreate, ContainerUpdate
+from src.web.api.services import docker
+from src.web.api.models.container import Container as ContainerModel
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -33,13 +33,13 @@ async def get_containers(
             filters["status"] = status
         if name:
             filters["name"] = name
-        
+
         # Get containers from Docker API
         docker_containers = docker.get_containers(all=True, filters=filters)
-        
+
         # Apply pagination
         paginated_containers = docker_containers[skip:skip + limit]
-        
+
         # Convert to Container objects
         return [Container(**container) for container in paginated_containers]
     except Exception as e:
@@ -56,7 +56,7 @@ async def get_container(container_id: str, db: Session = None) -> Optional[Conta
         container_data = docker.get_container(container_id)
         if not container_data:
             return None
-        
+
         # Convert to Container object
         return Container(**container_data)
     except Exception as e:
@@ -71,10 +71,10 @@ async def create_container(container: ContainerCreate, db: Session = None) -> Co
     try:
         # Prepare container data
         container_data = container.dict()
-        
+
         # Create container using Docker API
         container_data = docker.create_container(container_data)
-        
+
         # Convert to Container object
         return Container(**container_data)
     except Exception as e:
@@ -85,7 +85,7 @@ async def create_container(container: ContainerCreate, db: Session = None) -> Co
 async def update_container(container_id: str, container: ContainerUpdate, db: Session = None) -> Optional[Container]:
     """
     Update a container by ID.
-    
+
     Note: Docker doesn't support updating a running container.
     This method will stop the container, remove it, and create a new one with the updated configuration.
     """
@@ -94,30 +94,30 @@ async def update_container(container_id: str, container: ContainerUpdate, db: Se
         existing_container = await get_container(container_id)
         if not existing_container:
             return None
-        
+
         # Prepare update data
         update_data = container.dict(exclude_unset=True)
-        
+
         # Check if container is running
         if existing_container.status == "running":
             # Stop container
             docker.stop_container(container_id)
-        
+
         # Delete container
         docker.delete_container(container_id)
-        
+
         # Prepare new container data
         new_container_data = existing_container.dict()
         new_container_data.update(update_data)
-        
+
         # Create new container
         container_data = docker.create_container(new_container_data)
-        
+
         # Start container if it was running before
         if existing_container.status == "running":
             docker.start_container(container_data["id"])
             container_data = docker.get_container(container_data["id"])
-        
+
         # Convert to Container object
         return Container(**container_data)
     except Exception as e:
@@ -146,7 +146,7 @@ async def start_container(container_id: str, db: Session = None) -> Optional[Con
         container_data = docker.start_container(container_id)
         if not container_data:
             return None
-        
+
         # Convert to Container object
         return Container(**container_data)
     except Exception as e:
@@ -163,7 +163,7 @@ async def stop_container(container_id: str, db: Session = None) -> Optional[Cont
         container_data = docker.stop_container(container_id)
         if not container_data:
             return None
-        
+
         # Convert to Container object
         return Container(**container_data)
     except Exception as e:
@@ -180,7 +180,7 @@ async def restart_container(container_id: str, db: Session = None) -> Optional[C
         container_data = docker.restart_container(container_id)
         if not container_data:
             return None
-        
+
         # Convert to Container object
         return Container(**container_data)
     except Exception as e:

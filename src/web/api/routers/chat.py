@@ -12,9 +12,10 @@ from datetime import datetime
 import asyncio
 import logging
 
-from database import get_db
-from models import ChatMessage, ChatSession, User, ChatFeedback, UserPreference, ChatCommandShortcut
-from schemas.chat import (
+from src.web.api.database import get_db
+from src.web.api.models.chat import ChatMessage, ChatSession, ChatFeedback, ChatCommandShortcut, UserPreference
+from src.web.api.models.user import User
+from src.web.api.schemas.chat import (
     ChatMessageCreate, ChatMessage as ChatMessageSchema,
     ChatSessionCreate, ChatSessionUpdate, ChatSession as ChatSessionSchema,
     ChatResponse, EnhancedChatResponse, SessionsList, MessagesList, ContextData,
@@ -30,7 +31,7 @@ from src.core.user_preference_manager import get_user_preference_manager
 from src.utils.logging_manager import get_logger
 from src.monitoring.log_analyzer import get_log_analyzer
 from src.monitoring.issue_detector import get_issue_detector
-from routers.websocket import get_websocket_manager
+from src.web.api.routers.websocket import get_websocket_manager
 
 # Set up logger
 logger = get_logger("web.api.chat")
@@ -56,14 +57,14 @@ async def start_security_workflow(
 ):
     """
     Start a security resolution workflow for a vulnerability.
-    
+
     Args:
         vulnerability_id: ID of the vulnerability to resolve
         session_id: Chat session ID (optional)
         background_tasks: Background tasks runner
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Initial workflow message
     """
@@ -71,7 +72,7 @@ async def start_security_workflow(
     try:
         # In a real implementation, this would get actual vulnerability data
         # vulnerability_data = vulnerability_scanner.get_vulnerability(vulnerability_id)
-        
+
         # Mock vulnerability data for now
         vulnerability_data = {
             "id": vulnerability_id,
@@ -85,7 +86,7 @@ async def start_security_workflow(
     except Exception as e:
         logger.error(f"Error getting vulnerability data: {str(e)}")
         raise HTTPException(status_code=404, detail=f"Vulnerability {vulnerability_id} not found")
-    
+
     # Get or create chat session
     if session_id is None:
         # Create a new session
@@ -103,7 +104,7 @@ async def start_security_workflow(
         db_session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
         if not db_session:
             raise HTTPException(status_code=404, detail="Chat session not found")
-        
+
     # Prepare context data for the workflow
     context = {
         "current_page": "security",
@@ -115,20 +116,20 @@ async def start_security_workflow(
         "fixed_version": vulnerability_data["fixed_version"],
         "cve_id": vulnerability_data["cve_id"]
     }
-    
+
     # Get chat handler
     chat_handler = get_chat_handler()
-    
+
     # Start security workflow
     try:
         response_text, suggestions, workflow_id = chat_handler.start_security_workflow(
             vulnerability_id=vulnerability_id,
             context=context
         )
-        
+
         # Update context with workflow ID
         context["workflow_id"] = workflow_id
-        
+
         # Create system message to start the workflow
         system_message = ChatMessage(
             user_id=None,  # System message doesn't have a user
@@ -138,7 +139,7 @@ async def start_security_workflow(
             context=context
         )
         db.add(system_message)
-        
+
         # Create AI message with the workflow response
         ai_message = ChatMessage(
             user_id=None,  # AI messages don't have a user
@@ -149,10 +150,10 @@ async def start_security_workflow(
         )
         db.add(ai_message)
         db.commit()
-        
+
         # Prepare response
         return ChatResponse(
-            message=ChatMessageSchema.from_orm(ai_message),
+            message=ChatMessageSchema.model_validate(ai_message),
             session_id=session_id,
             suggestions=suggestions
         )
@@ -172,14 +173,14 @@ async def start_container_troubleshooting(
 ):
     """
     Start a troubleshooting workflow for a container.
-    
+
     Args:
         container_id: ID of the container to troubleshoot
         session_id: Chat session ID (optional)
         background_tasks: Background tasks runner
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Initial workflow message
     """
@@ -187,7 +188,7 @@ async def start_container_troubleshooting(
     try:
         # In a real implementation, this would get actual container data
         # from a container service or Docker API
-        
+
         # Mock container data for now
         container_data = {
             "id": container_id,
@@ -201,7 +202,7 @@ async def start_container_troubleshooting(
     except Exception as e:
         logger.error(f"Error getting container data: {str(e)}")
         raise HTTPException(status_code=404, detail=f"Container {container_id} not found")
-    
+
     # Get or create chat session
     if session_id is None:
         # Create a new session
@@ -219,7 +220,7 @@ async def start_container_troubleshooting(
         db_session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
         if not db_session:
             raise HTTPException(status_code=404, detail="Chat session not found")
-        
+
     # Prepare context data for the workflow
     context = {
         "current_page": "containers",
@@ -233,7 +234,7 @@ async def start_container_troubleshooting(
             "ports": container_data["ports"]
         }
     }
-    
+
     # Get issues for this container
     try:
         # In a real implementation, this would get actual issues
@@ -246,21 +247,21 @@ async def start_container_troubleshooting(
         pass
     except Exception as e:
         logger.warning(f"Error getting container issues: {str(e)}")
-    
+
     # Get chat handler
     chat_handler = get_chat_handler()
-    
+
     # Start container troubleshooting workflow
     try:
         response_text, suggestions, workflow_id = chat_handler.start_container_troubleshooting_workflow(
             container_id=container_id,
             context=context
         )
-        
+
         # Update context with workflow ID
         context["workflow_id"] = workflow_id
         context["workflow_type"] = "container_troubleshooting"
-        
+
         # Create system message to start the workflow
         system_message = ChatMessage(
             user_id=None,  # System message doesn't have a user
@@ -270,7 +271,7 @@ async def start_container_troubleshooting(
             context=context
         )
         db.add(system_message)
-        
+
         # Create AI message with the workflow response
         ai_message = ChatMessage(
             user_id=None,  # AI messages don't have a user
@@ -281,10 +282,10 @@ async def start_container_troubleshooting(
         )
         db.add(ai_message)
         db.commit()
-        
+
         # Prepare response
         return ChatResponse(
-            message=ChatMessageSchema.from_orm(ai_message),
+            message=ChatMessageSchema.model_validate(ai_message),
             session_id=session_id,
             suggestions=suggestions
         )
@@ -304,19 +305,19 @@ async def create_message(
     """
     Create a new chat message and get an AI response.
     Uses WebSockets for real-time updates and message streaming.
-    
+
     Args:
         message: The message to create
         background_tasks: Background tasks runner
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         AI response
     """
     # Get WebSocket manager
     websocket_manager = get_websocket_manager()
-    
+
     # Get or create chat session
     session_id = message.session_id
     if session_id is None:
@@ -334,37 +335,37 @@ async def create_message(
         db_session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
         if not db_session:
             raise HTTPException(status_code=404, detail="Chat session not found")
-        
+
         # Update session timestamp
         db_session.updated_at = datetime.utcnow()
-    
+
     # Create user message
     user_message = ChatMessage(
         user_id=user_id,
         session_id=session_id,
         type="user",
         text=message.text,
-        context=message.context.dict() if message.context else None
+        context=message.context.model_dump() if message.context else None
     )
     db.add(user_message)
     db.flush()
-    
+
     # Broadcast user message to all session subscribers
-    user_message_schema = ChatMessageSchema.from_orm(user_message)
+    user_message_schema = ChatMessageSchema.model_validate(user_message)
     background_tasks.add_task(
         websocket_manager.broadcast_message,
         user_message_schema,
         session_id
     )
-    
+
     # Extract context data
     context = None
     if message.context:
-        context = message.context.dict()
-    
+        context = message.context.model_dump()
+
     # Get chat handler
     chat_handler = get_chat_handler()
-    
+
     # Process message and get response
     try:
         # Set typing indicator to true via WebSocket
@@ -373,9 +374,9 @@ async def create_message(
                 websocket_manager.set_typing_status,
                 "ai", True, session_id
             )
-            
+
         response_text, suggestions = chat_handler.process_message(message.text, context)
-        
+
         # Create AI response message
         ai_message = ChatMessage(
             user_id=None,  # AI messages don't have a user
@@ -387,17 +388,17 @@ async def create_message(
         db.add(ai_message)
         db.commit()
         db.refresh(ai_message)
-        
+
         # Get user preferences
         user_preferences = None
         if user_id is not None:
             user_preferences = user_preference_manager.get_user_preferences(user_id, db)
-        
+
         # Get command shortcuts
         command_shortcuts = []
         if user_id is not None:
             command_shortcuts = user_preference_manager.get_user_command_shortcuts(user_id, db)
-        
+
         # Add to conversation memory
         if user_id is not None:
             conversation_memory.add_memory(
@@ -408,14 +409,14 @@ async def create_message(
                 context=context,
                 db_session=db
             )
-        
+
         # Set typing indicator to false via WebSocket
         if user_id:
             background_tasks.add_task(
                 websocket_manager.set_typing_status,
                 "ai", False, session_id
             )
-        
+
         # Stream the response in chunks via WebSocket
         # Split the text into chunks (simulating streaming)
         text_chunks = split_text_into_chunks(response_text)
@@ -425,15 +426,15 @@ async def create_message(
             ai_message.id,
             text_chunks
         )
-        
+
         # Broadcast AI message to all session subscribers
-        ai_message_schema = ChatMessageSchema.from_orm(ai_message)
+        ai_message_schema = ChatMessageSchema.model_validate(ai_message)
         background_tasks.add_task(
             websocket_manager.broadcast_message,
             ai_message_schema,
             session_id
         )
-        
+
         # Prepare enhanced response
         return EnhancedChatResponse(
             message=ai_message_schema,
@@ -446,14 +447,14 @@ async def create_message(
     except Exception as e:
         db.rollback()
         logger.error(f"Error processing chat message: {str(e)}")
-        
+
         # Set typing indicator to false via WebSocket
         if user_id:
             background_tasks.add_task(
                 websocket_manager.set_typing_status,
                 "ai", False, session_id
             )
-        
+
         # Create error message
         error_message = ChatMessage(
             user_id=None,
@@ -464,18 +465,18 @@ async def create_message(
         )
         db.add(error_message)
         db.commit()
-        
+
         # Broadcast error message to all session subscribers
-        error_message_schema = ChatMessageSchema.from_orm(error_message)
+        error_message_schema = ChatMessageSchema.model_validate(error_message)
         background_tasks.add_task(
             websocket_manager.broadcast_message,
             error_message_schema,
             session_id
         )
-        
+
         # Return error response
         return EnhancedChatResponse(
-            message=ChatMessageSchema.from_orm(error_message),
+            message=ChatMessageSchema.model_validate(error_message),
             session_id=session_id,
             suggestions=["Try a simpler question", "Ask about Docker basics", "Report this issue"],
             feedback_id=None,
@@ -487,25 +488,25 @@ async def create_message(
 def split_text_into_chunks(text: str, chunk_size: int = 50) -> List[str]:
     """
     Split text into chunks for streaming.
-    
+
     Args:
         text: The text to split
         chunk_size: The maximum size of each chunk
-        
+
     Returns:
         List of text chunks
     """
     # If the text is short enough, just return it as a single chunk
     if len(text) <= chunk_size:
         return [text]
-    
+
     # Split text into sentences
     import re
     sentences = re.split(r'(?<=[.!?])\s+', text)
-    
+
     chunks = []
     current_chunk = ""
-    
+
     for sentence in sentences:
         # If adding this sentence would make the chunk too large, start a new chunk
         if len(current_chunk) + len(sentence) > chunk_size:
@@ -514,11 +515,11 @@ def split_text_into_chunks(text: str, chunk_size: int = 50) -> List[str]:
             current_chunk = sentence + " "
         else:
             current_chunk += sentence + " "
-    
+
     # Add the last chunk if there's anything left
     if current_chunk:
         chunks.append(current_chunk.strip())
-    
+
     return chunks
 
 
@@ -532,14 +533,14 @@ async def get_messages(
 ):
     """
     Get chat messages for a session.
-    
+
     Args:
         session_id: Chat session ID
         limit: Maximum number of messages to return
         offset: Offset for pagination
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         List of chat messages
     """
@@ -547,17 +548,17 @@ async def get_messages(
     session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Chat session not found")
-    
+
     # Get messages
     query = db.query(ChatMessage).filter(
         ChatMessage.session_id == session_id
     ).order_by(ChatMessage.timestamp.desc())
-    
+
     total = query.count()
     messages = query.offset(offset).limit(limit).all()
-    
+
     return MessagesList(
-        messages=[ChatMessageSchema.from_orm(msg) for msg in messages],
+        messages=[ChatMessageSchema.model_validate(msg) for msg in messages],
         total=total
     )
 
@@ -571,28 +572,28 @@ async def get_sessions(
 ):
     """
     Get chat sessions for a user.
-    
+
     Args:
         limit: Maximum number of sessions to return
         offset: Offset for pagination
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         List of chat sessions
     """
     # Base query
     query = db.query(ChatSession).order_by(ChatSession.updated_at.desc())
-    
+
     # Filter by user if provided
     if user_id is not None:
         query = query.filter(ChatSession.user_id == user_id)
-    
+
     total = query.count()
     sessions = query.offset(offset).limit(limit).all()
-    
+
     return SessionsList(
-        sessions=[ChatSessionSchema.from_orm(session) for session in sessions],
+        sessions=[ChatSessionSchema.model_validate(session) for session in sessions],
         total=total
     )
 
@@ -605,12 +606,12 @@ async def get_session(
 ):
     """
     Get a specific chat session.
-    
+
     Args:
         session_id: Chat session ID
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Chat session
     """
@@ -618,16 +619,16 @@ async def get_session(
     session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Chat session not found")
-    
+
     # Get messages for session
     messages = db.query(ChatMessage).filter(
         ChatMessage.session_id == session_id
     ).order_by(ChatMessage.timestamp.asc()).all()
-    
+
     # Create session schema
-    session_schema = ChatSessionSchema.from_orm(session)
-    session_schema.messages = [ChatMessageSchema.from_orm(msg) for msg in messages]
-    
+    session_schema = ChatSessionSchema.model_validate(session)
+    session_schema.messages = [ChatMessageSchema.model_validate(msg) for msg in messages]
+
     return session_schema
 
 
@@ -639,12 +640,12 @@ async def create_session(
 ):
     """
     Create a new chat session.
-    
+
     Args:
         session: Session creation data
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Created chat session
     """
@@ -655,25 +656,26 @@ async def create_session(
         is_active=session.is_active
     )
     db.add(db_session)
-    
+    db.flush()  # Flush to get the session ID
+
     # Create welcome message
     welcome_message = ChatMessage(
         user_id=None,
-        session_id=db_session.id,
+        session_id=db_session.id,  # Now we have the session ID
         type="ai",
         text="Hello! I'm your DockerForge AI assistant. How can I help you with your Docker containers today?",
         context=None
     )
     db.add(welcome_message)
-    
+
     # Commit changes
     db.commit()
     db.refresh(db_session)
-    
+
     # Return session with welcome message
-    session_schema = ChatSessionSchema.from_orm(db_session)
-    session_schema.messages = [ChatMessageSchema.from_orm(welcome_message)]
-    
+    session_schema = ChatSessionSchema.model_validate(db_session)
+    session_schema.messages = [ChatMessageSchema.model_validate(welcome_message)]
+
     return session_schema
 
 
@@ -686,13 +688,13 @@ async def update_session(
 ):
     """
     Update a chat session.
-    
+
     Args:
         session_id: Session ID
         session_update: Session update data
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Updated chat session
     """
@@ -700,30 +702,30 @@ async def update_session(
     db_session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Chat session not found")
-    
+
     # Update fields
     if session_update.title is not None:
         db_session.title = session_update.title
-    
+
     if session_update.is_active is not None:
         db_session.is_active = session_update.is_active
-    
+
     # Update timestamp
     db_session.updated_at = datetime.utcnow()
-    
+
     # Commit changes
     db.commit()
     db.refresh(db_session)
-    
+
     # Get messages for session
     messages = db.query(ChatMessage).filter(
         ChatMessage.session_id == session_id
     ).order_by(ChatMessage.timestamp.asc()).all()
-    
+
     # Create session schema
-    session_schema = ChatSessionSchema.from_orm(db_session)
-    session_schema.messages = [ChatMessageSchema.from_orm(msg) for msg in messages]
-    
+    session_schema = ChatSessionSchema.model_validate(db_session)
+    session_schema.messages = [ChatMessageSchema.model_validate(msg) for msg in messages]
+
     return session_schema
 
 
@@ -735,12 +737,12 @@ async def delete_session(
 ):
     """
     Delete a chat session.
-    
+
     Args:
         session_id: Session ID
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Success message
     """
@@ -748,11 +750,11 @@ async def delete_session(
     db_session = db.query(ChatSession).filter(ChatSession.id == session_id).first()
     if not db_session:
         raise HTTPException(status_code=404, detail="Chat session not found")
-    
+
     # Delete session (will cascade delete messages)
     db.delete(db_session)
     db.commit()
-    
+
     return {"success": True, "message": "Chat session deleted"}
 
 
@@ -766,12 +768,12 @@ async def create_feedback(
 ):
     """
     Create feedback for a message.
-    
+
     Args:
         feedback: Feedback data
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Created feedback
     """
@@ -779,7 +781,7 @@ async def create_feedback(
     message = db.query(ChatMessage).filter(ChatMessage.id == feedback.message_id).first()
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
-    
+
     # Process feedback and update user preferences
     result = user_preference_manager.process_message_feedback(
         user_id=user_id,
@@ -788,14 +790,14 @@ async def create_feedback(
         feedback_text=feedback.feedback_text,
         db_session=db
     )
-    
+
     if not result.get("success", False):
         raise HTTPException(status_code=500, detail=result.get("error", "Error processing feedback"))
-    
+
     # Get the created feedback
     db_feedback = db.query(ChatFeedback).filter(ChatFeedback.id == result["feedback_id"]).first()
-    
-    return ChatFeedbackSchema.from_orm(db_feedback)
+
+    return ChatFeedbackSchema.model_validate(db_feedback)
 
 
 @router.get("/feedback/{message_id}", response_model=ChatFeedbackSchema)
@@ -806,12 +808,12 @@ async def get_feedback(
 ):
     """
     Get feedback for a message.
-    
+
     Args:
         message_id: Message ID
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Feedback for the message
     """
@@ -819,11 +821,11 @@ async def get_feedback(
     feedback = db.query(ChatFeedback).filter(
         ChatFeedback.message_id == message_id
     ).first()
-    
+
     if not feedback:
         raise HTTPException(status_code=404, detail="Feedback not found")
-    
-    return ChatFeedbackSchema.from_orm(feedback)
+
+    return ChatFeedbackSchema.model_validate(feedback)
 
 
 # --- User preferences endpoints ---
@@ -835,21 +837,21 @@ async def get_preferences(
 ):
     """
     Get preferences for the current user.
-    
+
     Args:
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         User preferences
     """
     # For demo purposes, use a default user ID if none provided
     if user_id is None:
         user_id = 1
-    
+
     # Get preferences using the manager
     preferences = user_preference_manager.get_user_preferences(user_id, db)
-    
+
     # Format response using Pydantic model
     return UserPreferenceSchema(
         id=preferences.get("id", 0),
@@ -872,32 +874,32 @@ async def update_preferences(
 ):
     """
     Update preferences for the current user.
-    
+
     Args:
         preferences: Preferences data to update
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Updated user preferences
     """
     # For demo purposes, use a default user ID if none provided
     if user_id is None:
         user_id = 1
-    
+
     # Update preferences using the manager
     result = user_preference_manager.update_user_preferences(
         user_id=user_id,
-        preferences_data=preferences.dict(exclude_unset=True),
+        preferences_data=preferences.model_dump(exclude_unset=True),
         db_session=db
     )
-    
+
     if not result.get("success", False):
         raise HTTPException(status_code=500, detail=result.get("error", "Error updating preferences"))
-    
+
     # Return updated preferences
     updated = result["preferences"]
-    
+
     # Format response using Pydantic model
     return UserPreferenceSchema(
         id=updated.get("id", 0),
@@ -921,21 +923,21 @@ async def get_shortcuts(
 ):
     """
     Get command shortcuts for the current user.
-    
+
     Args:
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         List of command shortcuts
     """
     # For demo purposes, use a default user ID if none provided
     if user_id is None:
         user_id = 1
-    
+
     # Get shortcuts using the manager
     shortcuts = user_preference_manager.get_user_command_shortcuts(user_id, db)
-    
+
     # Format response
     return CommandShortcutsList(
         shortcuts=[ChatCommandShortcutSchema(
@@ -960,19 +962,19 @@ async def create_shortcut(
 ):
     """
     Create a new command shortcut.
-    
+
     Args:
         shortcut: Shortcut data
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Created command shortcut
     """
     # For demo purposes, use a default user ID if none provided
     if user_id is None:
         user_id = 1
-    
+
     # Create shortcut using the manager
     result = user_preference_manager.create_command_shortcut(
         user_id=user_id,
@@ -981,13 +983,13 @@ async def create_shortcut(
         template=shortcut.template,
         db_session=db
     )
-    
+
     if not result.get("success", False):
         raise HTTPException(status_code=400, detail=result.get("error", "Error creating shortcut"))
-    
+
     # Return created shortcut
     created = result["shortcut"]
-    
+
     # Format response using Pydantic model
     return ChatCommandShortcutSchema(
         id=created.get("id"),
@@ -1009,29 +1011,29 @@ async def delete_shortcut(
 ):
     """
     Delete a command shortcut.
-    
+
     Args:
         shortcut_id: Shortcut ID
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Success message
     """
     # For demo purposes, use a default user ID if none provided
     if user_id is None:
         user_id = 1
-    
+
     # Delete shortcut using the manager
     result = user_preference_manager.delete_command_shortcut(
         user_id=user_id,
         shortcut_id=shortcut_id,
         db_session=db
     )
-    
+
     if not result.get("success", False):
         raise HTTPException(status_code=404, detail=result.get("error", "Shortcut not found"))
-    
+
     return {"success": True, "message": result.get("message", "Shortcut deleted")}
 
 
@@ -1043,29 +1045,29 @@ async def use_shortcut(
 ):
     """
     Use a command shortcut and get its template.
-    
+
     Args:
         command: Command string (e.g., "/logs")
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         Shortcut template and usage information
     """
     # For demo purposes, use a default user ID if none provided
     if user_id is None:
         user_id = 1
-    
+
     # Use shortcut using the manager
     result = user_preference_manager.use_command_shortcut(
         user_id=user_id,
         command=command,
         db_session=db
     )
-    
+
     if not result.get("success", False):
         raise HTTPException(status_code=404, detail=result.get("error", "Command not found"))
-    
+
     return {
         "success": True,
         "shortcut": result.get("shortcut", {})
@@ -1082,21 +1084,21 @@ async def get_relevant_memories(
 ):
     """
     Get relevant memories for a query.
-    
+
     Args:
         query: Query text
         context: Optional context data as JSON string
         limit: Maximum number of memories to return
         db: Database session
         user_id: User ID (optional)
-        
+
     Returns:
         List of relevant memories
     """
     # For demo purposes, use a default user ID if none provided
     if user_id is None:
         user_id = 1
-    
+
     # Parse context if provided
     context_data = None
     if context:
@@ -1105,7 +1107,7 @@ async def get_relevant_memories(
             context_data = json.loads(context)
         except Exception as e:
             logger.warning(f"Error parsing context data: {str(e)}")
-    
+
     # Get relevant memories
     memories = conversation_memory.get_relevant_memories(
         user_id=user_id,
@@ -1114,5 +1116,5 @@ async def get_relevant_memories(
         limit=limit,
         db_session=db
     )
-    
+
     return memories

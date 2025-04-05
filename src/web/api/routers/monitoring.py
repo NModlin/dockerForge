@@ -8,8 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from database import get_db
-from schemas import monitoring as schemas
+from src.web.api.database import get_db
+from src.web.api.schemas import monitoring as schemas
 from src.config.config_manager import get_config
 from src.core.ai_provider import get_ai_provider, AIProviderFactory, AIProviderError
 from src.core.ai_usage_tracker import AIUsageTracker
@@ -26,10 +26,10 @@ async def get_ai_status():
     try:
         # Get available providers
         providers_info = AIProviderFactory.list_available_providers()
-        
+
         # Get default provider
         default_provider = get_config("ai.default_provider", "ollama")
-        
+
         # Convert to response format
         providers_status = {}
         for name, info in providers_info.items():
@@ -41,7 +41,7 @@ async def get_ai_status():
                     capabilities = provider.report_capabilities()
                 except AIProviderError:
                     pass
-            
+
             providers_status[name] = schemas.AIProviderStatus(
                 name=name,
                 enabled=info.get("enabled", False),
@@ -52,7 +52,7 @@ async def get_ai_status():
                 description=info.get("description"),
                 capabilities=schemas.AICapabilities(**capabilities) if capabilities else None
             )
-        
+
         return schemas.AIStatusResponse(
             providers=providers_status,
             default_provider=default_provider
@@ -72,10 +72,10 @@ async def get_ai_usage():
     try:
         # Initialize usage tracker
         usage_tracker = AIUsageTracker()
-        
+
         # Get usage report
         report = usage_tracker.get_usage_report()
-        
+
         return report
     except Exception as e:
         raise HTTPException(
@@ -95,13 +95,13 @@ async def troubleshoot_container(
     try:
         # Get troubleshooter
         troubleshooter = get_troubleshooter()
-        
+
         # Analyze container
         result = troubleshooter.analyze_container(
             container_id=container_id,
             confirm_cost=request.confirm_cost
         )
-        
+
         return schemas.ContainerTroubleshootingResult(
             container_id=result["container_id"],
             container_name=result["container_name"],
@@ -133,10 +133,10 @@ async def troubleshoot_logs(
     try:
         # Get troubleshooter
         troubleshooter = get_troubleshooter()
-        
+
         # Analyze logs
         result = troubleshooter.analyze_logs(request.logs)
-        
+
         return schemas.TroubleshootingResult(
             analysis=result["analysis"],
             provider=result["provider"],
@@ -165,10 +165,10 @@ async def troubleshoot_compose(
     try:
         # Get troubleshooter
         troubleshooter = get_troubleshooter()
-        
+
         # Analyze Docker Compose file
         result = troubleshooter.analyze_docker_compose(request.content)
-        
+
         return schemas.TroubleshootingResult(
             analysis=result["analysis"],
             provider=result["provider"],
@@ -197,10 +197,10 @@ async def troubleshoot_dockerfile(
     try:
         # Get troubleshooter
         troubleshooter = get_troubleshooter()
-        
+
         # Analyze Dockerfile
         result = troubleshooter.analyze_dockerfile(request.content)
-        
+
         return schemas.TroubleshootingResult(
             analysis=result["analysis"],
             provider=result["provider"],
@@ -227,10 +227,10 @@ async def troubleshoot_connection():
     try:
         # Get troubleshooter
         troubleshooter = get_troubleshooter()
-        
+
         # Troubleshoot connection
         result = troubleshooter.troubleshoot_connection()
-        
+
         return schemas.ConnectionTroubleshootingResult(
             connected=result["connected"],
             issues=result["issues"],

@@ -24,7 +24,7 @@ class User(BaseModel, TimestampMixin):
     User model for authentication and authorization.
     """
     __tablename__ = 'users'
-    
+
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(100), unique=True, nullable=False, index=True)
     full_name = Column(String(100), nullable=True)
@@ -32,13 +32,13 @@ class User(BaseModel, TimestampMixin):
     is_active = Column(Boolean, default=True, nullable=False)
     is_superuser = Column(Boolean, default=False, nullable=False)
     password_change_required = Column(Boolean, default=False, nullable=False)
-    
+
     # Relationships
     roles = relationship("Role", secondary=user_roles, back_populates="users")
-    
+
     # Proxies
     role_names = association_proxy('roles', 'name')
-    
+
     def __repr__(self):
         return f"<User(username='{self.username}', email='{self.email}')>"
 
@@ -48,17 +48,17 @@ class Role(BaseModel, TimestampMixin):
     Role model for role-based access control.
     """
     __tablename__ = 'roles'
-    
+
     name = Column(String(50), unique=True, nullable=False, index=True)
     description = Column(String(200), nullable=True)
-    
+
     # Relationships
     users = relationship("User", secondary=user_roles, back_populates="roles")
     permissions = relationship("Permission", secondary="role_permissions", back_populates="roles")
-    
+
     # Proxies
     permission_names = association_proxy('permissions', 'name')
-    
+
     def __repr__(self):
         return f"<Role(name='{self.name}')>"
 
@@ -77,12 +77,15 @@ class Permission(BaseModel, TimestampMixin):
     Permission model for fine-grained access control.
     """
     __tablename__ = 'permissions'
-    
+
     name = Column(String(50), unique=True, nullable=False, index=True)
     description = Column(String(200), nullable=True)
-    
+
     # Relationships
     roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
-    
+
     def __repr__(self):
         return f"<Permission(name='{self.name}')>"
+
+
+# UserPreference class is defined in chat.py

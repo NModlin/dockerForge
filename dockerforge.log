@@ -615,3 +615,303 @@ AttributeError: 'ConfigManager' object has no attribute 'get_config'
 2025-03-18 10:42:29,014 - dockerforge.fix_applier - INFO - Dry run: Would execute command: echo 'Hello from test step 2'
 2025-03-18 14:59:41,071 - dockerforge - INFO - Logging to file: dockerforge.log
 2025-03-18 14:59:49,725 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:15:46,972 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:15:55,917 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:15:56,032 - dockerforge.cli - INFO - Checking Docker installation and connectivity
+2025-04-05 07:15:56,032 - dockerforge.cli - INFO - Platform: linux
+2025-04-05 07:15:56,033 - dockerforge.cli - INFO - Distribution: garuda Soaring
+2025-04-05 07:15:56,033 - dockerforge.cli - INFO - Init system: systemd
+2025-04-05 07:15:56,048 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:15:56,060 - dockerforge.cli - INFO - Docker version: 28.0.4
+2025-04-05 07:15:56,062 - dockerforge.cli - INFO - API version: 1.48
+2025-04-05 07:15:56,082 - dockerforge.cli - INFO - Containers: 13
+2025-04-05 07:15:56,082 - dockerforge.cli - INFO - Running: 0
+2025-04-05 07:15:56,082 - dockerforge.cli - INFO - Paused: 0
+2025-04-05 07:15:56,082 - dockerforge.cli - INFO - Stopped: 13
+2025-04-05 07:15:56,082 - dockerforge.cli - INFO - Images: 202
+2025-04-05 07:19:18,387 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:19:22,957 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:19:23,093 - dockerforge.cli - INFO - Checking Docker installation and connectivity
+2025-04-05 07:19:23,093 - dockerforge.cli - INFO - Platform: linux
+2025-04-05 07:19:23,093 - dockerforge.cli - INFO - Distribution: garuda Soaring
+2025-04-05 07:19:23,093 - dockerforge.cli - INFO - Init system: systemd
+2025-04-05 07:19:23,111 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:19:23,120 - dockerforge.cli - INFO - Docker version: 28.0.4
+2025-04-05 07:19:23,120 - dockerforge.cli - INFO - API version: 1.48
+2025-04-05 07:19:23,138 - dockerforge.cli - INFO - Containers: 13
+2025-04-05 07:19:23,138 - dockerforge.cli - INFO - Running: 0
+2025-04-05 07:19:23,138 - dockerforge.cli - INFO - Paused: 0
+2025-04-05 07:19:23,138 - dockerforge.cli - INFO - Stopped: 13
+2025-04-05 07:19:23,138 - dockerforge.cli - INFO - Images: 202
+2025-04-05 07:19:31,597 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:19:31,718 - dockerforge.cli - INFO - Listing Docker containers
+2025-04-05 07:19:31,732 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:19:35,825 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:19:35,947 - dockerforge.cli - INFO - Listing Docker images
+2025-04-05 07:19:35,959 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:19:40,569 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:19:40,690 - dockerforge.cli - INFO - Listing Docker networks
+2025-04-05 07:19:40,704 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:19:44,625 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:19:44,762 - dockerforge.cli - INFO - Listing Docker volumes
+2025-04-05 07:19:44,777 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:19:54,416 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:19:54,544 - dockerforge.cli - INFO - Showing Docker and system information
+2025-04-05 07:19:54,560 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:19:59,644 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:04,373 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:04,512 - dockerforge.cli - INFO - Monitoring logs for container None
+2025-04-05 07:20:04,533 - dockerforge.log_collector - INFO - Log collection started
+2025-04-05 07:20:08,864 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:13,270 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:13,399 - dockerforge.src.compose.template_manager - INFO - Loaded 1 templates from /home/katalyst/.dockerforge/templates/compose
+2025-04-05 07:20:13,535 - dockerforge.cli_compose - INFO - Listing Docker Compose files
+2025-04-05 07:20:13,544 - dockerforge.src.compose.compose_discovery - INFO - Discovered Docker Compose file: /home/katalyst/GitHub/dockerForge/docker-compose.yml (version: None, services: 4)
+2025-04-05 07:20:17,838 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:17,959 - dockerforge.src.compose.template_manager - INFO - Loaded 1 templates from /home/katalyst/.dockerforge/templates/compose
+2025-04-05 07:20:18,046 - dockerforge.cli_compose - INFO - Validating Docker Compose file: docker-compose.yml
+2025-04-05 07:20:18,156 - dockerforge.src.compose.compose_operations - INFO - Docker Compose file docker-compose.yml is valid
+2025-04-05 07:20:18,164 - dockerforge.src.compose.compose_parser - WARNING - No schema available for Docker Compose version None
+2025-04-05 07:20:23,205 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:23,343 - dockerforge.src.compose.template_manager - INFO - Loaded 1 templates from /home/katalyst/.dockerforge/templates/compose
+2025-04-05 07:20:23,426 - dockerforge.cli_compose - INFO - Generating dependency visualization for Docker Compose file docker-compose.yml
+2025-04-05 07:20:27,548 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:35,824 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:35,974 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:20:35,974 - dockerforge.cli_security - ERROR - Error auditing Docker configuration: 'ConfigAuditor' object has no attribute 'get_security_reporter'
+2025-04-05 07:20:40,181 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:43,946 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:44,082 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:20:44,082 - dockerforge.backup.backup_manager - INFO - Listing backups
+2025-04-05 07:20:47,730 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:52,074 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:20:52,196 - dockerforge.cli - INFO - Showing resource monitoring daemon status
+2025-04-05 07:20:52,215 - dockerforge.cli - ERROR - Error showing resource monitoring daemon status: cannot import name 'ConnectionManager' from 'src.docker.connection_manager' (/home/katalyst/GitHub/dockerForge/src/docker/connection_manager.py)
+2025-04-05 07:21:25,867 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:21:26,869 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:21:37,541 - dockerforge.backup.backup_manager - INFO - Backing up container dockerforge-backup-test
+2025-04-05 07:21:37,543 - dockerforge.backup.backup_manager - INFO - Backing up volumes for container dockerforge-backup-test
+2025-04-05 07:21:37,544 - dockerforge.backup.backup_manager - INFO - Container backup completed: /home/katalyst/.dockerforge/backups/dockerforge-backup-test_20250405_072137
+2025-04-05 07:21:37,544 - dockerforge.backup.backup_manager - INFO - Listing backups
+2025-04-05 07:21:48,068 - dockerforge.backup.backup_manager - INFO - Listing backups
+2025-04-05 07:21:58,663 - dockerforge.backup.backup_manager - INFO - Backing up container dockerforge-backup-test
+2025-04-05 07:21:58,666 - dockerforge.backup.backup_manager - INFO - Backing up volumes for container dockerforge-backup-test
+2025-04-05 07:21:58,666 - dockerforge.backup.backup_manager - INFO - Container backup completed: /home/katalyst/.dockerforge/backups/dockerforge-backup-test_20250405_072158
+2025-04-05 07:31:44,255 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:32:16,191 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:32:16,417 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:32:16,419 - dockerforge.security.security_reporter - INFO - Generating audit report for Docker configuration
+2025-04-05 07:32:16,419 - dockerforge.security.config_auditor - INFO - Running Docker Bench Security audit
+2025-04-05 07:32:16,419 - dockerforge.security.config_auditor - WARNING - Docker Bench Security not found, attempting to install
+2025-04-05 07:32:16,420 - dockerforge.security.config_auditor - INFO - Installing Docker Bench Security...
+2025-04-05 07:32:17,125 - dockerforge.security.config_auditor - INFO - Docker Bench Security installed successfully
+2025-04-05 07:33:23,694 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:34:35,860 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:34:36,002 - dockerforge.cli - INFO - Showing resource monitoring daemon status
+2025-04-05 07:34:36,003 - dockerforge.cli - ERROR - Error showing resource monitoring daemon status: cannot import name 'ConnectionManager' from 'src.docker.connection_manager' (/home/katalyst/GitHub/dockerForge/src/docker/connection_manager.py)
+2025-04-05 07:35:40,365 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:35:40,543 - dockerforge.cli - INFO - Showing resource monitoring daemon status
+2025-04-05 07:35:40,545 - dockerforge.cli - ERROR - Error showing resource monitoring daemon status: cannot import name 'ConnectionManager' from 'src.docker.connection_manager' (/home/katalyst/GitHub/dockerForge/src/docker/connection_manager.py)
+2025-04-05 07:37:12,106 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:37:12,345 - dockerforge.cli - INFO - Showing resource monitoring daemon status
+2025-04-05 07:37:12,346 - dockerforge.cli - ERROR - Error showing resource monitoring daemon status: cannot import name 'ConnectionManager' from 'src.docker.connection_manager' (/home/katalyst/GitHub/dockerForge/src/docker/connection_manager.py)
+2025-04-05 07:38:09,811 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:38:10,051 - dockerforge.cli - INFO - Showing resource monitoring daemon status
+2025-04-05 07:38:10,265 - dockerforge.cli - ERROR - Error showing resource monitoring daemon status: 'ConfigManager' object has no attribute 'get_config'
+2025-04-05 07:39:18,003 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:39:18,188 - dockerforge.cli - INFO - Showing resource monitoring daemon status
+2025-04-05 07:39:18,322 - dockerforge.cli - ERROR - Error showing resource monitoring daemon status: 'ConfigManager' object has no attribute 'get_config'
+2025-04-05 07:39:39,215 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:39:39,333 - dockerforge.cli - INFO - Showing resource monitoring daemon status
+2025-04-05 07:39:49,760 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 07:39:50,506 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 07:40:01,196 - dockerforge.backup.backup_manager - INFO - Backing up container dockerforge-backup-test
+2025-04-05 07:40:01,199 - dockerforge.backup.backup_manager - INFO - Backing up volumes for container dockerforge-backup-test
+2025-04-05 07:40:01,200 - dockerforge.backup.backup_manager - INFO - Container backup completed: /home/katalyst/.dockerforge/backups/dockerforge-backup-test_20250405_074001
+2025-04-05 07:40:01,200 - dockerforge.backup.backup_manager - INFO - Listing backups
+2025-04-05 07:40:11,786 - dockerforge.backup.backup_manager - INFO - Listing backups
+2025-04-05 07:40:22,309 - dockerforge.backup.backup_manager - INFO - Backing up container dockerforge-backup-test
+2025-04-05 07:40:22,312 - dockerforge.backup.backup_manager - INFO - Backing up volumes for container dockerforge-backup-test
+2025-04-05 07:40:22,312 - dockerforge.backup.backup_manager - INFO - Container backup completed: /home/katalyst/.dockerforge/backups/dockerforge-backup-test_20250405_074022
+2025-04-05 09:37:42,606 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 09:40:03,031 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 09:40:45,336 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 09:40:45,589 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 09:40:47,249 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/home/katalyst/GitHub/dockerForge/venv/lib/python3.13/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-04-05 09:41:20,933 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 09:41:21,108 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 09:44:45,871 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 09:44:46,051 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 09:44:49,792 - dockerforge.prompt_template - ERROR - Error loading template log_analysis.json: 'template'
+2025-04-05 09:44:49,796 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:44:49,871 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:44:49,950 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:44:49,972 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:44:49,994 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:47:27,318 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 09:47:27,486 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 09:47:31,359 - dockerforge.prompt_template - ERROR - Error loading template log_analysis.json: 'template'
+2025-04-05 09:47:31,370 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:47:31,427 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:47:31,510 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:47:31,531 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:47:31,551 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:06,118 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 09:48:06,276 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 09:48:10,152 - dockerforge.prompt_template - ERROR - Error loading template log_analysis.json: 'template'
+2025-04-05 09:48:10,155 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:10,200 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:10,277 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:10,297 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:10,317 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:10,416 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:10,436 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 09:48:10,460 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:50:29,271 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 11:50:29,778 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 11:50:58,660 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 11:50:58,882 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 11:51:02,544 - dockerforge.prompt_template - ERROR - Error loading template log_analysis.json: 'template'
+2025-04-05 11:51:02,547 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:51:02,596 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:51:02,674 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:51:02,696 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:51:02,717 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:51:02,784 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:51:02,814 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 11:51:02,839 - dockerforge.web.api.chat - ERROR - Error processing chat message: 'PromptTemplate' object has no attribute 'format'
+2025-04-05 12:22:39,858 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 12:22:40,138 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 12:23:52,183 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 12:23:52,731 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 12:23:52,769 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:52,826 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:52,879 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:52,931 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:52,964 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:52,984 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,007 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,032 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,056 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,077 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,097 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,120 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,139 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,158 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:23:53,180 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:14,303 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 12:25:14,538 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 12:25:14,556 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:14,573 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:14,591 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:14,609 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:14,627 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:14,644 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:14,662 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,144 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 12:25:15,161 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,179 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,196 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,213 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,233 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,250 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,267 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:15,285 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:38,487 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 12:25:38,662 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 12:25:38,680 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:38,697 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:38,714 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:38,731 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:38,748 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:38,766 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:38,783 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,143 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 12:25:39,160 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,178 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,195 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,213 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,233 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,250 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,267 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:25:39,285 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,066 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 12:26:24,224 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 12:26:24,242 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,258 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,275 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,293 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,311 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,330 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,347 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,709 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 12:26:24,726 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,743 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,760 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,778 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,798 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,815 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,833 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:24,851 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,294 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 12:26:41,441 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 12:26:41,462 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,481 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,498 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,515 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,533 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,550 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,567 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,929 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 12:26:41,946 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,964 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,981 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:41,999 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:42,019 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:42,038 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:42,056 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:26:42,074 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:12,740 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 12:27:12,919 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 12:27:12,938 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:12,956 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:12,976 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:12,995 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,071 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,146 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,172 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,539 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 12:27:13,558 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,578 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,597 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,617 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,641 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,661 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,681 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:13,702 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,055 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,082 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,109 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,133 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,153 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,172 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,173 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 12:27:56,195 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,216 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,216 - dockerforge.prompt_template - ERROR - Error loading template log_analysis.json: 'template'
+2025-04-05 12:27:56,236 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,255 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 12:27:56,461 - dockerforge.ai_provider - ERROR - Error generating text with Gemini: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]

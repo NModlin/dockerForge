@@ -9,18 +9,18 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import List
 
-from schemas.auth import (
+from src.web.api.schemas.auth import (
     Token, User, UserCreate, UserUpdate, UserResponse,
     PasswordChange, PasswordReset, PasswordResetVerify
 )
-from services.auth import (
+from src.web.api.services.auth import (
     authenticate_user, create_access_token, get_current_active_user,
     create_user, get_users, get_user_by_id, check_permission,
     change_password, reset_password_with_local_auth,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from database import get_db
-from models import User as UserModel
+from src.web.api.database import get_db
+from src.web.api.models.user import User as UserModel
 
 # Create router
 router = APIRouter()
@@ -43,14 +43,14 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    
+
     return {
-        "access_token": access_token, 
+        "access_token": access_token,
         "token_type": "bearer",
         "password_change_required": user.password_change_required
     }
@@ -63,7 +63,7 @@ async def login(
 ):
     """
     Authenticate user and return JWT token.
-    
+
     This is an alias for /token for better API naming.
     If the user's password change is required, the response will include
     password_change_required=True.
@@ -75,14 +75,14 @@ async def login(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    
+
     return {
-        "access_token": access_token, 
+        "access_token": access_token,
         "token_type": "bearer",
         "password_change_required": user.password_change_required
     }
@@ -98,7 +98,7 @@ async def register_user(
     """
     user_data = user.dict()
     new_user = create_user(user_data, db)
-    
+
     return UserResponse(
         id=new_user.id,
         username=new_user.username,
@@ -144,9 +144,9 @@ async def read_users(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     users = get_users(skip, limit, db)
-    
+
     return [
         UserResponse(
             id=user.id,
@@ -176,14 +176,14 @@ async def read_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     user = get_user_by_id(user_id, db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     return UserResponse(
         id=user.id,
         username=user.username,
@@ -205,18 +205,18 @@ async def change_user_password(
     Change the current user's password.
     """
     success = change_password(
-        current_user, 
-        password_data.current_password, 
-        password_data.new_password, 
+        current_user,
+        password_data.current_password,
+        password_data.new_password,
         db
     )
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect",
         )
-    
+
     return {"message": "Password changed successfully"}
 
 
@@ -227,7 +227,7 @@ async def request_password_reset(
 ):
     """
     Request a password reset.
-    
+
     This endpoint checks if the username exists and returns a success message.
     In a real implementation, this would typically send an email with a reset link.
     """
@@ -235,7 +235,7 @@ async def request_password_reset(
     if not user:
         # Return success even if user doesn't exist to prevent username enumeration
         return {"message": "If the username exists, password reset instructions will be provided"}
-    
+
     # In a real implementation, this would send an email with a reset link
     # For this implementation, we'll just return a success message
     return {"message": "If the username exists, password reset instructions will be provided"}
@@ -256,13 +256,13 @@ async def verify_and_reset_password(
         reset_data.new_password,
         db
     )
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid credentials or username",
         )
-    
+
     return {"message": "Password reset successfully"}
 
 
@@ -270,7 +270,7 @@ async def verify_and_reset_password(
 async def logout():
     """
     Logout user.
-    
+
     Note: With JWT, logout is typically handled client-side by removing the token.
     This endpoint is provided for API completeness.
     """

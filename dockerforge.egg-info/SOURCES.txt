@@ -10,6 +10,7 @@ dockerforge.egg-info/top_level.txt
 src/__init__.py
 src/cli.py
 src/cli_backup.py
+src/cli_checkpoint.py
 src/cli_compose.py
 src/cli_notifications.py
 src/cli_resource_monitoring.py
@@ -17,6 +18,7 @@ src/cli_security.py
 src/cli_update.py
 src/backup/__init__.py
 src/backup/backup_manager.py
+src/backup/checkpoint_manager.py
 src/backup/export_import.py
 src/compose/__init__.py
 src/compose/change_manager.py
@@ -30,9 +32,18 @@ src/config/config_manager.py
 src/core/__init__.py
 src/core/ai_provider.py
 src/core/ai_usage_tracker.py
+src/core/chat_handler.py
+src/core/conversation_memory.py
 src/core/plugin_manager.py
 src/core/prompt_template.py
 src/core/troubleshooter.py
+src/core/user_preference_manager.py
+src/core/agents/__init__.py
+src/core/agents/agent_framework.py
+src/core/agents/agent_memory.py
+src/core/agents/container_agent.py
+src/core/agents/execution_engine.py
+src/core/agents/task_planner.py
 src/docker/__init__.py
 src/docker/connection_manager.py
 src/fixes/__init__.py

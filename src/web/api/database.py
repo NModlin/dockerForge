@@ -5,11 +5,10 @@ This module provides the database configuration and session management.
 """
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 from contextlib import contextmanager
 
-from models import Base
+from src.web.api.models.base import Base
 
 # Get database URL from environment variable or use default
 # For development, use SQLite
@@ -33,7 +32,7 @@ db_session = scoped_session(SessionLocal)
 def get_db():
     """
     Get database session.
-    
+
     This function is used as a dependency in FastAPI endpoints.
     """
     db = db_session()
@@ -47,7 +46,7 @@ def get_db():
 def get_db_context():
     """
     Get database session as a context manager.
-    
+
     This function is used for scripts and background tasks.
     """
     db = db_session()
@@ -63,12 +62,12 @@ def get_db_context():
 def init_db():
     """
     Initialize database.
-    
+
     This function creates all tables in the database.
     """
     # Import all models to ensure they are registered with Base
-    from models import __all__
-    
+    from src.web.api.models import __all__
+
     # Create tables
     Base.metadata.create_all(bind=engine)
 
@@ -76,7 +75,7 @@ def init_db():
 def drop_db():
     """
     Drop all tables in the database.
-    
+
     This function is used for testing and development.
     """
     Base.metadata.drop_all(bind=engine)
@@ -85,28 +84,28 @@ def drop_db():
 def create_initial_data():
     """
     Create initial data in the database.
-    
+
     This function is used to populate the database with initial data.
     """
-    from models import User, Role, Permission
+    from src.web.api.models.user import User, Role, Permission
     from passlib.context import CryptContext
-    
+
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    
+
     with get_db_context() as db:
         # Check if admin user already exists
         admin_user = db.query(User).filter(User.username == "admin").first()
         if admin_user:
             return
-        
+
         # Create admin role
         admin_role = Role(name="admin", description="Administrator role with full access")
         db.add(admin_role)
-        
+
         # Create user role
         user_role = Role(name="user", description="Regular user role with limited access")
         db.add(user_role)
-        
+
         # Create permissions
         permissions = [
             Permission(name="users:read", description="Read users"),
@@ -137,19 +136,19 @@ def create_initial_data():
             Permission(name="settings:read", description="Read settings"),
             Permission(name="settings:write", description="Update settings"),
         ]
-        
+
         for permission in permissions:
             db.add(permission)
-        
+
         # Flush to get IDs
         db.flush()
-        
+
         # Add all permissions to admin role
         admin_role.permissions = permissions
-        
+
         # Add read permissions to user role
         user_role.permissions = [p for p in permissions if p.name.endswith(":read")]
-        
+
         # Create admin user
         admin_user = User(
             username="admin",
@@ -162,7 +161,7 @@ def create_initial_data():
         )
         admin_user.roles = [admin_role]
         db.add(admin_user)
-        
+
         # Create regular user
         regular_user = User(
             username="user",
@@ -175,6 +174,6 @@ def create_initial_data():
         )
         regular_user.roles = [user_role]
         db.add(regular_user)
-        
+
         # Commit changes
         db.commit()

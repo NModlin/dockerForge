@@ -12,9 +12,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import User as UserModel, Role
-from schemas.auth import User, UserInDB, TokenData
+from src.web.api.database import get_db
+from src.web.api.models.user import User as UserModel, Role
+from src.web.api.schemas.auth import User, UserInDB, TokenData
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -74,10 +74,10 @@ def create_user(user_data: dict, db: Session) -> UserModel:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already registered",
         )
-    
+
     # Hash password
     hashed_password = get_password_hash(user_data["password"])
-    
+
     # Create user
     user = UserModel(
         username=user_data["username"],
@@ -87,17 +87,17 @@ def create_user(user_data: dict, db: Session) -> UserModel:
         is_active=True,
         is_superuser=False,
     )
-    
+
     # Add user role
     user_role = db.query(Role).filter(Role.name == "user").first()
     if user_role:
         user.roles = [user_role]
-    
+
     # Add to database
     db.add(user)
     db.commit()
     db.refresh(user)
-    
+
     return user
 
 
@@ -112,59 +112,59 @@ def authenticate_user(username: str, password: str, db: Session) -> Optional[Use
         return None
     if not user.is_active:
         return None
-    
+
     return user
 
 
 def change_password(user: UserModel, current_password: str, new_password: str, db: Session) -> bool:
     """
     Change a user's password.
-    
+
     Returns True if successful, False otherwise.
     """
     # Verify current password
     if not verify_password(current_password, user.hashed_password):
         return False
-    
+
     # Hash new password
     user.hashed_password = get_password_hash(new_password)
-    
+
     # Clear password change required flag
     user.password_change_required = False
-    
+
     # Update user
     db.commit()
-    
+
     return True
 
 
-def reset_password_with_local_auth(username: str, local_username: str, local_password: str, 
+def reset_password_with_local_auth(username: str, local_username: str, local_password: str,
                                   new_password: str, db: Session) -> bool:
     """
     Reset a user's password using local system authentication.
-    
+
     Returns True if successful, False otherwise.
     """
     # Get user
     user = get_user(username, db)
     if not user:
         return False
-    
+
     # Verify local credentials (this would normally call the system's auth)
     # For this implementation, we'll just check if the credentials match any user in our system
     local_user = authenticate_user(local_username, local_password, db)
     if not local_user:
         return False
-    
+
     # Hash new password
     user.hashed_password = get_password_hash(new_password)
-    
+
     # Clear password change required flag
     user.password_change_required = False
-    
+
     # Update user
     db.commit()
-    
+
     return True
 
 
@@ -173,15 +173,15 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     Create a JWT access token.
     """
     to_encode = data.copy()
-    
+
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    
+
     return encoded_jwt
 
 
@@ -194,30 +194,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     try:
         # Decode JWT
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        
+
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
+
     # Get user from database
     user = get_user(token_data.username, db)
     if user is None:
         raise credentials_exception
-    
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Inactive user",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     return user
 
 
@@ -228,13 +228,13 @@ def check_permission(user: UserModel, permission: str) -> bool:
     # Superusers have all permissions
     if user.is_superuser:
         return True
-    
+
     # Check user roles for the permission
     for role in user.roles:
         for perm in role.permissions:
             if perm.name == permission:
                 return True
-    
+
     return False
 
 

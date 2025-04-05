@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
-from schemas.containers import Container, ContainerCreate, ContainerUpdate
-from services.containers import (
+from src.web.api.schemas.containers import Container, ContainerCreate, ContainerUpdate
+from src.web.api.services.containers import (
     get_containers, get_container, create_container, update_container, delete_container,
     start_container as start_container_service,
     stop_container as stop_container_service,
@@ -16,9 +16,9 @@ from services.containers import (
     get_container_logs as get_container_logs_service,
     get_system_info as get_system_info_service,
 )
-from services.auth import get_current_active_user, check_permission
-from database import get_db
-from models import User
+from src.web.api.services.auth import get_current_active_user, check_permission
+from src.web.api.database import get_db
+from src.web.api.models.user import User
 
 # Create router
 router = APIRouter()
@@ -42,7 +42,7 @@ async def list_containers(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     return await get_containers(status=status, name=name, limit=limit, skip=skip, db=db)
 
 
@@ -61,7 +61,7 @@ async def get_container_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     container = await get_container(container_id, db=db)
     if not container:
         raise HTTPException(
@@ -86,7 +86,7 @@ async def create_new_container(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     return await create_container(container, db=db)
 
 
@@ -106,7 +106,7 @@ async def update_container_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     updated_container = await update_container(container_id, container, db=db)
     if not updated_container:
         raise HTTPException(
@@ -131,7 +131,7 @@ async def delete_container_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     success = await delete_container(container_id, db=db)
     if not success:
         raise HTTPException(
@@ -156,14 +156,14 @@ async def start_container(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     container = await start_container_service(container_id, db=db)
     if not container:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Container with ID {container_id} not found",
         )
-    
+
     return container
 
 
@@ -182,14 +182,14 @@ async def stop_container(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     container = await stop_container_service(container_id, db=db)
     if not container:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Container with ID {container_id} not found",
         )
-    
+
     return container
 
 
@@ -208,14 +208,14 @@ async def restart_container(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     container = await restart_container_service(container_id, db=db)
     if not container:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Container with ID {container_id} not found",
         )
-    
+
     return container
 
 
@@ -235,7 +235,7 @@ async def get_container_logs(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check if container exists
     container = await get_container(container_id, db=db)
     if not container:
@@ -243,10 +243,10 @@ async def get_container_logs(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Container with ID {container_id} not found",
         )
-    
+
     # Get container logs
     logs = await get_container_logs_service(container_id, tail=tail, db=db)
-    
+
     return {
         "container_id": container_id,
         "logs": logs,
@@ -267,5 +267,5 @@ async def get_system_info(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     return await get_system_info_service(db=db)

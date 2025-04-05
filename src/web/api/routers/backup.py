@@ -7,9 +7,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models.backup import Backup, BackupItem, RestoreJob, RestoreItem
-from schemas import backup as schemas
+from src.web.api.database import get_db
+from src.web.api.models.backup import Backup, BackupItem, RestoreJob, RestoreItem
+from src.web.api.schemas import backup as schemas
 
 router = APIRouter()
 
@@ -68,10 +68,10 @@ async def update_backup(
     db_backup = db.query(Backup).filter(Backup.id == backup_id).first()
     if db_backup is None:
         raise HTTPException(status_code=404, detail="Backup not found")
-    
+
     for key, value in backup.dict(exclude_unset=True).items():
         setattr(db_backup, key, value)
-    
+
     db.commit()
     db.refresh(db_backup)
     return db_backup
@@ -88,7 +88,7 @@ async def delete_backup(
     db_backup = db.query(Backup).filter(Backup.id == backup_id).first()
     if db_backup is None:
         raise HTTPException(status_code=404, detail="Backup not found")
-    
+
     db.delete(db_backup)
     db.commit()
     return None
@@ -107,7 +107,7 @@ async def get_backup_items(
     db_backup = db.query(Backup).filter(Backup.id == backup_id).first()
     if db_backup is None:
         raise HTTPException(status_code=404, detail="Backup not found")
-    
+
     items = db.query(BackupItem).filter(BackupItem.backup_id == backup_id).offset(skip).limit(limit).all()
     return items
 
@@ -124,7 +124,7 @@ async def create_backup_item(
     db_backup = db.query(Backup).filter(Backup.id == backup_id).first()
     if db_backup is None:
         raise HTTPException(status_code=404, detail="Backup not found")
-    
+
     db_item = BackupItem(**item.dict(), backup_id=backup_id)
     db.add(db_item)
     db.commit()
@@ -156,7 +156,7 @@ async def create_restore_job(
     db_backup = db.query(Backup).filter(Backup.id == job.backup_id).first()
     if db_backup is None:
         raise HTTPException(status_code=404, detail="Backup not found")
-    
+
     db_job = RestoreJob(**job.dict())
     db.add(db_job)
     db.commit()
@@ -190,10 +190,10 @@ async def update_restore_job(
     db_job = db.query(RestoreJob).filter(RestoreJob.id == job_id).first()
     if db_job is None:
         raise HTTPException(status_code=404, detail="Restore job not found")
-    
+
     for key, value in job.dict(exclude_unset=True).items():
         setattr(db_job, key, value)
-    
+
     db.commit()
     db.refresh(db_job)
     return db_job
@@ -210,7 +210,7 @@ async def delete_restore_job(
     db_job = db.query(RestoreJob).filter(RestoreJob.id == job_id).first()
     if db_job is None:
         raise HTTPException(status_code=404, detail="Restore job not found")
-    
+
     db.delete(db_job)
     db.commit()
     return None
@@ -228,11 +228,11 @@ async def create_restore_item(
     db_job = db.query(RestoreJob).filter(RestoreJob.id == job_id).first()
     if db_job is None:
         raise HTTPException(status_code=404, detail="Restore job not found")
-    
+
     db_backup_item = db.query(BackupItem).filter(BackupItem.id == item.backup_item_id).first()
     if db_backup_item is None:
         raise HTTPException(status_code=404, detail="Backup item not found")
-    
+
     db_item = RestoreItem(**item.dict(), restore_job_id=job_id)
     db.add(db_item)
     db.commit()

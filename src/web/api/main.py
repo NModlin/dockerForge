@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 
-from database import get_db, init_db, create_initial_data
+from src.web.api.database import get_db, init_db, create_initial_data
 
 # Create FastAPI app
 app = FastAPI(
@@ -86,9 +86,9 @@ async def root():
     }
 
 # Import and include routers
-from routers import auth, containers, images, backup, monitoring, chat, websocket
+from src.web.api.routers import auth, containers, images, backup, monitoring, chat, websocket
 # Import additional routers as they are implemented
-from models import __all__ as models  # Import all models to ensure they are registered
+from src.web.api.models import __all__ as models  # Import all models to ensure they are registered
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(containers.router, prefix="/api/containers", tags=["Containers"])
@@ -121,13 +121,13 @@ async def catch_all(path: str):
     """
     if path.startswith("api/") or path == "api":
         raise HTTPException(status_code=404, detail="Not Found")
-    
+
     # Check if the requested path exists in the static directory
     if "." in path:  # This is likely a file request
         static_path = os.path.join(static_dir, path)
         if os.path.isfile(static_path):
             return FileResponse(static_path)
-    
+
     # For any other path, serve the index.html file
     return FileResponse(os.path.join(static_dir, "index.html"))
 
@@ -154,6 +154,6 @@ async def general_exception_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     port = int(os.getenv("PORT", 54321))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

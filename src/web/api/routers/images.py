@@ -7,14 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Body
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
-from schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageScanResult, ImageScanCreate
-from services.images import (
+from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageScanResult, ImageScanCreate
+from src.web.api.services.images import (
     get_images, get_image, create_image, delete_image,
     scan_image, get_image_scans, get_image_scan,
 )
-from services.auth import get_current_active_user, check_permission
-from database import get_db
-from models import User
+from src.web.api.services.auth import get_current_active_user, check_permission
+from src.web.api.database import get_db
+from src.web.api.models.user import User
 
 # Create router
 router = APIRouter()
@@ -38,7 +38,7 @@ async def list_images(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     return await get_images(name=name, tag=tag, limit=limit, skip=skip, db=db)
 
 
@@ -57,7 +57,7 @@ async def get_image_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     image = await get_image(image_id, db=db)
     if not image:
         raise HTTPException(
@@ -82,7 +82,7 @@ async def create_new_image(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     return await create_image(image, db=db)
 
 
@@ -102,7 +102,7 @@ async def delete_image_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     success = await delete_image(image_id, force=force, db=db)
     if not success:
         raise HTTPException(
@@ -128,7 +128,7 @@ async def scan_image_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check if image exists
     image = await get_image(image_id, db=db)
     if not image:
@@ -136,7 +136,7 @@ async def scan_image_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Image with ID {image_id} not found",
         )
-    
+
     # Scan image
     return await scan_image(image_id, scan_type=scan_data.scan_type, db=db)
 
@@ -156,7 +156,7 @@ async def get_image_scans_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check if image exists
     image = await get_image(image_id, db=db)
     if not image:
@@ -164,7 +164,7 @@ async def get_image_scans_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Image with ID {image_id} not found",
         )
-    
+
     # Get scans
     return await get_image_scans(image_id, db=db)
 
@@ -185,7 +185,7 @@ async def get_image_scan_by_id(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions",
         )
-    
+
     # Check if image exists
     image = await get_image(image_id, db=db)
     if not image:
@@ -193,7 +193,7 @@ async def get_image_scan_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Image with ID {image_id} not found",
         )
-    
+
     # Get scan
     scan_result = await get_image_scan(image_id, scan_id, db=db)
     if not scan_result:
@@ -201,5 +201,5 @@ async def get_image_scan_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Scan with ID {scan_id} not found for image {image_id}",
         )
-    
+
     return scan_result

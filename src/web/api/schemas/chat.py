@@ -4,8 +4,8 @@ Chat schemas for the DockerForge Web UI.
 This module provides the Pydantic schemas for chat functionality,
 including feedback, user preferences, and conversation memory.
 """
-from pydantic import BaseModel, Field, validator
-from typing import Optional, List, Dict, Any, Union, Literal
+from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime
 
 
@@ -18,7 +18,7 @@ class ContextData(BaseModel):
     current_image_id: Optional[str] = Field(None, description="Current image ID")
     current_volume_id: Optional[str] = Field(None, description="Current volume ID")
     current_network_id: Optional[str] = Field(None, description="Current network ID")
-    
+
     # Security related context
     vulnerability_id: Optional[str] = Field(None, description="Vulnerability ID")
     vulnerability_severity: Optional[str] = Field(None, description="Vulnerability severity level")
@@ -28,7 +28,7 @@ class ContextData(BaseModel):
     fixed_version: Optional[str] = Field(None, description="Fixed package version")
     cve_id: Optional[str] = Field(None, description="CVE ID")
     recommendation_id: Optional[str] = Field(None, description="Recommendation ID")
-    
+
     # Container troubleshooting context
     container_logs: Optional[str] = Field(None, description="Container logs for analysis")
     issue_id: Optional[str] = Field(None, description="Issue ID from issue detector")
@@ -39,11 +39,11 @@ class ContextData(BaseModel):
     container_health: Optional[str] = Field(None, description="Container health status")
     container_stats: Optional[Dict[str, Any]] = Field(None, description="Container statistics")
     exit_code: Optional[int] = Field(None, description="Container exit code if stopped")
-    
+
     # Workflow related context
     workflow_id: Optional[str] = Field(None, description="Active workflow ID for multi-step processes")
     workflow_type: Optional[str] = Field(None, description="Type of workflow (security, troubleshooting)")
-    
+
     additional_data: Optional[Dict[str, Any]] = Field(None, description="Additional context data")
 
 
@@ -72,8 +72,9 @@ class ChatMessage(ChatMessageBase):
     session_id: int = Field(..., description="Chat session ID")
     timestamp: datetime = Field(..., description="Message timestamp")
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class ChatSessionBase(BaseModel):
@@ -109,8 +110,9 @@ class ChatSession(ChatSessionBase):
     updated_at: datetime = Field(..., description="Last update timestamp")
     messages: List[ChatMessage] = Field([], description="Session messages")
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 class ChatResponse(BaseModel):
@@ -163,8 +165,9 @@ class ChatFeedback(ChatFeedbackBase):
     user_id: Optional[int] = Field(None, description="User ID")
     created_at: datetime = Field(..., description="Creation timestamp")
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # User preference schemas
@@ -205,8 +208,9 @@ class UserPreference(UserPreferenceBase):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # Command shortcut schemas
@@ -244,8 +248,9 @@ class ChatCommandShortcut(ChatCommandShortcutBase):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 
 # Command shortcuts list schema

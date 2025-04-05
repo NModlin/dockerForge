@@ -39,30 +39,30 @@ docker:
       exclude_patterns:
         - "**/node_modules/**"
         - "**/.git/**"
-    
+
     parser:
       schema_dir: ~/.dockerforge/schemas/compose
       expand_env_vars: true
       validate: true
-    
+
     change_management:
       backup_dir: ~/.dockerforge/backups/compose
       auto_backup: true
       max_backups: 10
       atomic_updates: true
-    
+
     templates:
       directory: ~/.dockerforge/templates/compose
       auto_load: true
       variable_pattern: "{{variable}}"
-    
+
     visualization:
       output_dir: ~/.dockerforge/visualizations
       default_format: "mermaid"
       include_networks: true
       include_volumes: true
       include_resources: true
-    
+
     operations:
       validate_before_up: true
       health_check_timeout: 30
@@ -71,7 +71,7 @@ docker:
 
 # AI provider settings
 ai:
-  default_provider: ollama
+  default_provider: gemini
   providers:
     claude:
       enabled: false
@@ -80,13 +80,13 @@ ai:
       max_tokens: 4000
       temperature: 0.7
     gemini:
-      enabled: false
-      # api_key: your-api-key
+      enabled: true
+      api_key: "${GEMINI_API_KEY}"  # Using environment variable
       model: gemini-pro
       max_tokens: 2048
       temperature: 0.7
     ollama:
-      enabled: true
+      enabled: false
       endpoint: http://localhost:11434
       model: llama3
       auto_discover: true
@@ -94,25 +94,25 @@ ai:
       container_name_patterns:
         - "ollama"
         - "llama"
-  
+
   # Cost management settings
   cost_management:
     require_confirmation: true
     confirmation_threshold_usd: 0.5
     max_daily_cost_usd: 10.0
     max_monthly_cost_usd: 50.0
-  
+
   # Usage limits
   usage_limits:
     max_daily_requests: 100
     max_monthly_cost_usd: 50.0
-  
+
   # Plugin system settings
   plugins:
     enabled: true
     directory: ~/.dockerforge/plugins
     auto_discover: true
-  
+
   # Template system settings
   templates:
     directory: ~/.dockerforge/templates
@@ -129,7 +129,7 @@ monitoring:
     cpu_percent: 80
     memory_percent: 85
     disk_percent: 90
-  
+
   # Log monitoring settings
   log_monitoring:
     enabled: true
@@ -138,16 +138,16 @@ monitoring:
     max_analysis_history: 100
     max_search_history: 100
     container_filter: {}  # Filter for containers to monitor
-  
+
   # Pattern recognition settings
   patterns_dir: ~/.dockerforge/patterns
-  
+
   # Log analysis settings
   templates_dir: ~/.dockerforge/templates
-  
+
   # Issue detection settings
   issues_dir: ~/.dockerforge/issues
-  
+
   # Recommendation settings
   recommendations_dir: ~/.dockerforge/recommendations
   recommendation_templates_dir: ~/.dockerforge/recommendation_templates
@@ -156,7 +156,7 @@ monitoring:
 notifications:
   enabled: true
   default_channel: "slack"
-  
+
   # Notification channels
   channels:
     email:
@@ -187,7 +187,7 @@ notifications:
       # headers:
       #   Authorization: Bearer your-token
       #   Content-Type: application/json
-    
+
   # Notification preferences
   preferences:
     throttling:
@@ -199,13 +199,13 @@ notifications:
         enabled: false
         start: "22:00"
         end: "08:00"
-    
+
     severity_thresholds:
       info: false
       warning: true
       error: true
       critical: true
-    
+
     notification_types:
       container_exit: true
       container_oom: true
@@ -214,12 +214,12 @@ notifications:
       update_available: true
       fix_proposal: true
       fix_applied: true
-  
+
   # Notification templates
   templates:
     directory: ~/.dockerforge/notification_templates
     default_template: "default"
-    
+
   # Fix application settings
   fixes:
     require_approval: true

@@ -8,9 +8,9 @@ from datetime import datetime
 import logging
 from sqlalchemy.orm import Session
 
-from schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageVulnerability, ImageScanResult
-from services import docker
-from models import Image as ImageModel, SecurityScan, Vulnerability
+from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageVulnerability, ImageScanResult
+from src.web.api.services import docker
+from src.web.api.models.image import Image as ImageModel, SecurityScan, Vulnerability
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -29,17 +29,17 @@ async def get_images(
     try:
         # Get images from Docker API
         docker_images = docker.get_images()
-        
+
         # Filter images
         filtered_images = docker_images
         if name:
             filtered_images = [img for img in filtered_images if any(name in tag.split(':')[0] for tag in img.get('tags', []) if tag)]
         if tag:
             filtered_images = [img for img in filtered_images if any(tag == tag.split(':')[1] for tag in img.get('tags', []) if tag and ':' in tag)]
-        
+
         # Apply pagination
         paginated_images = filtered_images[skip:skip + limit]
-        
+
         # Convert to Image objects
         return [Image(**image) for image in paginated_images]
     except Exception as e:
@@ -56,7 +56,7 @@ async def get_image(image_id: str, db: Session = None) -> Optional[Image]:
         image_data = docker.get_image(image_id)
         if not image_data:
             return None
-        
+
         # Convert to Image object
         return Image(**image_data)
     except Exception as e:
@@ -71,10 +71,10 @@ async def create_image(image: ImageCreate, db: Session = None) -> Image:
     try:
         # Prepare image name
         image_name = f"{image.name}:{image.tag}" if image.tag else image.name
-        
+
         # Pull image using Docker API
         image_data = docker.pull_image(image_name)
-        
+
         # Convert to Image object
         return Image(**image_data)
     except Exception as e:
@@ -97,7 +97,7 @@ async def delete_image(image_id: str, force: bool = False, db: Session = None) -
 async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Session = None) -> ImageScanResult:
     """
     Scan an image for vulnerabilities.
-    
+
     Note: This is a placeholder implementation. In a real implementation, this would call a vulnerability scanner.
     """
     try:
@@ -105,7 +105,7 @@ async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Sessio
         image = await get_image(image_id, db=db)
         if not image:
             raise ValueError(f"Image with ID {image_id} not found")
-        
+
         # Check if image exists in database
         db_image = db.query(ImageModel).filter(ImageModel.docker_id == image_id).first()
         if not db_image:
@@ -125,7 +125,7 @@ async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Sessio
             db.add(db_image)
             db.commit()
             db.refresh(db_image)
-        
+
         # Create security scan
         scan = SecurityScan(
             image_id=db_image.id,
@@ -136,7 +136,7 @@ async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Sessio
         db.add(scan)
         db.commit()
         db.refresh(scan)
-        
+
         # Placeholder: In a real implementation, this would call a vulnerability scanner
         # For now, we'll just create some mock vulnerabilities
         vulnerabilities = [
@@ -174,10 +174,10 @@ async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Sessio
                 cve_id="CVE-2023-9012",
             ),
         ]
-        
+
         for vulnerability in vulnerabilities:
             db.add(vulnerability)
-        
+
         # Update scan status
         scan.status = "completed"
         scan.completed_at = datetime.now()
@@ -186,10 +186,10 @@ async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Sessio
         scan.high_count = sum(1 for v in vulnerabilities if v.severity == "high")
         scan.medium_count = sum(1 for v in vulnerabilities if v.severity == "medium")
         scan.low_count = sum(1 for v in vulnerabilities if v.severity == "low")
-        
+
         db.commit()
         db.refresh(scan)
-        
+
         # Convert to ImageScan and ImageVulnerability objects
         scan_result = ImageScanResult(
             scan=ImageScan(
@@ -221,7 +221,7 @@ async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Sessio
                 for v in vulnerabilities
             ],
         )
-        
+
         return scan_result
     except Exception as e:
         logger.error(f"Failed to scan image: {e}")
@@ -237,10 +237,10 @@ async def get_image_scans(image_id: str, db: Session = None) -> List[ImageScan]:
         db_image = db.query(ImageModel).filter(ImageModel.docker_id == image_id).first()
         if not db_image:
             return []
-        
+
         # Get scans
         scans = db.query(SecurityScan).filter(SecurityScan.image_id == db_image.id).all()
-        
+
         # Convert to ImageScan objects
         return [
             ImageScan(
@@ -272,15 +272,15 @@ async def get_image_scan(image_id: str, scan_id: int, db: Session = None) -> Opt
         db_image = db.query(ImageModel).filter(ImageModel.docker_id == image_id).first()
         if not db_image:
             return None
-        
+
         # Get scan
         scan = db.query(SecurityScan).filter(SecurityScan.id == scan_id, SecurityScan.image_id == db_image.id).first()
         if not scan:
             return None
-        
+
         # Get vulnerabilities
         vulnerabilities = db.query(Vulnerability).filter(Vulnerability.scan_id == scan.id).all()
-        
+
         # Convert to ImageScan and ImageVulnerability objects
         scan_result = ImageScanResult(
             scan=ImageScan(
@@ -312,7 +312,7 @@ async def get_image_scan(image_id: str, scan_id: int, db: Session = None) -> Opt
                 for v in vulnerabilities
             ],
         )
-        
+
         return scan_result
     except Exception as e:
         logger.error(f"Failed to get image scan: {e}")
