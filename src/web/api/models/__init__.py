@@ -15,7 +15,7 @@ from .monitoring import (
     MetricSample, Alert, AlertRule, LogEntry, 
     Dashboard, DashboardWidget
 )
-from .chat import ChatMessage, ChatSession
+from .chat import ChatMessage, ChatSession, ChatFeedback, UserPreference, ChatCommandShortcut, ConversationMemory
 
 # List of all models for easy access
 __all__ = [
@@ -28,5 +28,5 @@ __all__ = [
     'ComposeProject', 'ComposeFile', 'ComposeService', 'ComposeServiceContainer',
     'Backup', 'BackupItem', 'RestoreJob', 'RestoreItem',
     'MetricSample', 'Alert', 'AlertRule', 'LogEntry', 'Dashboard', 'DashboardWidget',
-    'ChatMessage', 'ChatSession',
+    'ChatMessage', 'ChatSession', 'ChatFeedback', 'UserPreference', 'ChatCommandShortcut', 'ConversationMemory',
 ]

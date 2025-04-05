@@ -1,3 +1,15 @@
+<!--
+@doc-meta {
+  "id": "code-of-conduct",
+  "version": "1.0",
+  "last_updated": "2025-03-18",
+  "update_frequency": "as-needed",
+  "maintainer": "system",
+  "status": "current",
+  "category": "general"
+}
+-->
+
 # Code of Conduct
 
 ## Our Pledge
@@ -75,3 +87,11 @@ This Code of Conduct is adapted from the [Contributor Covenant](https://www.cont
 Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
 
 For answers to common questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
+
+<!-- 
+@llm-instructions
+This is the Code of Conduct document for DockerForge.
+- Do not modify the core text of the Code of Conduct without approval
+- Update the contact method when it is provided
+- Keep the attribution and links up-to-date
+-->

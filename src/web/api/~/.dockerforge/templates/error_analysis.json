@@ -1,0 +1,30 @@
+{
+  "name": "Error Analysis",
+  "description": "Template for analyzing error logs",
+  "prompt": "Analyze the following Docker container error logs and identify the root causes of the errors. Focus on critical errors and exceptions. Provide detailed explanations of each error and specific recommendations for resolving them.",
+  "system_prompt": "You are an expert in debugging and error analysis for Docker containers. Your task is to analyze error logs, identify root causes, and provide actionable recommendations for resolving the errors.",
+  "output_format": {
+    "summary": "A brief summary of the errors found",
+    "issues": [
+      {
+        "title": "Error title",
+        "description": "Detailed description of the error",
+        "severity": "critical|error|warning|info",
+        "error_type": "Type of error (e.g., NullPointerException)",
+        "stack_trace": "Relevant stack trace if available"
+      }
+    ],
+    "recommendations": [
+      {
+        "title": "Recommendation title",
+        "description": "Detailed description of the recommendation",
+        "steps": [
+          "Step 1",
+          "Step 2",
+          "..."
+        ],
+        "code_example": "Example code fix if applicable"
+      }
+    ]
+  }
+}

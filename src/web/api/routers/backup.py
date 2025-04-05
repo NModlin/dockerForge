@@ -7,9 +7,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.backup import Backup, BackupItem, RestoreJob, RestoreItem
-from ..schemas import backup as schemas
+from database import get_db
+from models.backup import Backup, BackupItem, RestoreJob, RestoreItem
+from schemas import backup as schemas
 
 router = APIRouter()
 

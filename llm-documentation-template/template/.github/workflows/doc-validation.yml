@@ -1,0 +1,40 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'docs/**'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./scripts
+
+      - name: Validate doc metadata
+        run: node validate-docs.js
+        working-directory: ./scripts
+
+      - name: Check for broken links
+        run: node check-links.js
+        working-directory: ./scripts
+
+      - name: Validate LLM instructions
+        run: node validate-llm-instructions.js
+        working-directory: ./scripts

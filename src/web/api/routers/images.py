@@ -7,14 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Body
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
-from ..schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageScanResult, ImageScanCreate
-from ..services.images import (
+from schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageScanResult, ImageScanCreate
+from services.images import (
     get_images, get_image, create_image, delete_image,
     scan_image, get_image_scans, get_image_scan,
 )
-from ..services.auth import get_current_active_user, check_permission
-from ..database import get_db
-from ..models import User
+from services.auth import get_current_active_user, check_permission
+from database import get_db
+from models import User
 
 # Create router
 router = APIRouter()

@@ -9,10 +9,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 from contextlib import contextmanager
 
-from .models import Base
+from models import Base
 
 # Get database URL from environment variable or use default
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://dockerforge:dockerforge@db:5432/dockerforge")
+# For development, use SQLite
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dockerforge.db")
 
 # Create engine
 engine = create_engine(
@@ -66,7 +67,7 @@ def init_db():
     This function creates all tables in the database.
     """
     # Import all models to ensure they are registered with Base
-    from .models import __all__
+    from models import __all__
     
     # Create tables
     Base.metadata.create_all(bind=engine)
@@ -87,7 +88,7 @@ def create_initial_data():
     
     This function is used to populate the database with initial data.
     """
-    from .models import User, Role, Permission
+    from models import User, Role, Permission
     from passlib.context import CryptContext
     
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

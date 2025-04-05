@@ -28,6 +28,11 @@ RUN pip install --no-cache-dir -r web-requirements.txt
 COPY . .
 RUN pip install --no-cache-dir -e .
 
+# Fix imports in web API
+RUN cd src/web/api && \
+    python fix_imports.py && \
+    python fix_services_imports.py
+
 # Final stage
 FROM python:3.10-slim
 WORKDIR /app

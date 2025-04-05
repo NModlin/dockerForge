@@ -9,18 +9,18 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from typing import List
 
-from ..schemas.auth import (
+from schemas.auth import (
     Token, User, UserCreate, UserUpdate, UserResponse,
     PasswordChange, PasswordReset, PasswordResetVerify
 )
-from ..services.auth import (
+from services.auth import (
     authenticate_user, create_access_token, get_current_active_user,
     create_user, get_users, get_user_by_id, check_permission,
     change_password, reset_password_with_local_auth,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from ..database import get_db
-from ..models import User as UserModel
+from database import get_db
+from models import User as UserModel
 
 # Create router
 router = APIRouter()

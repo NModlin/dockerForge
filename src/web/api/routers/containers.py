@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
-from ..schemas.containers import Container, ContainerCreate, ContainerUpdate
-from ..services.containers import (
+from schemas.containers import Container, ContainerCreate, ContainerUpdate
+from services.containers import (
     get_containers, get_container, create_container, update_container, delete_container,
     start_container as start_container_service,
     stop_container as stop_container_service,
@@ -16,9 +16,9 @@ from ..services.containers import (
     get_container_logs as get_container_logs_service,
     get_system_info as get_system_info_service,
 )
-from ..services.auth import get_current_active_user, check_permission
-from ..database import get_db
-from ..models import User
+from services.auth import get_current_active_user, check_permission
+from database import get_db
+from models import User
 
 # Create router
 router = APIRouter()

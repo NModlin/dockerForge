@@ -8,9 +8,9 @@ from datetime import datetime
 import logging
 from sqlalchemy.orm import Session
 
-from ..schemas.containers import Container, ContainerCreate, ContainerUpdate
-from ..services import docker
-from ..models import Container as ContainerModel
+from schemas.containers import Container, ContainerCreate, ContainerUpdate
+from services import docker
+from models import Container as ContainerModel
 
 # Configure logging
 logger = logging.getLogger(__name__)

@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 
-from .database import get_db, init_db, create_initial_data
+from database import get_db, init_db, create_initial_data
 
 # Create FastAPI app
 app = FastAPI(
@@ -30,16 +30,40 @@ async def startup_event():
     create_initial_data()
 
 # Configure CORS
+# Get environment
+env = os.getenv("NODE_ENV", "development")
+if env == "production":
+    # In production, be more restrictive with CORS
+    origins = [
+        "http://localhost:8080",
+        "http://localhost:54321",
+        "http://dockerforge:8080",
+        "http://dockerforge:54321",
+    ]
+    # Add any additional production domains from env var if specified
+    additional_domains = os.getenv("ALLOWED_ORIGINS", "")
+    if additional_domains:
+        origins.extend(additional_domains.split(","))
+else:
+    # In development, allow all origins
+    origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, this should be restricted
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"] if env == "development" else ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allow_headers=["*"] if env == "development" else ["Authorization", "Content-Type"],
 )
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="/app/static"), name="static")
+# Get static directory from environment variable or use default
+static_dir = os.getenv("STATIC_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../static")))
+print(f"Using static directory: {static_dir}")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir, exist_ok=True)
+    print(f"Created static directory at {static_dir}")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Health check endpoint
 @app.get("/api/health", tags=["Health"])
@@ -62,9 +86,9 @@ async def root():
     }
 
 # Import and include routers
-from .routers import auth, containers, images, backup, monitoring, chat, websocket
+from routers import auth, containers, images, backup, monitoring, chat, websocket
 # Import additional routers as they are implemented
-from .models import __all__ as models  # Import all models to ensure they are registered
+from models import __all__ as models  # Import all models to ensure they are registered
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(containers.router, prefix="/api/containers", tags=["Containers"])
@@ -84,7 +108,7 @@ async def serve_index():
     """
     Serve the index.html file for the root URL.
     """
-    return FileResponse("/app/static/index.html")
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 # Catch-all route for client-side routing
 @app.get("/{path:path}", include_in_schema=False)
@@ -100,12 +124,12 @@ async def catch_all(path: str):
     
     # Check if the requested path exists in the static directory
     if "." in path:  # This is likely a file request
-        static_path = f"/app/static/{path}"
+        static_path = os.path.join(static_dir, path)
         if os.path.isfile(static_path):
             return FileResponse(static_path)
     
     # For any other path, serve the index.html file
-    return FileResponse("/app/static/index.html")
+    return FileResponse(os.path.join(static_dir, "index.html"))
 
 # Error handlers
 @app.exception_handler(HTTPException)

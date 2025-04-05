@@ -12,9 +12,9 @@ from datetime import datetime
 import asyncio
 import logging
 
-from ..database import get_db
-from ..models import ChatMessage, ChatSession, User, ChatFeedback, UserPreference, ChatCommandShortcut
-from ..schemas.chat import (
+from database import get_db
+from models import ChatMessage, ChatSession, User, ChatFeedback, UserPreference, ChatCommandShortcut
+from schemas.chat import (
     ChatMessageCreate, ChatMessage as ChatMessageSchema,
     ChatSessionCreate, ChatSessionUpdate, ChatSession as ChatSessionSchema,
     ChatResponse, EnhancedChatResponse, SessionsList, MessagesList, ContextData,
@@ -30,7 +30,7 @@ from src.core.user_preference_manager import get_user_preference_manager
 from src.utils.logging_manager import get_logger
 from src.monitoring.log_analyzer import get_log_analyzer
 from src.monitoring.issue_detector import get_issue_detector
-from ..routers.websocket import get_websocket_manager
+from routers.websocket import get_websocket_manager
 
 # Set up logger
 logger = get_logger("web.api.chat")

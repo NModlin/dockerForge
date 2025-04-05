@@ -1,0 +1,147 @@
+{
+  "metadata_version": "1.0",
+  "last_updated": "2025-03-18",
+  "document_count": 15,
+  "categories": [
+    {
+      "name": "user_guide",
+      "title": "User Guides",
+      "description": "Documentation for end users of DockerForge",
+      "index_path": "docs/user_guide/index.md"
+    },
+    {
+      "name": "api",
+      "title": "API Reference",
+      "description": "API documentation for programmatic interaction",
+      "index_path": "docs/api/index.md"
+    },
+    {
+      "name": "developer_guide",
+      "title": "Developer Guides",
+      "description": "Documentation for developers extending DockerForge",
+      "index_path": "docs/developer_guide/index.md"
+    },
+    {
+      "name": "project_plan",
+      "title": "Project Plans",
+      "description": "Current and upcoming development projects",
+      "index_path": "docs/project_plans/index.md"
+    },
+    {
+      "name": "general",
+      "title": "General Documentation",
+      "description": "Contributing guidelines and community resources",
+      "index_path": "docs/general/index.md"
+    }
+  ],
+  "documents": [
+    {
+      "path": "docs/index.md",
+      "title": "DockerForge Documentation",
+      "category": null,
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-changes",
+      "related_docs": []
+    },
+    {
+      "path": "docs/project_plans/alpha_plan.md",
+      "title": "Alpha Plan",
+      "category": "project_plan",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-changes",
+      "related_docs": ["docs/user_guide/installation_guide.md"]
+    },
+    {
+      "path": "docs/project_plans/security_upgrade_project_plan.md",
+      "title": "Security Upgrade Project Plan",
+      "category": "project_plan",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-changes",
+      "related_docs": ["docs/api/update_system.md"]
+    },
+    {
+      "path": "docs/user_guide/installation_guide.md",
+      "title": "Installation Guide",
+      "category": "user_guide",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-releases",
+      "related_docs": []
+    },
+    {
+      "path": "docs/user_guide/user_manual.md",
+      "title": "User Manual",
+      "category": "user_guide",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-releases",
+      "related_docs": []
+    },
+    {
+      "path": "docs/user_guide/troubleshooting_guide.md",
+      "title": "Troubleshooting Guide",
+      "category": "user_guide",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-changes",
+      "related_docs": []
+    },
+    {
+      "path": "docs/api/api_reference.md",
+      "title": "API Reference",
+      "category": "api",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-changes",
+      "related_docs": []
+    },
+    {
+      "path": "docs/api/update_system.md",
+      "title": "Update System API",
+      "category": "api",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-changes",
+      "related_docs": ["docs/developer_guide/update_system.md"]
+    },
+    {
+      "path": "docs/developer_guide/update_system.md",
+      "title": "Update System Developer Guide",
+      "category": "developer_guide",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "with-changes",
+      "related_docs": ["docs/api/update_system.md"]
+    },
+    {
+      "path": "docs/general/contributing.md",
+      "title": "Contributing Guide",
+      "category": "general",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "as-needed",
+      "related_docs": ["docs/general/code_of_conduct.md"]
+    },
+    {
+      "path": "docs/general/code_of_conduct.md",
+      "title": "Code of Conduct",
+      "category": "general",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "as-needed",
+      "related_docs": []
+    },
+    {
+      "path": "docs/project_plans/future_projects/template.md",
+      "title": "Project Plan Template",
+      "category": "project_plan",
+      "status": "current",
+      "last_updated": "2025-03-18",
+      "update_frequency": "as-needed",
+      "related_docs": []
+    }
+  ]
+}

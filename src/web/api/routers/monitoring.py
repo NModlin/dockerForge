@@ -8,8 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from ..database import get_db
-from ..schemas import monitoring as schemas
+from database import get_db
+from schemas import monitoring as schemas
 from src.config.config_manager import get_config
 from src.core.ai_provider import get_ai_provider, AIProviderFactory, AIProviderError
 from src.core.ai_usage_tracker import AIUsageTracker

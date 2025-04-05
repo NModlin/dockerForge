@@ -8,9 +8,9 @@ from datetime import datetime
 import logging
 from sqlalchemy.orm import Session
 
-from ..schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageVulnerability, ImageScanResult
-from ..services import docker
-from ..models import Image as ImageModel, SecurityScan, Vulnerability
+from schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageVulnerability, ImageScanResult
+from services import docker
+from models import Image as ImageModel, SecurityScan, Vulnerability
 
 # Configure logging
 logger = logging.getLogger(__name__)

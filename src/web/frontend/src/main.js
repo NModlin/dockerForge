@@ -9,13 +9,19 @@ import '@mdi/font/css/materialdesignicons.css';
 import axios from 'axios';
 
 import App from './App.vue';
-import routes from './router';
-import storeConfig from './store';
+import routes from './router.js';
+import storeConfig from './store.js';
 
 // Configure axios
-axios.defaults.baseURL = window.location.origin; // Use the same origin as the frontend
+axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL || '/api';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
+
+// Initialize auth token from localStorage if it exists
+const token = localStorage.getItem('token');
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
 
 // Create Vuetify instance
 const vuetify = createVuetify({

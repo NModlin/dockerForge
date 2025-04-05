@@ -217,45 +217,13 @@ export default {
       this.error = null;
 
       try {
-        // In a real implementation, this would call the API
-        // const response = await axios.get('/api/containers', {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        //   params: this.filters,
-        // });
-        // this.containers = response.data;
-
-        // Mock data for development
-        setTimeout(() => {
-          this.containers = [
-            {
-              id: 'c1',
-              name: 'nginx',
-              image: 'nginx:latest',
-              status: 'running',
-              created_at: '2025-03-16T10:00:00Z',
-              health_status: 'healthy',
-            },
-            {
-              id: 'c2',
-              name: 'redis',
-              image: 'redis:alpine',
-              status: 'running',
-              created_at: '2025-03-16T09:00:00Z',
-              health_status: 'healthy',
-            },
-            {
-              id: 'c3',
-              name: 'postgres',
-              image: 'postgres:13',
-              status: 'stopped',
-              created_at: '2025-03-16T08:00:00Z',
-              health_status: null,
-            },
-          ];
-          this.loading = false;
-        }, 1000);
+        // Fetch containers from API
+        const containers = await this.$store.dispatch('containers/getContainers', this.filters);
+        this.containers = containers;
       } catch (error) {
         this.error = 'Failed to load containers. Please try again.';
+        console.error('Error fetching containers:', error);
+      } finally {
         this.loading = false;
       }
     },
@@ -294,44 +262,35 @@ export default {
     },
     async startContainer(container) {
       try {
-        // In a real implementation, this would call the API
-        // await axios.post(`/api/containers/${container.id}/start`, {}, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        container.status = 'running';
-        this.$forceUpdate();
+        this.error = null;
+        await this.$store.dispatch('containers/startContainer', container.id);
+        // Refresh container list after action
+        this.fetchContainers();
       } catch (error) {
         this.error = `Failed to start container ${container.name}`;
+        console.error('Error starting container:', error);
       }
     },
     async stopContainer(container) {
       try {
-        // In a real implementation, this would call the API
-        // await axios.post(`/api/containers/${container.id}/stop`, {}, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        container.status = 'stopped';
-        this.$forceUpdate();
+        this.error = null;
+        await this.$store.dispatch('containers/stopContainer', container.id);
+        // Refresh container list after action
+        this.fetchContainers();
       } catch (error) {
         this.error = `Failed to stop container ${container.name}`;
+        console.error('Error stopping container:', error);
       }
     },
     async restartContainer(container) {
       try {
-        // In a real implementation, this would call the API
-        // await axios.post(`/api/containers/${container.id}/restart`, {}, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        container.status = 'running';
-        this.$forceUpdate();
+        this.error = null;
+        await this.$store.dispatch('containers/restartContainer', container.id);
+        // Refresh container list after action
+        this.fetchContainers();
       } catch (error) {
         this.error = `Failed to restart container ${container.name}`;
+        console.error('Error restarting container:', error);
       }
     },
     showDeleteDialog(container) {
@@ -342,17 +301,15 @@ export default {
       if (!this.selectedContainer) return;
       
       try {
-        // In a real implementation, this would call the API
-        // await axios.delete(`/api/containers/${this.selectedContainer.id}`, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        this.containers = this.containers.filter(c => c.id !== this.selectedContainer.id);
+        this.error = null;
+        await this.$store.dispatch('containers/removeContainer', this.selectedContainer.id);
+        // After deletion is successful, close the dialog and refresh containers
         this.deleteDialog = false;
         this.selectedContainer = null;
+        this.fetchContainers();
       } catch (error) {
         this.error = `Failed to delete container ${this.selectedContainer.name}`;
+        console.error('Error deleting container:', error);
         this.deleteDialog = false;
       }
     },

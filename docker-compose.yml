@@ -10,7 +10,8 @@ services:
       - ./config:/app/config
       - ./data:/app/data
       - ./media:/app/media
-      - ./static:/app/static
+      # Don't mount the static directory as a volume since we want to use the built files
+      # from the Dockerfile build process (frontend build output)
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DOCKERFORGE_CONFIG_PATH=/app/config/dockerforge.yaml
@@ -18,13 +19,25 @@ services:
       - OLLAMA_API_HOST=http://ollama:11435
       - DATABASE_URL=postgresql://dockerforge:dockerforge@db:5432/dockerforge
       - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=change_this_to_a_secure_random_string_in_production
+      - NODE_ENV=production
+      - STATIC_DIR=/app/static
     ports:
       - "8080:8080"
       - "54321:54321"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:54321/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
     depends_on:
-      - ollama
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      ollama:
+        condition: service_healthy
     networks:
       - dockerforge-network
     command: ["all"]  # Run both services
@@ -56,6 +69,12 @@ services:
       - POSTGRES_USER=dockerforge
       - POSTGRES_PASSWORD=dockerforge
       - POSTGRES_DB=dockerforge
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dockerforge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - dockerforge-network
 
@@ -65,6 +84,12 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
     networks:
       - dockerforge-network
 

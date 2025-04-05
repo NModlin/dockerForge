@@ -13,9 +13,9 @@ import logging
 import json
 import asyncio
 
-from ..database import get_db
-from ..models import ChatMessage, ChatSession, User
-from ..schemas.chat import ChatMessage as ChatMessageSchema
+from database import get_db
+from models import ChatMessage, ChatSession, User
+from schemas.chat import ChatMessage as ChatMessageSchema
 from src.core.chat_handler import get_chat_handler
 from src.utils.logging_manager import get_logger
 

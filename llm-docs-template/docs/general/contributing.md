@@ -1,14 +1,39 @@
-# Contributing to DockerForge
+<!--
+@doc-meta {
+  "id": "contributing-guide",
+  "version": "1.0",
+  "last_updated": "2025-03-18",
+  "update_frequency": "as-needed",
+  "maintainer": "system",
+  "status": "current",
+  "category": "general"
+}
+-->
 
-Thank you for your interest in contributing to DockerForge! This document provides guidelines and instructions for contributing to the project.
+# Contributing to the Project
+
+Thank you for your interest in contributing to the project! This document provides guidelines and instructions for contributing.
+
+<!-- 
+@llm-instructions
+DOCUMENT PURPOSE: Provide guidelines for contributing to the project
+PRIMARY AUDIENCE: Potential contributors
+MAINTENANCE PRIORITY: Medium (community document)
+
+MAINTENANCE GUIDELINES:
+- Keep the development workflow instructions up-to-date with current best practices
+- Update the project structure section if the file organization changes
+- Ensure the license information is always current and accurate
+- Do not modify the coding standards unless there is a project-wide decision to change them
+-->
 
 ## Code of Conduct
 
-Please read and follow our [Code of Conduct](code_of_conduct.md) to help us maintain a healthy and welcoming community.
+Please read and follow our [Code of Conduct](code-of-conduct.md) to help us maintain a healthy and welcoming community.
 
 ## How to Contribute
 
-There are many ways to contribute to DockerForge:
+There are many ways to contribute to the project:
 
 1. **Report bugs**: If you find a bug, please report it by creating an issue in the GitHub repository.
 2. **Suggest features**: If you have an idea for a new feature, please suggest it by creating an issue in the GitHub repository.
@@ -23,8 +48,8 @@ There are many ways to contribute to DockerForge:
 2. Clone your fork to your local machine:
 
 ```bash
-git clone https://github.com/your-username/dockerforge.git
-cd dockerforge
+git clone https://github.com/your-username/project-name.git
+cd project-name
 ```
 
 3. Create a virtual environment and install the development dependencies:
@@ -82,29 +107,22 @@ When creating a pull request, please:
 
 ## Project Structure
 
-The DockerForge project is organized as follows:
+<!-- @llm-update-section
+This section describes the project structure and should be updated when the structure changes.
+-->
+
+The project is organized as follows:
 
 ```
-dockerforge/
-├── config/                 # Configuration files
+project-name/
 ├── docs/                   # Documentation
 │   ├── api/                # API reference
-│   ├── developer_guide/    # Developer guide
-│   └── user_guide/         # User guide
-├── examples/               # Example files and usage examples
+│   ├── developer-guide/    # Developer guide
+│   ├── general/            # General documentation
+│   ├── project-plans/      # Project plans
+│   └── user-guide/         # User guide
 ├── src/                    # Source code
-│   ├── backup/             # Backup and restore functionality
-│   ├── compose/            # Docker Compose management
-│   ├── config/             # Configuration management
 │   ├── core/               # Core functionality
-│   ├── docker/             # Docker interaction
-│   ├── fixes/              # Fix proposal and application
-│   ├── monitoring/         # Monitoring functionality
-│   ├── notifications/      # Notification system
-│   ├── platforms/          # Platform-specific functionality
-│   ├── resource_monitoring/ # Resource monitoring
-│   ├── security/           # Security scanning and auditing
-│   ├── update/             # Update system
 │   └── utils/              # Utility functions
 ├── tests/                  # Test files
 └── scripts/                # Utility scripts
@@ -112,7 +130,7 @@ dockerforge/
 
 ## Coding Standards
 
-DockerForge follows these coding standards:
+The project follows these coding standards:
 
 1. **PEP 8**: Follow the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide for Python code.
 2. **Type Hints**: Use type hints for function and method signatures.
@@ -123,7 +141,7 @@ DockerForge follows these coding standards:
 
 ## Documentation
 
-DockerForge uses Markdown for documentation. When contributing to the documentation, please:
+The project uses Markdown for documentation. When contributing to the documentation, please:
 
 1. Use clear and concise language.
 2. Provide examples where appropriate.
@@ -132,27 +150,24 @@ DockerForge uses Markdown for documentation. When contributing to the documentat
 
 ## Testing
 
-DockerForge uses pytest for testing. When contributing code, please:
+The project uses pytest for testing. When contributing code, please:
 
 1. Write tests for new functionality.
 2. Ensure existing tests pass.
 3. Use appropriate test fixtures and mocks.
 4. Aim for high test coverage.
 
-## Versioning
-
-DockerForge follows [Semantic Versioning](https://semver.org/). When contributing changes that affect the version number, please:
-
-1. Update the version number in the appropriate files.
-2. Update the changelog with a description of the changes.
-3. Tag the release with the appropriate version number.
-
 ## License
 
-By contributing to DockerForge, you agree that your contributions will be licensed under the project's [MIT License](../LICENSE).
+By contributing to the project, you agree that your contributions will be licensed under the project's license.
 
 ## Questions
 
-If you have any questions about contributing to DockerForge, please feel free to create an issue in the GitHub repository or contact the maintainers directly.
+If you have any questions about contributing, please feel free to create an issue in the GitHub repository or contact the maintainers directly.
 
 Thank you for your contributions!
+
+<!-- @llm-related-docs
+- docs/general/code-of-conduct.md: Update references if contribution process changes
+- docs/developer-guide/development-workflow.md: Keep in sync with development workflow instructions here
+-->

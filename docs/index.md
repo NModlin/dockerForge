@@ -1,29 +1,68 @@
+<!--
+@doc-meta {
+  "id": "master-index",
+  "version": "1.0",
+  "last_updated": "2025-03-18",
+  "update_frequency": "with-changes",
+  "maintainer": "system",
+  "status": "current",
+  "category": null
+}
+-->
+
 # DockerForge Documentation
 
-Welcome to the DockerForge documentation. This documentation provides information on how to use, configure, and extend DockerForge.
+Welcome to the DockerForge documentation. This documentation provides comprehensive information on how to use, configure, and extend DockerForge.
 
-## User Guide
+## Quick Links
 
-The User Guide provides information on how to use DockerForge, including installation, configuration, and usage instructions.
+- [Installation Guide](user_guide/installation_guide.md)
+- [User Manual](user_guide/user_manual.md)
+- [API Reference](api/api_reference.md)
+- [Troubleshooting](user_guide/troubleshooting_guide.md)
 
-- [Update System](user_guide/update_system.md): How to check for updates, apply updates, and rollback if necessary.
+## Documentation Categories
 
-## API Reference
+### [User Guides](user_guide/index.md)
+Documentation for end users of DockerForge.
 
-The API Reference provides detailed information on the DockerForge API, including classes, methods, and parameters.
+### [API Reference](api/index.md)
+Complete API documentation for programmatic interaction with DockerForge.
 
-- [Update System API](api/update_system.md): API reference for the update system.
+### [Developer Guides](developer_guide/index.md)
+Information for developers extending or modifying DockerForge.
 
-## Developer Guide
+### [Project Plans](project_plans/index.md)
+Current and upcoming development projects.
 
-The Developer Guide provides information for developers who want to extend or modify DockerForge.
+### [General](general/index.md)
+Contributing guidelines, code of conduct, and community resources.
 
-- [Update System Developer Guide](developer_guide/update_system.md): How to extend or modify the update system.
+## Current Projects
 
-## Contributing
+| Project | Status | Description | Documentation |
+|---------|--------|-------------|--------------|
+| Alpha 1 | Active | WebUI Fix Implementation | [Alpha Plan](project_plans/alpha_plan.md) |
+| Security Upgrade | Planning | Security Enhancement Project | [Security Upgrade Plan](project_plans/security_upgrade_project_plan.md) |
 
-We welcome contributions to DockerForge! Please see the [Contributing Guide](contributing.md) for more information and read our [Code of Conduct](code_of_conduct.md).
+## Recent Documentation Updates
 
-## License
+| Date | Document | Change Description |
+|------|----------|-------------------|
+| 2025-03-18 | All Documents | Reorganized documentation structure |
+| 2025-03-18 | Alpha Plan | Moved from root to project plans directory |
 
-DockerForge is licensed under the MIT License. See the [LICENSE](../LICENSE) file for more information.
+<!-- @llm-update-section
+This section should be updated whenever documentation structure changes.
+Keep the Recent Documentation Updates table limited to the 5 most recent changes.
+-->
+
+<!-- 
+@llm-instructions
+This is the master index file for DockerForge documentation.
+- Update the Quick Links section if core documents change
+- Maintain the Documentation Categories section
+- Keep the Current Projects table up-to-date with active projects
+- Update the Recent Documentation Updates table with the 5 most recent changes
+- Do not remove any sections without approval
+-->

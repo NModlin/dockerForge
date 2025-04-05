@@ -80,42 +80,11 @@ const auth = {
   },
 };
 
-const containers = {
-  namespaced: true,
-  state: {
-    containers: [],
-    loading: false,
-    error: null,
-    currentContainer: null,
-  },
-  mutations: {
-    SET_CONTAINERS(state, containers) {
-      state.containers = containers;
-    },
-    SET_LOADING(state, loading) {
-      state.loading = loading;
-    },
-    SET_ERROR(state, error) {
-      state.error = error;
-    },
-    SET_CURRENT_CONTAINER(state, container) {
-      state.currentContainer = container;
-    },
-  },
-  actions: {
-    // Container actions will be implemented in Phase 2
-  },
-  getters: {
-    allContainers: (state) => state.containers,
-    runningContainers: (state) => state.containers.filter((c) => c.state === 'running'),
-    currentContainer: (state) => state.currentContainer,
-  },
-};
-
 // Import modules
 import images from './store/modules/images';
 import chat from './store/modules/chat';
 import help from './store/modules/help';
+import containers from './store/modules/containers';
 
 // Main store configuration
 export default {

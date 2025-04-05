@@ -1,0 +1,21 @@
+{
+  "name": "llm-docs-validation-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for validating LLM-friendly documentation",
+  "main": "validate-docs.js",
+  "scripts": {
+    "validate": "node validate-docs.js",
+    "check-links": "node check-links.js",
+    "validate-llm": "node validate-llm-instructions.js",
+    "generate-doc": "node generate-doc.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "glob": "^8.0.3",
+    "markdown-it": "^13.0.1",
+    "yaml": "^2.2.1",
+    "yargs": "^17.6.2"
+  }
+}

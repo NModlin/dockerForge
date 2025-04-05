@@ -1,3 +1,15 @@
+<!--
+@doc-meta {
+  "id": "security-upgrade-project-plan",
+  "version": "1.0",
+  "last_updated": "2025-03-18",
+  "update_frequency": "with-changes",
+  "maintainer": "system",
+  "status": "current",
+  "category": "project_plan"
+}
+-->
+
 # DockerForge Security Upgrade Project Plan
 
 This project plan outlines a comprehensive security enhancement for the DockerForge web application, focusing on user management, authentication, and access control. The plan is divided into phases with detailed implementation prompts for each.
@@ -739,3 +751,12 @@ To begin implementing this security upgrade, ask your AI coding assistant to "Im
 Each phase builds upon previous phases, so they should be implemented sequentially. The AI coding assistant should be able to use the detailed implementation prompts to guide the development process for each phase.
 
 After each phase is completed, you should thoroughly test the implementation according to the testing requirements before proceeding to the next phase.
+
+<!-- 
+@llm-instructions
+This document outlines the Security Upgrade project plan for DockerForge.
+- Keep the implementation prompts exactly as written to maintain compatibility with automation systems
+- Update phase status information as implementation progresses
+- The testing requirements should be followed strictly for each phase
+- Do not modify the implementation prompt code blocks as they may be used programmatically
+-->
