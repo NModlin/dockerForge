@@ -4,6 +4,7 @@ Alert router for the DockerForge Web UI.
 This module provides API endpoints for alert management.
 """
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Path
 from sqlalchemy.orm import Session
 
@@ -45,7 +46,7 @@ async def get_alert_rules(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     return await alerts_service.get_alert_rules(db, skip, limit, enabled_only)
 
 
@@ -64,14 +65,14 @@ async def get_alert_rule(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     rule = await alerts_service.get_alert_rule(db, rule_id)
     if not rule:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert rule with ID {rule_id} not found"
         )
-    
+
     return rule
 
 
@@ -90,7 +91,7 @@ async def create_alert_rule(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     try:
         return await alerts_service.create_alert_rule(db, rule_create)
     except Exception as e:
@@ -117,14 +118,14 @@ async def update_alert_rule(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     rule = await alerts_service.update_alert_rule(db, rule_id, rule_update)
     if not rule:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert rule with ID {rule_id} not found"
         )
-    
+
     return rule
 
 
@@ -143,14 +144,14 @@ async def delete_alert_rule(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     success = await alerts_service.delete_alert_rule(db, rule_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert rule with ID {rule_id} not found"
         )
-    
+
     return None
 
 
@@ -173,7 +174,7 @@ async def get_notification_channels(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     return await alerts_service.get_notification_channels(db, skip, limit, enabled_only)
 
 
@@ -192,14 +193,14 @@ async def get_notification_channel(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     channel = await alerts_service.get_notification_channel(db, channel_id)
     if not channel:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Notification channel with ID {channel_id} not found"
         )
-    
+
     return channel
 
 
@@ -218,7 +219,7 @@ async def create_notification_channel(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     try:
         return await alerts_service.create_notification_channel(db, channel_create)
     except Exception as e:
@@ -245,14 +246,14 @@ async def update_notification_channel(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     channel = await alerts_service.update_notification_channel(db, channel_id, channel_update)
     if not channel:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Notification channel with ID {channel_id} not found"
         )
-    
+
     return channel
 
 
@@ -271,14 +272,14 @@ async def delete_notification_channel(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     success = await alerts_service.delete_notification_channel(db, channel_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Notification channel with ID {channel_id} not found"
         )
-    
+
     return None
 
 
@@ -308,7 +309,7 @@ async def get_alerts(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     # Create filter
     filter_params = AlertHistoryFilter(
         severity=severity,
@@ -320,7 +321,7 @@ async def get_alerts(
         end_date=datetime.fromisoformat(end_date) if end_date else None,
         rule_id=rule_id
     )
-    
+
     return await alerts_service.get_alerts(db, filter_params, skip, limit)
 
 
@@ -339,14 +340,14 @@ async def get_alert(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     alert = await alerts_service.get_alert(db, alert_id)
     if not alert:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert with ID {alert_id} not found"
         )
-    
+
     return alert
 
 
@@ -365,7 +366,7 @@ async def create_alert(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     try:
         return await alerts_service.create_alert(db, alert_create)
     except Exception as e:
@@ -392,14 +393,14 @@ async def update_alert(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     alert = await alerts_service.update_alert(db, alert_id, alert_update, current_user.id)
     if not alert:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert with ID {alert_id} not found"
         )
-    
+
     return alert
 
 
@@ -418,20 +419,20 @@ async def acknowledge_alert(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     # Create update with acknowledged status
     alert_update = AlertUpdate(
         status="acknowledged",
         acknowledged_by=current_user.id
     )
-    
+
     alert = await alerts_service.update_alert(db, alert_id, alert_update, current_user.id)
     if not alert:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert with ID {alert_id} not found"
         )
-    
+
     return alert
 
 
@@ -451,20 +452,20 @@ async def resolve_alert(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     # Create update with resolved status
     alert_update = AlertUpdate(
         status="resolved",
         resolution_notes=resolution_notes
     )
-    
+
     alert = await alerts_service.update_alert(db, alert_id, alert_update, current_user.id)
     if not alert:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert with ID {alert_id} not found"
         )
-    
+
     return alert
 
 
@@ -483,14 +484,14 @@ async def delete_alert(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     success = await alerts_service.delete_alert(db, alert_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Alert with ID {alert_id} not found"
         )
-    
+
     return None
 
 
@@ -509,5 +510,5 @@ async def get_alert_statistics(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
         )
-    
+
     return await alerts_service.get_alert_statistics(db, days)
