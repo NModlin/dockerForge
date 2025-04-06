@@ -41,6 +41,11 @@ class ContainerBase(BaseModel):
     network: Optional[str] = Field(None, description="Network name")
     restart_policy: Optional[str] = Field(None, description="Restart policy")
     labels: Optional[Dict[str, str]] = Field(None, description="Container labels")
+    hostname: Optional[str] = Field(None, description="Container hostname")
+    dns: Optional[List[str]] = Field(None, description="DNS servers")
+    dns_search: Optional[List[str]] = Field(None, description="DNS search domains")
+    cpu_limit: Optional[float] = Field(None, description="CPU limit in cores")
+    memory_limit: Optional[int] = Field(None, description="Memory limit in bytes")
 
 
 class ContainerCreate(ContainerBase):

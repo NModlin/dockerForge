@@ -65,7 +65,7 @@ const auth = {
         // Set the token in axios default headers
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       }
-      
+
       const user = localStorage.getItem('user');
       if (user) {
         commit('SET_USER', JSON.parse(user));
@@ -113,10 +113,21 @@ export default {
       state.darkMode = darkMode;
       localStorage.setItem('darkMode', darkMode);
     },
+    SHOW_SNACKBAR(state, snackbarOptions) {
+      // This mutation is used by the App.vue component to show a snackbar
+      // The App.vue component will watch for changes to the snackbar object
+      // and show the snackbar when it changes
+      window.dispatchEvent(new CustomEvent('show-snackbar', { detail: snackbarOptions }));
+    },
   },
   actions: {
     toggleDarkMode({ commit, state }) {
       commit('SET_DARK_MODE', !state.darkMode);
+    },
+    showSnackbar({ commit }, { text, color = 'success', timeout = 3000, multiLine = false, vertical = false, top = false }) {
+      // This action is called from components to show a snackbar message
+      // The App.vue component will listen for this mutation and show the snackbar
+      commit('SHOW_SNACKBAR', { text, color, timeout, multiLine, vertical, top });
     },
   },
   getters: {

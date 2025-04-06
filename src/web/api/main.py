@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 
-from src.web.api.database import get_db, init_db, create_initial_data
+from .database import get_db, init_db, create_initial_data
 
 # Create FastAPI app
 app = FastAPI(
@@ -86,7 +86,7 @@ async def root():
     }
 
 # Import and include routers
-from src.web.api.routers import auth, containers, images, backup, monitoring, chat, websocket
+from src.web.api.routers import auth, containers, images, backup, monitoring, chat, websocket, terminal, stats
 # Import additional routers as they are implemented
 from src.web.api.models import __all__ as models  # Import all models to ensure they are registered
 
@@ -101,6 +101,8 @@ app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 # app.include_router(security.router, prefix="/api/security", tags=["Security"])
 app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
 app.include_router(websocket.router, tags=["WebSocket"])
+app.include_router(terminal.router, prefix="/api/terminal", tags=["Terminal"])
+app.include_router(stats.router, prefix="/api/stats", tags=["Stats"])
 
 # Serve index.html for the root URL
 @app.get("/", include_in_schema=False)

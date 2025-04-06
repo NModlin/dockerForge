@@ -9,6 +9,11 @@ const state = {
   currentContainer: null,
   loading: false,
   error: null,
+  containerStats: {},
+  statsHistory: {},
+  inspectData: null,
+  inspectLoading: false,
+  inspectError: null,
 };
 
 // Getters
@@ -212,6 +217,64 @@ const actions = {
   clearError({ commit }) {
     commit('SET_ERROR', null);
   },
+
+  /**
+   * Inspect a container
+   */
+  async inspectContainer({ commit }, id) {
+    commit('SET_INSPECT_LOADING', true);
+    commit('SET_INSPECT_ERROR', null);
+    try {
+      const response = await axios.get(`/api/containers/${id}/inspect`);
+      commit('SET_INSPECT_DATA', response.data);
+      return response.data;
+    } catch (error) {
+      commit('SET_INSPECT_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    } finally {
+      commit('SET_INSPECT_LOADING', false);
+    }
+  },
+
+  /**
+   * Get current stats for a container
+   */
+  async getContainerStats({ commit }, id) {
+    commit('SET_LOADING', true);
+    try {
+      const response = await axios.get(`/api/stats/${id}/current`);
+      commit('SET_CONTAINER_STATS', { id, stats: response.data });
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  /**
+   * Get historical stats for a container
+   */
+  async getContainerStatsHistory({ commit }, { id, metric_type, hours = 1 }) {
+    commit('SET_LOADING', true);
+    try {
+      const response = await axios.get(`/api/stats/${id}/history`, {
+        params: { metric_type, hours }
+      });
+      commit('SET_CONTAINER_STATS_HISTORY', {
+        id,
+        metric_type,
+        history: response.data
+      });
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
 };
 
 // Mutations
@@ -245,7 +308,7 @@ const mutations = {
     } else {
       state.containers.push(container);
     }
-    
+
     // Update the current container if it's the same
     if (state.currentContainer && state.currentContainer.id === container.id) {
       state.currentContainer = container;
@@ -256,6 +319,44 @@ const mutations = {
     if (state.currentContainer && state.currentContainer.id === id) {
       state.currentContainer = null;
     }
+    // Also remove stats data
+    if (state.containerStats[id]) {
+      delete state.containerStats[id];
+    }
+    if (state.statsHistory[id]) {
+      delete state.statsHistory[id];
+    }
+  },
+
+  SET_CONTAINER_STATS(state, { id, stats }) {
+    state.containerStats = {
+      ...state.containerStats,
+      [id]: stats
+    };
+  },
+
+  SET_CONTAINER_STATS_HISTORY(state, { id, metric_type, history }) {
+    // Initialize if needed
+    if (!state.statsHistory[id]) {
+      state.statsHistory[id] = {};
+    }
+
+    state.statsHistory[id] = {
+      ...state.statsHistory[id],
+      [metric_type]: history
+    };
+  },
+
+  SET_INSPECT_DATA(state, data) {
+    state.inspectData = data;
+  },
+
+  SET_INSPECT_LOADING(state, loading) {
+    state.inspectLoading = loading;
+  },
+
+  SET_INSPECT_ERROR(state, error) {
+    state.inspectError = error;
   },
 };
 

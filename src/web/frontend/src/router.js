@@ -30,15 +30,33 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/containers/create',
+    name: 'ContainerCreate',
+    component: () => import('./views/containers/ContainerCreate.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/containers/:id',
     name: 'ContainerDetail',
     component: () => import('./views/containers/ContainerDetail.vue'),
     meta: { requiresAuth: true },
   },
   {
+    path: '/containers/:id/terminal',
+    name: 'ContainerTerminal',
+    component: () => import('./views/containers/ContainerTerminal.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/images',
     name: 'Images',
     component: () => import('./views/images/ImageList.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/images/build',
+    name: 'ImageBuild',
+    component: () => import('./views/images/ImageBuild.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -51,6 +69,12 @@ const routes = [
     path: '/images/:id/security/:scanId',
     name: 'ImageSecurity',
     component: () => import('./views/images/ImageSecurity.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/images/:id/history',
+    name: 'ImageHistory',
+    component: () => import('./views/images/ImageHistory.vue'),
     meta: { requiresAuth: true },
   },
   {
@@ -111,6 +135,30 @@ const routes = [
     path: '/settings',
     name: 'Settings',
     component: () => import('./views/settings/Settings.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/help',
+    name: 'Help',
+    component: () => import('./views/help/Help.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import('./views/search/SearchResults.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('./views/user/Profile.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import('./views/notifications/NotificationList.vue'),
     meta: { requiresAuth: true },
   },
   {

@@ -915,3 +915,352 @@ metadata {
 , locale: "en-US"
 message: "API key not valid. Please pass a valid API key."
 ]
+2025-04-05 14:33:37,269 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 14:33:37,588 - src.docker.connection_manager - INFO - Connected to Docker using _connect_with_environment
+2025-04-05 14:33:37,608 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:37,627 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:37,650 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:37,674 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:37,693 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:37,713 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:37,734 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,192 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 14:33:38,212 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,232 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,252 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,272 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,295 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,317 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,338 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 14:33:38,359 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,116 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:09:09,137 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,158 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,177 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,198 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,217 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,711 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 17:09:09,734 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,919 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,938 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,960 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:09,982 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,002 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,002 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 17:09:10,023 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,190 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,210 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,230 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,249 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,269 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,269 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 17:09:10,290 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,511 - dockerforge.ai_provider - ERROR - Error generating text with Gemini: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-04-05 17:09:10,559 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,580 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,601 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,622 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,643 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,643 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 17:09:10,664 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,833 - dockerforge.ai_provider - ERROR - Gemini API request failed: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-04-05 17:09:10,881 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,902 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,922 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,942 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,964 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:10,964 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model gemini-pro
+2025-04-05 17:09:10,985 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:11,136 - dockerforge.ai_provider - ERROR - Error generating text with Gemini: 404 models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-04-05 17:09:55,550 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:09:55,570 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:55,591 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:55,613 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:55,635 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:55,654 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,018 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:09:56,039 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,196 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,215 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,237 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,257 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,277 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,277 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:09:56,297 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,471 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,492 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,512 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,532 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,551 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:56,551 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:09:56,573 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:59,030 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:59,093 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:59,127 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:59,146 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:59,167 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:09:59,167 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:09:59,188 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:06,328 - dockerforge.ai_provider - ERROR - Gemini API request failed: 'AIUsageTracker' object has no attribute 'track_usage'
+2025-04-05 17:10:06,355 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:06,375 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:06,396 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:06,417 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:06,436 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:06,437 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:10:06,457 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:33,617 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:10:33,637 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:33,657 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:33,678 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:33,697 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:33,719 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,114 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:10:34,136 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,278 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,298 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,318 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,338 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,359 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,359 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:10:34,379 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,544 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,608 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,645 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,666 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,686 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:34,686 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:10:34,706 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:37,611 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:37,631 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:37,653 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:37,672 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:37,693 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:37,694 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:10:37,714 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:45,876 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:45,898 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:45,920 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:45,940 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:45,961 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:10:45,962 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:10:45,983 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:12,903 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:11:12,923 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:12,943 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:12,963 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:12,984 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,004 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,367 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:11:13,389 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,546 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,565 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,585 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,606 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,632 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,632 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:11:13,658 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,826 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,870 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,894 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,915 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,934 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:13,935 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:11:13,955 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:16,551 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:16,572 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:16,592 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:16,614 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:16,634 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:16,635 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:11:16,656 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:25,137 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:25,158 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:25,179 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:25,198 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:25,219 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:11:25,219 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:11:25,238 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:01,408 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:12:01,428 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:01,448 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:01,468 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:01,490 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:01,510 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:01,873 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:01,893 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,454 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,474 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,495 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,515 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,536 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,537 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:02,557 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,729 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,753 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,773 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,795 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,817 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:02,817 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:02,837 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:05,550 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:05,576 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:05,597 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:05,617 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:05,638 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:05,638 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:05,658 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:11,640 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:11,662 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:11,683 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:11,706 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:11,728 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:11,729 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:11,749 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,181 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:12:46,199 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,220 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,239 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,259 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,279 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,635 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:46,655 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,803 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,821 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,841 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,862 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,883 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:46,883 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:46,902 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:47,036 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:47,056 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:47,075 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:47,096 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:47,116 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:47,116 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:47,135 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:50,017 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:50,038 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:50,058 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:50,078 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:50,098 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:50,098 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:50,119 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:57,185 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:57,205 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:57,225 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:57,245 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:57,265 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:12:57,265 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:12:57,286 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,257 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:13:20,279 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,304 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,325 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,350 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,369 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,731 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:20,752 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,907 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,928 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,950 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,970 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,991 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:20,992 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:21,011 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:21,211 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:21,231 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:21,251 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:21,271 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:21,291 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:21,291 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:21,311 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:24,133 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:24,154 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:24,176 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:24,196 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:24,217 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:24,218 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:24,241 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:30,466 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:30,496 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:30,538 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:30,574 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:30,596 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:30,619 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:30,619 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:30,640 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:32,284 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:51,559 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:13:51,580 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:51,601 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:51,621 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:51,642 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:51,662 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,239 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:52,273 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,435 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,456 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,478 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,498 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,518 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,665 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:52,742 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,901 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,942 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,964 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:52,984 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:53,004 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:53,146 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:53,220 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:56,058 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:56,079 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:56,099 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:56,119 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:56,139 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:13:56,291 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:13:56,323 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:03,024 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:03,044 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:03,064 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:03,085 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:03,105 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:03,125 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:03,248 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:14:03,267 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:05,154 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:31,485 - dockerforge - INFO - Logging to file: dockerforge.log
+2025-04-05 17:14:31,507 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:31,528 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:31,549 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:31,570 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:31,590 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,165 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:14:32,188 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,316 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,336 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,357 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,377 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,397 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,537 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:14:32,601 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,739 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,764 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,787 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,807 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,827 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:32,957 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:14:32,986 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:35,580 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:35,612 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:35,636 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:35,658 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:35,681 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:35,818 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:14:35,894 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:43,470 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:43,489 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:43,510 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:43,531 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml
+2025-04-05 17:14:43,660 - dockerforge.ai_provider - INFO - Successfully initialized Gemini provider with model models/gemini-1.5-pro
+2025-04-05 17:14:43,697 - src.config.config_manager - INFO - Loaded configuration from ./config/dockerforge.yaml

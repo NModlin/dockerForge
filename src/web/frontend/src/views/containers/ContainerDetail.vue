@@ -43,8 +43,9 @@
               <v-btn
                 block
                 color="success"
-                :disabled="container.status === 'running'"
-                @click="startContainer"
+                :disabled="container.status === 'running' || actionInProgress"
+                @click="showStartDialog"
+                :loading="actionInProgress && actionType === 'start'"
               >
                 <v-icon left>mdi-play</v-icon>
                 Start
@@ -54,8 +55,9 @@
               <v-btn
                 block
                 color="error"
-                :disabled="container.status !== 'running'"
-                @click="stopContainer"
+                :disabled="container.status !== 'running' || actionInProgress"
+                @click="showStopDialog"
+                :loading="actionInProgress && actionType === 'stop'"
               >
                 <v-icon left>mdi-stop</v-icon>
                 Stop
@@ -65,8 +67,9 @@
               <v-btn
                 block
                 color="warning"
-                :disabled="container.status !== 'running'"
-                @click="restartContainer"
+                :disabled="container.status !== 'running' || actionInProgress"
+                @click="showRestartDialog"
+                :loading="actionInProgress && actionType === 'restart'"
               >
                 <v-icon left>mdi-restart</v-icon>
                 Restart
@@ -78,9 +81,46 @@
                 color="error"
                 outlined
                 @click="showDeleteDialog"
+                :disabled="actionInProgress"
+                :loading="actionInProgress && actionType === 'delete'"
               >
                 <v-icon left>mdi-delete</v-icon>
                 Delete
+              </v-btn>
+            </v-col>
+          </v-row>
+
+          <v-row class="mt-4">
+            <v-col cols="12" sm="6" md="4">
+              <v-btn
+                block
+                color="primary"
+                :disabled="container.status !== 'running'"
+                @click="openTerminal"
+              >
+                <v-icon left>mdi-console</v-icon>
+                Terminal
+              </v-btn>
+            </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-btn
+                block
+                color="primary"
+                :disabled="container.status !== 'running'"
+                @click="openStats"
+              >
+                <v-icon left>mdi-chart-line</v-icon>
+                Stats
+              </v-btn>
+            </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-btn
+                block
+                color="primary"
+                @click="openInspect"
+              >
+                <v-icon left>mdi-magnify</v-icon>
+                Inspect
               </v-btn>
             </v-col>
           </v-row>
@@ -124,13 +164,30 @@
                 <tr v-if="container.health_status">
                   <td class="font-weight-bold">Health</td>
                   <td>
-                    <v-chip
-                      :color="getHealthColor(container.health_status)"
-                      text-color="white"
-                      small
-                    >
-                      {{ container.health_status }}
-                    </v-chip>
+                    <div class="d-flex align-center">
+                      <v-chip
+                        :color="getHealthColor(container.health_status)"
+                        text-color="white"
+                        small
+                        class="mr-2"
+                      >
+                        {{ container.health_status }}
+                      </v-chip>
+                      <v-tooltip bottom>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-btn
+                            x-small
+                            icon
+                            v-bind="attrs"
+                            v-on="on"
+                            @click="openInspect"
+                          >
+                            <v-icon small>mdi-information-outline</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>View detailed health check information</span>
+                      </v-tooltip>
+                    </div>
                   </td>
                 </tr>
                 <tr>
@@ -159,11 +216,20 @@
         </v-card-text>
       </v-card>
 
-      <!-- Resource Usage -->
-      <v-card v-if="container.resource_usage" class="mb-4">
+      <!-- Resource Usage Stats -->
+      <container-stats
+        v-if="container.status === 'running'"
+        :container-id="containerId"
+        :initial-stats="container.resource_usage || {}"
+      ></container-stats>
+
+      <!-- Basic Resource Usage for non-running containers -->
+      <v-card v-else-if="container.resource_usage" class="mb-4">
         <v-card-title>
           <v-icon left>mdi-chart-line</v-icon>
           Resource Usage
+          <v-spacer></v-spacer>
+          <v-chip color="error" small>Container not running</v-chip>
         </v-card-title>
         <v-card-text>
           <v-row>
@@ -288,6 +354,17 @@
         <v-card-title>
           <v-icon left>mdi-tag-multiple</v-icon>
           Labels
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="labelSearch"
+            append-icon="mdi-magnify"
+            label="Search labels"
+            single-line
+            hide-details
+            dense
+            class="ml-2"
+            style="max-width: 250px"
+          ></v-text-field>
         </v-card-title>
         <v-card-text>
           <v-simple-table>
@@ -299,8 +376,8 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(value, key) in container.labels" :key="key">
-                  <td>{{ key }}</td>
+                <tr v-for="(value, key) in filteredLabels" :key="key">
+                  <td class="font-weight-medium">{{ key }}</td>
                   <td>{{ value }}</td>
                 </tr>
               </tbody>
@@ -315,11 +392,76 @@
           <v-icon left>mdi-text</v-icon>
           Logs
           <v-spacer></v-spacer>
-          <v-btn icon @click="fetchLogs">
+          <v-btn icon @click="fetchLogs" :loading="logsLoading" :disabled="logsLoading">
             <v-icon>mdi-refresh</v-icon>
           </v-btn>
+          <v-btn icon @click="autoRefreshLogs = !autoRefreshLogs" :color="autoRefreshLogs ? 'primary' : ''">
+            <v-icon>mdi-autorenew</v-icon>
+          </v-btn>
+          <v-menu offset-y>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on">
+                <v-icon>mdi-dots-vertical</v-icon>
+              </v-btn>
+            </template>
+            <v-list>
+              <v-list-item @click="downloadLogs">
+                <v-list-item-icon>
+                  <v-icon>mdi-download</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>Download Logs</v-list-item-title>
+              </v-list-item>
+              <v-list-item @click="clearLogs">
+                <v-list-item-icon>
+                  <v-icon>mdi-delete</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>Clear Logs</v-list-item-title>
+              </v-list-item>
+              <v-divider></v-divider>
+              <v-list-item>
+                <v-list-item-title>Tail Lines:</v-list-item-title>
+                <v-list-item-action>
+                  <v-select
+                    v-model="logTailLines"
+                    :items="[10, 50, 100, 500, 1000, 'all']"
+                    dense
+                    hide-details
+                    class="logs-tail-select"
+                    @change="fetchLogs"
+                  ></v-select>
+                </v-list-item-action>
+              </v-list-item>
+            </v-list>
+          </v-menu>
         </v-card-title>
+
         <v-card-text>
+          <!-- Log Filters -->
+          <v-row class="mb-3">
+            <v-col cols="12" sm="6" md="8">
+              <v-text-field
+                v-model="logSearchQuery"
+                label="Search logs"
+                prepend-icon="mdi-magnify"
+                clearable
+                hide-details
+                dense
+                @input="filterLogs"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-select
+                v-model="logLevel"
+                :items="['All Levels', 'Info', 'Warning', 'Error', 'Debug']"
+                label="Log Level"
+                prepend-icon="mdi-filter-variant"
+                hide-details
+                dense
+                @change="filterLogs"
+              ></v-select>
+            </v-col>
+          </v-row>
+
           <div v-if="logsLoading" class="d-flex justify-center align-center my-5">
             <v-progress-circular indeterminate color="primary"></v-progress-circular>
           </div>
@@ -329,12 +471,86 @@
           <div v-else-if="logs.length === 0" class="text-center grey--text">
             No logs available
           </div>
+          <div v-else-if="filteredLogs.length === 0" class="text-center grey--text">
+            No logs match your filter criteria
+          </div>
           <v-sheet v-else class="logs-container pa-2" color="grey lighten-4" rounded>
-            <pre class="logs-content">{{ logs.join('\n') }}</pre>
+            <pre class="logs-content"><span v-for="(log, index) in filteredLogs" :key="index" :class="getLogLevelClass(log)">{{ log }}
+</span></pre>
           </v-sheet>
+
+          <!-- Log Stats -->
+          <div class="d-flex justify-space-between mt-2 text-caption grey--text">
+            <span>Showing {{ filteredLogs.length }} of {{ logs.length }} log entries</span>
+            <span v-if="container.status === 'running'">
+              <v-icon small color="success" v-if="autoRefreshLogs">mdi-autorenew</v-icon>
+              Auto-refresh {{ autoRefreshLogs ? 'enabled' : 'disabled' }}
+            </span>
+          </div>
         </v-card-text>
       </v-card>
     </template>
+
+    <!-- Action Confirmation Dialogs -->
+
+    <!-- Start Confirmation Dialog -->
+    <v-dialog v-model="startDialog" max-width="500">
+      <v-card>
+        <v-card-title class="headline">Start Container</v-card-title>
+        <v-card-text>
+          Are you sure you want to start the container <strong>{{ container?.name }}</strong>?
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey darken-1" text @click="startDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="success" text @click="startContainer">
+            Start
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Stop Confirmation Dialog -->
+    <v-dialog v-model="stopDialog" max-width="500">
+      <v-card>
+        <v-card-title class="headline">Stop Container</v-card-title>
+        <v-card-text>
+          Are you sure you want to stop the container <strong>{{ container?.name }}</strong>?
+          Any running processes inside the container will be terminated.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey darken-1" text @click="stopDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="error" text @click="stopContainer">
+            Stop
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Restart Confirmation Dialog -->
+    <v-dialog v-model="restartDialog" max-width="500">
+      <v-card>
+        <v-card-title class="headline">Restart Container</v-card-title>
+        <v-card-text>
+          Are you sure you want to restart the container <strong>{{ container?.name }}</strong>?
+          The container will be stopped and then started again.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="grey darken-1" text @click="restartDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="warning" text @click="restartContainer">
+            Restart
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" max-width="500">
@@ -355,24 +571,65 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Container Inspect Dialog -->
+    <v-dialog v-model="showInspectDialog" fullscreen hide-overlay transition="dialog-bottom-transition">
+      <v-card>
+        <v-toolbar dark color="primary">
+          <v-btn icon dark @click="showInspectDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title>Container Inspection: {{ container?.name }}</v-toolbar-title>
+          <v-spacer></v-spacer>
+        </v-toolbar>
+        <v-card-text class="pa-0">
+          <container-inspect
+            :container-id="containerId"
+            :inspect-data="inspectData"
+            @show-snackbar="showSnackbar"
+          ></container-inspect>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
-import axios from 'axios';
+import { mapGetters, mapActions, mapState } from 'vuex';
+import ContainerStats from '@/components/containers/ContainerStats.vue';
+import ContainerInspect from '@/components/containers/ContainerInspect.vue';
 
 export default {
   name: 'ContainerDetail',
+  components: {
+    ContainerStats,
+    ContainerInspect,
+  },
   data() {
     return {
       loading: true,
       error: null,
       container: null,
       logs: [],
+      filteredLogs: [],
       logsLoading: false,
       logsError: null,
+      logSearchQuery: '',
+      logLevel: 'All Levels',
+      logTailLines: 100,
+      autoRefreshLogs: false,
+      labelSearch: '',
+      logRefreshInterval: null,
       deleteDialog: false,
+      startDialog: false,
+      stopDialog: false,
+      restartDialog: false,
+      actionInProgress: false,
+      actionType: null,
+      showInspectDialog: false,
+      inspectData: null,
+      inspectLoading: false,
+      inspectError: null,
     };
   },
   computed: {
@@ -380,28 +637,102 @@ export default {
       isAuthenticated: 'auth/isAuthenticated',
       token: 'auth/token',
     }),
+    ...mapState('containers', {
+      storeContainer: 'currentContainer',
+      storeLoading: 'loading',
+      storeError: 'error',
+    }),
     containerId() {
       return this.$route.params.id;
+    },
+    filteredLabels() {
+      if (!this.container?.labels) return {};
+
+      if (!this.labelSearch) return this.container.labels;
+
+      const search = this.labelSearch.toLowerCase();
+      const result = {};
+
+      Object.entries(this.container.labels).forEach(([key, value]) => {
+        if (key.toLowerCase().includes(search) ||
+            (value && value.toLowerCase().includes(search))) {
+          result[key] = value;
+        }
+      });
+
+      return result;
     },
   },
   created() {
     this.fetchContainer();
     this.fetchLogs();
   },
+
+  mounted() {
+    // Set up auto-refresh for logs if container is running
+    this.setupLogRefresh();
+  },
+
+  beforeDestroy() {
+    // Clear the log refresh interval when component is destroyed
+    this.clearLogRefreshInterval();
+  },
+
+  watch: {
+    storeContainer(newContainer) {
+      if (newContainer) {
+        this.container = newContainer;
+        this.loading = false;
+      }
+    },
+    storeError(newError) {
+      if (newError) {
+        this.error = newError;
+        this.loading = false;
+        this.actionInProgress = false;
+      }
+    },
+    'container.status': {
+      handler(newStatus) {
+        // Update log refresh when container status changes
+        this.setupLogRefresh();
+
+        // If container is now running, fetch fresh logs
+        if (newStatus === 'running') {
+          this.fetchLogs();
+        }
+      },
+      immediate: false
+    },
+    autoRefreshLogs(newValue) {
+      // Show feedback when auto-refresh is toggled
+      if (newValue) {
+        this.showSnackbar('Auto-refresh enabled', 'info');
+      }
+    },
+  },
   methods: {
+    ...mapActions({
+      getContainer: 'containers/getContainer',
+      startContainerAction: 'containers/startContainer',
+      stopContainerAction: 'containers/stopContainer',
+      restartContainerAction: 'containers/restartContainer',
+      removeContainerAction: 'containers/removeContainer',
+      getContainerLogs: 'containers/getContainerLogs',
+      clearError: 'containers/clearError',
+    }),
+
     async fetchContainer() {
       this.loading = true;
       this.error = null;
 
       try {
-        // In a real implementation, this would call the API
-        // const response = await axios.get(`/api/containers/${this.containerId}`, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        // this.container = response.data;
+        await this.getContainer(this.containerId);
 
-        // Mock data for development
-        setTimeout(() => {
+        // If we're still using mock data, use this instead
+        if (!this.storeContainer) {
+          // Mock data for development
+          setTimeout(() => {
           if (this.containerId === 'c1') {
             this.container = {
               id: 'c1',
@@ -499,6 +830,7 @@ export default {
           }
           this.loading = false;
         }, 1000);
+        }
       } catch (error) {
         this.error = 'Failed to load container details. Please try again.';
         this.loading = false;
@@ -509,23 +841,35 @@ export default {
       this.logsError = null;
 
       try {
-        // In a real implementation, this would call the API
-        // const response = await axios.get(`/api/containers/${this.containerId}/logs`, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        // this.logs = response.data.logs;
+        // Try to get logs from the API
+        const response = await this.getContainerLogs({
+          id: this.containerId,
+          tail: this.logTailLines === 'all' ? null : this.logTailLines
+        }).catch(() => null);
 
-        // Mock data for development
-        setTimeout(() => {
+        if (response && response.logs) {
+          this.logs = response.logs;
+          this.filterLogs();
+          this.logsLoading = false;
+        } else {
+          // Mock data for development
+          setTimeout(() => {
           this.logs = [
-            `2025-03-16T19:00:00.000Z Container ${this.containerId} started`,
-            `2025-03-16T19:00:01.000Z Container ${this.containerId} running`,
-            `2025-03-16T19:00:02.000Z Container ${this.containerId} healthy`,
-            `2025-03-16T19:00:03.000Z Container ${this.containerId} processing request`,
-            `2025-03-16T19:00:04.000Z Container ${this.containerId} request completed`,
+            `2025-03-16T19:00:00.000Z [INFO] Container ${this.containerId} started`,
+            `2025-03-16T19:00:01.000Z [INFO] Container ${this.containerId} running`,
+            `2025-03-16T19:00:02.000Z [INFO] Container ${this.containerId} healthy`,
+            `2025-03-16T19:00:03.000Z [DEBUG] Container ${this.containerId} processing request`,
+            `2025-03-16T19:00:04.000Z [INFO] Container ${this.containerId} request completed`,
+            `2025-03-16T19:00:05.000Z [WARNING] Container ${this.containerId} high memory usage detected`,
+            `2025-03-16T19:00:06.000Z [ERROR] Container ${this.containerId} failed to connect to database`,
+            `2025-03-16T19:00:07.000Z [INFO] Container ${this.containerId} retrying database connection`,
+            `2025-03-16T19:00:08.000Z [INFO] Container ${this.containerId} database connection established`,
+            `2025-03-16T19:00:09.000Z [DEBUG] Container ${this.containerId} processing another request`,
           ];
+          this.filterLogs();
           this.logsLoading = false;
         }, 1000);
+        }
       } catch (error) {
         this.logsError = 'Failed to load container logs. Please try again.';
         this.logsLoading = false;
@@ -561,84 +905,201 @@ export default {
       const date = new Date(dateString);
       return date.toLocaleString();
     },
+    showStartDialog() {
+      this.startDialog = true;
+    },
+
     async startContainer() {
+      this.startDialog = false;
+      this.actionInProgress = true;
+      this.actionType = 'start';
+      this.clearError();
+
       try {
-        // In a real implementation, this would call the API
-        // await axios.post(`/api/containers/${this.containerId}/start`, {}, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        this.container.status = 'running';
-        this.container.started_at = new Date().toISOString();
-        this.container.finished_at = null;
-        this.container.health_status = 'starting';
-        this.container.ip_address = '172.17.0.2';
-        
-        // Simulate health check
-        setTimeout(() => {
-          this.container.health_status = 'healthy';
-          this.$forceUpdate();
-        }, 2000);
+        await this.startContainerAction(this.containerId);
+        this.actionInProgress = false;
+        this.showSnackbar('Container started successfully', 'success');
+        this.fetchLogs();
       } catch (error) {
-        this.error = `Failed to start container ${this.container.name}`;
+        this.showSnackbar(`Failed to start container: ${error.message}`, 'error');
+        this.actionInProgress = false;
       }
     },
+    showStopDialog() {
+      this.stopDialog = true;
+    },
+
     async stopContainer() {
+      this.stopDialog = false;
+      this.actionInProgress = true;
+      this.actionType = 'stop';
+      this.clearError();
+
       try {
-        // In a real implementation, this would call the API
-        // await axios.post(`/api/containers/${this.containerId}/stop`, {}, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        this.container.status = 'stopped';
-        this.container.finished_at = new Date().toISOString();
-        this.container.health_status = null;
-        this.container.ip_address = null;
-        this.container.resource_usage = null;
+        await this.stopContainerAction(this.containerId);
+        this.actionInProgress = false;
+        this.showSnackbar('Container stopped successfully', 'success');
       } catch (error) {
-        this.error = `Failed to stop container ${this.container.name}`;
+        this.showSnackbar(`Failed to stop container: ${error.message}`, 'error');
+        this.actionInProgress = false;
       }
     },
+    showRestartDialog() {
+      this.restartDialog = true;
+    },
+
     async restartContainer() {
+      this.restartDialog = false;
+      this.actionInProgress = true;
+      this.actionType = 'restart';
+      this.clearError();
+
       try {
-        // In a real implementation, this would call the API
-        // await axios.post(`/api/containers/${this.containerId}/restart`, {}, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        this.container.status = 'running';
-        this.container.started_at = new Date().toISOString();
-        this.container.finished_at = null;
-        this.container.health_status = 'starting';
-        
-        // Simulate health check
-        setTimeout(() => {
-          this.container.health_status = 'healthy';
-          this.$forceUpdate();
-        }, 2000);
+        await this.restartContainerAction(this.containerId);
+        this.actionInProgress = false;
+        this.showSnackbar('Container restarted successfully', 'success');
+        this.fetchLogs();
       } catch (error) {
-        this.error = `Failed to restart container ${this.container.name}`;
+        this.showSnackbar(`Failed to restart container: ${error.message}`, 'error');
+        this.actionInProgress = false;
       }
     },
     showDeleteDialog() {
       this.deleteDialog = true;
     },
     async deleteContainer() {
+      this.deleteDialog = false;
+      this.actionInProgress = true;
+      this.actionType = 'delete';
+      this.clearError();
+
       try {
-        // In a real implementation, this would call the API
-        // await axios.delete(`/api/containers/${this.containerId}`, {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        
-        // Mock implementation
-        this.deleteDialog = false;
+        await this.removeContainerAction(this.containerId);
+        this.actionInProgress = false;
+        this.showSnackbar('Container deleted successfully', 'success');
         this.$router.push('/containers');
       } catch (error) {
-        this.error = `Failed to delete container ${this.container.name}`;
-        this.deleteDialog = false;
+        this.showSnackbar(`Failed to delete container: ${error.message}`, 'error');
+        this.actionInProgress = false;
+      }
+    },
+
+    showSnackbar(text, color = 'info') {
+      this.$store.dispatch('showSnackbar', { text, color });
+    },
+
+    // Additional container actions
+    openTerminal() {
+      if (this.container.status !== 'running') {
+        this.showSnackbar('Container must be running to open terminal', 'warning');
+        return;
+      }
+
+      this.$router.push(`/containers/${this.containerId}/terminal`);
+    },
+
+    openStats() {
+      if (this.container.status !== 'running') {
+        this.showSnackbar('Container must be running to view stats', 'warning');
+        return;
+      }
+
+      // Scroll to stats section
+      const statsElement = document.querySelector('.container-stats');
+      if (statsElement) {
+        statsElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    },
+
+    async openInspect() {
+      this.showInspectDialog = true;
+
+      try {
+        // Fetch the container inspect data using Vuex
+        await this.$store.dispatch('containers/inspectContainer', this.containerId);
+        this.inspectData = this.$store.state.containers.inspectData;
+      } catch (error) {
+        this.showSnackbar('Failed to load container inspect data', 'error');
+      }
+    },
+
+    // Log management methods
+    filterLogs() {
+      if (!this.logs || this.logs.length === 0) {
+        this.filteredLogs = [];
+        return;
+      }
+
+      let filtered = [...this.logs];
+
+      // Filter by search query
+      if (this.logSearchQuery) {
+        const query = this.logSearchQuery.toLowerCase();
+        filtered = filtered.filter(log => log.toLowerCase().includes(query));
+      }
+
+      // Filter by log level
+      if (this.logLevel !== 'All Levels') {
+        const level = this.logLevel.toUpperCase();
+        filtered = filtered.filter(log => log.includes(`[${level}]`));
+      }
+
+      this.filteredLogs = filtered;
+    },
+
+    getLogLevelClass(log) {
+      if (log.includes('[ERROR]')) return 'log-error';
+      if (log.includes('[WARNING]')) return 'log-warning';
+      if (log.includes('[INFO]')) return 'log-info';
+      if (log.includes('[DEBUG]')) return 'log-debug';
+      return '';
+    },
+
+    downloadLogs() {
+      if (!this.logs || this.logs.length === 0) {
+        this.showSnackbar('No logs available to download', 'warning');
+        return;
+      }
+
+      const content = this.logs.join('\n');
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.container.name}-logs-${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      this.showSnackbar('Logs downloaded successfully', 'success');
+    },
+
+    clearLogs() {
+      this.logs = [];
+      this.filteredLogs = [];
+      this.showSnackbar('Logs cleared', 'info');
+    },
+
+    setupLogRefresh() {
+      // Clear any existing interval
+      this.clearLogRefreshInterval();
+
+      // Set up auto-refresh if container is running
+      if (this.container && this.container.status === 'running') {
+        this.logRefreshInterval = setInterval(() => {
+          if (this.autoRefreshLogs && !this.logsLoading) {
+            this.fetchLogs();
+          }
+        }, 5000); // Refresh every 5 seconds
+      }
+    },
+
+    clearLogRefreshInterval() {
+      if (this.logRefreshInterval) {
+        clearInterval(this.logRefreshInterval);
+        this.logRefreshInterval = null;
       }
     },
   },
@@ -651,7 +1112,7 @@ export default {
 }
 
 .logs-container {
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
@@ -662,5 +1123,26 @@ export default {
   font-family: monospace;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.log-info {
+  color: #2196F3;
+}
+
+.log-warning {
+  color: #FB8C00;
+}
+
+.log-error {
+  color: #F44336;
+  font-weight: bold;
+}
+
+.log-debug {
+  color: #9E9E9E;
+}
+
+.logs-tail-select {
+  max-width: 100px;
 }
 </style>

@@ -1,63 +1,35 @@
 services:
   dockerforge:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: natedog115/dockerforge:latest
+    image: dockerforge-custom:latest
     container_name: dockerforge
     restart: unless-stopped
     volumes:
       - ./config:/app/config
       - ./data:/app/data
       - ./media:/app/media
-      # Don't mount the static directory as a volume since we want to use the built files
-      # from the Dockerfile build process (frontend build output)
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./custom-entrypoint.sh:/app/custom-entrypoint.sh
     environment:
       - DOCKERFORGE_CONFIG_PATH=/app/config/dockerforge.yaml
       - DOCKERFORGE_DATA_DIR=/app/data
-      - OLLAMA_API_HOST=http://ollama:11435
       - DATABASE_URL=postgresql://dockerforge:dockerforge@db:5432/dockerforge
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=change_this_to_a_secure_random_string_in_production
-      - NODE_ENV=production
-      - STATIC_DIR=/app/static
+      # Using the API key from .env file
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8080:8080"
       - "54321:54321"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:54321/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 15s
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
-      ollama:
-        condition: service_healthy
     networks:
       - dockerforge-network
-    command: ["all"]  # Run both services
+    command: ["/app/custom-entrypoint.sh"]
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: dockerforge-ollama
-    restart: unless-stopped
-    volumes:
-      - ollama-data:/root/.ollama
-    ports:
-      - "11435:11434"
-    networks:
-      - dockerforge-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+
 
   db:
     image: postgres:15-alpine
@@ -69,14 +41,13 @@ services:
       - POSTGRES_USER=dockerforge
       - POSTGRES_PASSWORD=dockerforge
       - POSTGRES_DB=dockerforge
+    networks:
+      - dockerforge-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dockerforge"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
-    networks:
-      - dockerforge-network
 
   redis:
     image: redis:alpine
@@ -84,23 +55,13 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
     networks:
       - dockerforge-network
+
+volumes:
+  postgres_data:
+  redis_data:
 
 networks:
   dockerforge-network:
     driver: bridge
-
-volumes:
-  ollama-data:
-    driver: local
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local

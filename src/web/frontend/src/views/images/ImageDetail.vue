@@ -8,20 +8,24 @@
               <v-icon large left>mdi-docker</v-icon>
               Image Details
               <v-spacer></v-spacer>
+              <v-btn color="info" class="mr-2" @click="viewImageHistory">
+                <v-icon left>mdi-history</v-icon>
+                View History
+              </v-btn>
               <v-btn color="primary" @click="goBack">
                 <v-icon left>mdi-arrow-left</v-icon>
                 Back to Images
               </v-btn>
             </v-card-title>
-            
+
             <v-card-text v-if="loading">
               <v-skeleton-loader type="article" />
             </v-card-text>
-            
+
             <v-card-text v-else-if="!image">
               <v-alert type="error">Image not found</v-alert>
             </v-card-text>
-            
+
             <template v-else>
               <v-card-text>
                 <v-row>
@@ -33,14 +37,14 @@
                           <v-list-item-subtitle>{{ image.id }}</v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
-                      
+
                       <v-list-item>
                         <v-list-item-content>
                           <v-list-item-title>Short ID</v-list-item-title>
                           <v-list-item-subtitle>{{ image.short_id }}</v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
-                      
+
                       <v-list-item>
                         <v-list-item-content>
                           <v-list-item-title>Tags</v-list-item-title>
@@ -58,14 +62,14 @@
                           </v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
-                      
+
                       <v-list-item>
                         <v-list-item-content>
                           <v-list-item-title>Size</v-list-item-title>
                           <v-list-item-subtitle>{{ formatSize(image.size) }}</v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
-                      
+
                       <v-list-item>
                         <v-list-item-content>
                           <v-list-item-title>Created</v-list-item-title>
@@ -74,7 +78,7 @@
                       </v-list-item>
                     </v-list>
                   </v-col>
-                  
+
                   <v-col cols="12" md="6">
                     <v-list dense>
                       <v-list-item v-if="image.author">
@@ -83,21 +87,21 @@
                           <v-list-item-subtitle>{{ image.author }}</v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
-                      
+
                       <v-list-item v-if="image.architecture">
                         <v-list-item-content>
                           <v-list-item-title>Architecture</v-list-item-title>
                           <v-list-item-subtitle>{{ image.architecture }}</v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
-                      
+
                       <v-list-item v-if="image.os">
                         <v-list-item-content>
                           <v-list-item-title>OS</v-list-item-title>
                           <v-list-item-subtitle>{{ image.os }}</v-list-item-subtitle>
                         </v-list-item-content>
                       </v-list-item>
-                      
+
                       <v-list-item v-if="image.digest">
                         <v-list-item-content>
                           <v-list-item-title>Digest</v-list-item-title>
@@ -108,17 +112,18 @@
                   </v-col>
                 </v-row>
               </v-card-text>
-              
+
               <v-divider></v-divider>
-              
+
               <v-tabs v-model="activeTab" background-color="primary" dark>
                 <v-tab>Labels</v-tab>
                 <v-tab>Environment</v-tab>
                 <v-tab>Ports</v-tab>
                 <v-tab>Volumes</v-tab>
+                <v-tab>Layers</v-tab>
                 <v-tab>Security</v-tab>
               </v-tabs>
-              
+
               <v-tabs-items v-model="activeTab">
                 <!-- Labels Tab -->
                 <v-tab-item>
@@ -144,7 +149,7 @@
                     </v-card-text>
                   </v-card>
                 </v-tab-item>
-                
+
                 <!-- Environment Tab -->
                 <v-tab-item>
                   <v-card flat>
@@ -169,7 +174,7 @@
                     </v-card-text>
                   </v-card>
                 </v-tab-item>
-                
+
                 <!-- Ports Tab -->
                 <v-tab-item>
                   <v-card flat>
@@ -194,7 +199,7 @@
                     </v-card-text>
                   </v-card>
                 </v-tab-item>
-                
+
                 <!-- Volumes Tab -->
                 <v-tab-item>
                   <v-card flat>
@@ -219,7 +224,26 @@
                     </v-card-text>
                   </v-card>
                 </v-tab-item>
-                
+
+                <!-- Layers Tab -->
+                <v-tab-item>
+                  <v-card flat>
+                    <v-card-text>
+                      <v-row>
+                        <v-col cols="12">
+                          <image-layer-visualization :layers="image.history || []"/>
+                        </v-col>
+                      </v-row>
+
+                      <v-row class="mt-4">
+                        <v-col cols="12">
+                          <layer-explorer :layers="image.history || []"/>
+                        </v-col>
+                      </v-row>
+                    </v-card-text>
+                  </v-card>
+                </v-tab-item>
+
                 <!-- Security Tab -->
                 <v-tab-item>
                   <v-card flat>
@@ -232,7 +256,7 @@
                           </v-btn>
                         </v-col>
                       </v-row>
-                      
+
                       <v-row v-if="scans.length > 0">
                         <v-col cols="12">
                           <h3>Scan History</h3>
@@ -317,7 +341,7 @@
                           </v-simple-table>
                         </v-col>
                       </v-row>
-                      
+
                       <v-row v-else>
                         <v-col cols="12">
                           <v-alert type="info">No security scans have been performed on this image</v-alert>
@@ -332,7 +356,7 @@
         </v-col>
       </v-row>
     </v-container>
-    
+
     <!-- Snackbar for notifications -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="3000">
       {{ snackbarText }}
@@ -346,10 +370,17 @@
 <script>
 import { mapState, mapActions } from 'vuex';
 import { format, parseISO } from 'date-fns';
+import ImageLayerVisualization from '@/components/images/ImageLayerVisualization.vue';
+import LayerExplorer from '@/components/images/LayerExplorer.vue';
 
 export default {
   name: 'ImageDetail',
-  
+
+  components: {
+    ImageLayerVisualization,
+    LayerExplorer
+  },
+
   data() {
     return {
       activeTab: 0,
@@ -360,23 +391,23 @@ export default {
       snackbarColor: 'success',
     };
   },
-  
+
   computed: {
     ...mapState('images', ['image', 'scans']),
-    
+
     imageId() {
       return this.$route.params.id;
     },
   },
-  
+
   created() {
     this.fetchImageDetails();
     this.fetchImageScans();
   },
-  
+
   methods: {
     ...mapActions('images', ['getImage', 'getImageScans', 'scanImageVulnerabilities']),
-    
+
     async fetchImageDetails() {
       this.loading = true;
       try {
@@ -387,7 +418,7 @@ export default {
         this.loading = false;
       }
     },
-    
+
     async fetchImageScans() {
       try {
         await this.getImageScans(this.imageId);
@@ -395,7 +426,7 @@ export default {
         this.showError('Failed to fetch image scans: ' + error.message);
       }
     },
-    
+
     async scanImage() {
       this.scanning = true;
       try {
@@ -408,33 +439,40 @@ export default {
         this.scanning = false;
       }
     },
-    
+
     viewScanDetails(scanId) {
       this.$router.push({
         name: 'ImageSecurity',
         params: { id: this.imageId, scanId: scanId },
       });
     },
-    
+
+    viewImageHistory() {
+      this.$router.push({
+        name: 'ImageHistory',
+        params: { id: this.imageId },
+      });
+    },
+
     goBack() {
       this.$router.push({ name: 'Images' });
     },
-    
+
     formatSize(size) {
       if (!size) return 'Unknown';
-      
+
       const units = ['B', 'KB', 'MB', 'GB', 'TB'];
       let formattedSize = size;
       let unitIndex = 0;
-      
+
       while (formattedSize >= 1024 && unitIndex < units.length - 1) {
         formattedSize /= 1024;
         unitIndex++;
       }
-      
+
       return `${formattedSize.toFixed(2)} ${units[unitIndex]}`;
     },
-    
+
     formatDate(dateString) {
       if (!dateString) return 'Unknown';
       try {
@@ -443,7 +481,7 @@ export default {
         return dateString;
       }
     },
-    
+
     getScanStatusColor(status) {
       switch (status) {
         case 'completed':
@@ -456,13 +494,13 @@ export default {
           return 'grey';
       }
     },
-    
+
     showSuccess(message) {
       this.snackbarText = message;
       this.snackbarColor = 'success';
       this.snackbar = true;
     },
-    
+
     showError(message) {
       this.snackbarText = message;
       this.snackbarColor = 'error';

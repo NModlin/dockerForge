@@ -445,15 +445,28 @@ class GeminiProvider(AIProvider):
     def __init__(self):
         """Initialize the Gemini provider."""
         self.api_key = get_config("ai.providers.gemini.api_key")
-        self.model = get_config("ai.providers.gemini.model", "gemini-pro")
+        self.model = get_config("ai.providers.gemini.model", "models/gemini-1.5-pro")
         self.max_tokens = get_config("ai.providers.gemini.max_tokens", 2048)
         self.temperature = get_config("ai.providers.gemini.temperature", 0.7)
+
+        # Check if API key is provided
+        if not self.api_key:
+            logger.error("Gemini API key not configured")
+            self.initialized = False
+            return
 
         # Import here to avoid dependency issues
         try:
             import google.generativeai as genai
             self.genai = genai
             self.genai.configure(api_key=self.api_key)
+            # Check if model exists
+            available_models = [model.name for model in self.genai.list_models()]
+            if self.model not in available_models:
+                logger.error(f"Invalid model: {self.model}. Available models: {', '.join(available_models[:5])}...")
+                self.initialized = False
+                return
+
             self.model_obj = self.genai.GenerativeModel(model_name=self.model)
             self.initialized = True
             logger.info(f"Successfully initialized Gemini provider with model {self.model}")
@@ -513,6 +526,9 @@ class GeminiProvider(AIProvider):
 
     def analyze(self, context: Dict[str, Any], query: str) -> Dict[str, Any]:
         """Analyze a query with context using Gemini."""
+        if not self.api_key:
+            raise AIProviderError("Gemini API key not configured")
+
         if not hasattr(self, 'initialized') or not self.initialized:
             raise AIProviderError("Gemini AI provider is not properly initialized")
 
@@ -549,7 +565,7 @@ class GeminiProvider(AIProvider):
             analysis_text = response.text.strip()
 
             # Track usage if available
-            if self.usage_tracker:
+            if self.usage_tracker and hasattr(self.usage_tracker, 'track_usage'):
                 self.usage_tracker.track_usage(
                     provider="gemini",
                     model=self.model,

@@ -15,9 +15,13 @@
                 hide-details
                 class="mx-4"
               ></v-text-field>
-              <v-btn color="primary" @click="openPullDialog">
+              <v-btn color="primary" @click="openPullDialog" class="mr-2">
                 <v-icon left>mdi-cloud-download</v-icon>
                 Pull Image
+              </v-btn>
+              <v-btn color="secondary" @click="navigateToBuildPage">
+                <v-icon left>mdi-hammer-wrench</v-icon>
+                Build Image
               </v-btn>
             </v-card-title>
             <v-data-table
@@ -67,38 +71,11 @@
     </v-container>
 
     <!-- Pull Image Dialog -->
-    <v-dialog v-model="pullDialog" max-width="500px">
-      <v-card>
-        <v-card-title>Pull Docker Image</v-card-title>
-        <v-card-text>
-          <v-form ref="pullForm" v-model="validPullForm" lazy-validation>
-            <v-text-field
-              v-model="newImage.name"
-              label="Image Name"
-              :rules="[v => !!v || 'Image name is required']"
-              required
-            ></v-text-field>
-            <v-text-field
-              v-model="newImage.tag"
-              label="Tag"
-              hint="Leave empty for 'latest'"
-            ></v-text-field>
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="closePullDialog">Cancel</v-btn>
-          <v-btn
-            color="blue darken-1"
-            text
-            @click="pullImage"
-            :loading="pulling"
-            :disabled="!validPullForm || pulling"
-          >
-            Pull
-          </v-btn>
-        </v-card-actions>
-      </v-card>
+    <v-dialog v-model="pullDialog" max-width="800px" persistent>
+      <image-pull
+        @close="closePullDialog"
+        @pulled="fetchImages"
+      />
     </v-dialog>
 
     <!-- Delete Confirmation Dialog -->
@@ -158,10 +135,15 @@
 <script>
 import { mapState, mapActions } from 'vuex';
 import { format, parseISO } from 'date-fns';
+import ImagePull from './ImagePull.vue';
 
 export default {
   name: 'ImageList',
-  
+
+  components: {
+    ImagePull,
+  },
+
   data() {
     return {
       search: '',
@@ -175,11 +157,7 @@ export default {
       loading: false,
       pullDialog: false,
       deleteDialog: false,
-      validPullForm: true,
-      newImage: {
-        name: '',
-        tag: '',
-      },
+
       selectedImage: null,
       pulling: false,
       deleting: false,
@@ -189,18 +167,18 @@ export default {
       snackbarColor: 'success',
     };
   },
-  
+
   computed: {
     ...mapState('images', ['images']),
   },
-  
+
   created() {
     this.fetchImages();
   },
-  
+
   methods: {
     ...mapActions('images', ['getImages', 'pullImage', 'removeImage', 'scanImageVulnerabilities']),
-    
+
     async fetchImages() {
       this.loading = true;
       try {
@@ -211,22 +189,22 @@ export default {
         this.loading = false;
       }
     },
-    
+
     formatSize(size) {
       if (!size) return 'Unknown';
-      
+
       const units = ['B', 'KB', 'MB', 'GB', 'TB'];
       let formattedSize = size;
       let unitIndex = 0;
-      
+
       while (formattedSize >= 1024 && unitIndex < units.length - 1) {
         formattedSize /= 1024;
         unitIndex++;
       }
-      
+
       return `${formattedSize.toFixed(2)} ${units[unitIndex]}`;
     },
-    
+
     formatDate(dateString) {
       if (!dateString) return 'Unknown';
       try {
@@ -235,55 +213,29 @@ export default {
         return dateString;
       }
     },
-    
+
     openPullDialog() {
       this.pullDialog = true;
-      this.newImage = {
-        name: '',
-        tag: '',
-      };
-      if (this.$refs.pullForm) {
-        this.$refs.pullForm.resetValidation();
-      }
     },
-    
+
     closePullDialog() {
       this.pullDialog = false;
     },
-    
-    async pullImage() {
-      if (!this.$refs.pullForm.validate()) return;
-      
-      this.pulling = true;
-      try {
-        await this.pullImage({
-          name: this.newImage.name,
-          tag: this.newImage.tag || 'latest',
-        });
-        this.closePullDialog();
-        this.showSuccess('Image pulled successfully');
-        this.fetchImages();
-      } catch (error) {
-        this.showError('Failed to pull image: ' + error.message);
-      } finally {
-        this.pulling = false;
-      }
-    },
-    
+
     confirmDeleteImage(image) {
       this.selectedImage = image;
       this.deleteDialog = true;
       this.forceDelete = false;
     },
-    
+
     closeDeleteDialog() {
       this.deleteDialog = false;
       this.selectedImage = null;
     },
-    
+
     async deleteImage() {
       if (!this.selectedImage) return;
-      
+
       this.deleting = true;
       try {
         await this.removeImage({
@@ -299,11 +251,15 @@ export default {
         this.deleting = false;
       }
     },
-    
+
     viewImageDetails(image) {
       this.$router.push({ name: 'ImageDetail', params: { id: image.id } });
     },
-    
+
+    navigateToBuildPage() {
+      this.$router.push({ name: 'ImageBuild' });
+    },
+
     async scanImage(image) {
       try {
         await this.scanImageVulnerabilities(image.id);
@@ -313,13 +269,13 @@ export default {
         this.showError('Failed to scan image: ' + error.message);
       }
     },
-    
+
     showSuccess(message) {
       this.snackbarText = message;
       this.snackbarColor = 'success';
       this.snackbar = true;
     },
-    
+
     showError(message) {
       this.snackbarText = message;
       this.snackbarColor = 'error';

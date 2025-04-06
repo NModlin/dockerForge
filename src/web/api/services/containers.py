@@ -210,3 +210,15 @@ async def get_system_info(db: Session = None) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Failed to get system info: {e}")
         raise
+
+
+async def inspect_container(container_id: str, db: Session = None) -> Optional[Dict[str, Any]]:
+    """
+    Get detailed inspection data for a container by ID.
+    """
+    try:
+        # Get container inspect data using Docker API
+        return docker.inspect_container(container_id)
+    except Exception as e:
+        logger.error(f"Failed to inspect container {container_id}: {e}")
+        raise

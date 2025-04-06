@@ -15,6 +15,7 @@ from src.web.api.services.containers import (
     restart_container as restart_container_service,
     get_container_logs as get_container_logs_service,
     get_system_info as get_system_info_service,
+    inspect_container as inspect_container_service,
 )
 from src.web.api.services.auth import get_current_active_user, check_permission
 from src.web.api.database import get_db
@@ -269,3 +270,38 @@ async def get_system_info(
         )
 
     return await get_system_info_service(db=db)
+
+
+@router.get("/{container_id}/inspect")
+async def inspect_container(
+    container_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Get detailed inspection data for a container by ID.
+    """
+    # Check permission
+    if not check_permission(current_user, "containers:read"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    # Check if container exists
+    container = await get_container(container_id, db=db)
+    if not container:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Container with ID {container_id} not found",
+        )
+
+    # Get container inspect data
+    inspect_data = await inspect_container_service(container_id, db=db)
+    if not inspect_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Failed to inspect container with ID {container_id}",
+        )
+
+    return inspect_data

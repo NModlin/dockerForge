@@ -7,10 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Body
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
-from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageScanResult, ImageScanCreate
+from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageScanResult, ImageScanCreate, DockerfileValidation, DockerfileBuild
 from src.web.api.services.images import (
     get_images, get_image, create_image, delete_image,
     scan_image, get_image_scans, get_image_scan,
+    search_docker_hub, get_image_tags, validate_dockerfile, build_image_from_dockerfile
 )
 from src.web.api.services.auth import get_current_active_user, check_permission
 from src.web.api.database import get_db
@@ -167,6 +168,101 @@ async def get_image_scans_by_id(
 
     # Get scans
     return await get_image_scans(image_id, db=db)
+
+
+@router.get("/search/dockerhub", response_model=Dict[str, Any])
+async def search_dockerhub(
+    query: str = Query(..., description="Search query"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Page size"),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Search Docker Hub for images.
+    """
+    # Check permission
+    if not check_permission(current_user, "images:read"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    return await search_docker_hub(query=query, page=page, page_size=page_size)
+
+
+@router.get("/tags/{image_name}", response_model=List[str])
+async def get_tags(
+    image_name: str = Path(..., description="Image name"),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Get available tags for an image from Docker Hub.
+    """
+    # Check permission
+    if not check_permission(current_user, "images:read"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    return await get_image_tags(image_name=image_name)
+
+
+@router.post("/validate-dockerfile", response_model=DockerfileValidation)
+async def validate_dockerfile_endpoint(
+    dockerfile: Dict[str, str] = Body(..., description="Dockerfile content"),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Validate a Dockerfile.
+    """
+    # Check permission
+    if not check_permission(current_user, "images:read"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    try:
+        result = await validate_dockerfile(dockerfile["content"])
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to validate Dockerfile: {str(e)}",
+        )
+
+
+@router.post("/build", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+async def build_dockerfile(
+    build_data: DockerfileBuild,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Build a Docker image from a Dockerfile.
+    """
+    # Check permission
+    if not check_permission(current_user, "images:write"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    try:
+        result = await build_image_from_dockerfile(
+            dockerfile=build_data.dockerfile,
+            name=build_data.name,
+            tag=build_data.tag,
+            options=build_data.options,
+            db=db
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to build image: {str(e)}",
+        )
 
 
 @router.get("/{image_id}/scans/{scan_id}", response_model=ImageScanResult)

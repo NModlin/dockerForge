@@ -73,7 +73,7 @@ class Image(ImageBase):
     entrypoint: Optional[List[str]] = None
     exposed_ports: Optional[List[ImagePort]] = None
     volumes: Optional[List[ImageVolume]] = None
-    
+
     class Config:
         orm_mode = True
 
@@ -93,7 +93,7 @@ class ImageScan(BaseModel):
     high_count: Optional[int] = None
     medium_count: Optional[int] = None
     low_count: Optional[int] = None
-    
+
     class Config:
         orm_mode = True
 
@@ -112,7 +112,7 @@ class ImageVulnerability(BaseModel):
     fixed_version: Optional[str] = None
     reference_urls: Optional[List[str]] = None
     cve_id: Optional[str] = None
-    
+
     class Config:
         orm_mode = True
 
@@ -130,3 +130,26 @@ class ImageScanResult(BaseModel):
     """
     scan: ImageScan
     vulnerabilities: List[ImageVulnerability]
+
+
+class DockerfileValidation(BaseModel):
+    """
+    Dockerfile validation result schema.
+    """
+    is_valid: bool
+    errors: List[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
+    suggestions: List[str] = Field(default_factory=list)
+    analysis: Optional[str] = None
+    provider: Optional[str] = None
+    model: Optional[str] = None
+
+
+class DockerfileBuild(BaseModel):
+    """
+    Dockerfile build request schema.
+    """
+    dockerfile: str
+    name: str
+    tag: str = "latest"
+    options: Dict[str, Any] = Field(default_factory=dict)

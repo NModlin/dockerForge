@@ -11,6 +11,8 @@ const state = {
   currentScan: null,
   loading: false,
   error: null,
+  buildStatus: null,
+  buildLogs: [],
 };
 
 // Getters
@@ -153,6 +155,96 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+
+  /**
+   * Search Docker Hub for images
+   */
+  async searchDockerHub({ commit }, { query, page = 1, pageSize = 10 }) {
+    commit('SET_LOADING', true);
+    try {
+      const response = await axios.get('/api/images/search/dockerhub', {
+        params: {
+          query,
+          page,
+          page_size: pageSize,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  /**
+   * Get available tags for an image from Docker Hub
+   */
+  async getImageTags({ commit }, imageName) {
+    commit('SET_LOADING', true);
+    try {
+      const response = await axios.get(`/api/images/tags/${imageName}`);
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  /**
+   * Validate a Dockerfile
+   */
+  async validateDockerfile({ commit }, dockerfile) {
+    try {
+      const response = await axios.post('/api/images/validate-dockerfile', {
+        content: dockerfile
+      });
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * Build an image from a Dockerfile
+   */
+  async buildImage({ commit }, { dockerfile, imageName, imageTag, buildOptions = {} }) {
+    commit('SET_LOADING', true);
+    commit('SET_BUILD_STATUS', 'building');
+    commit('CLEAR_BUILD_LOGS');
+
+    try {
+      // Start the build process
+      const response = await axios.post('/api/images/build', {
+        dockerfile,
+        name: imageName,
+        tag: imageTag,
+        options: buildOptions
+      });
+
+      // Add the new image to the store
+      if (response.data.image) {
+        commit('ADD_IMAGE', response.data.image);
+      }
+
+      // Update build status and logs
+      commit('SET_BUILD_STATUS', 'success');
+      commit('SET_BUILD_LOGS', response.data.logs || []);
+
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      commit('SET_BUILD_STATUS', 'error');
+      commit('ADD_BUILD_LOG', `Error: ${error.response?.data?.detail || error.message}`);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
 };
 
 // Mutations
@@ -203,6 +295,18 @@ const mutations = {
     } else {
       state.scans.push(scan.scan);
     }
+  },
+  SET_BUILD_STATUS(state, status) {
+    state.buildStatus = status;
+  },
+  SET_BUILD_LOGS(state, logs) {
+    state.buildLogs = logs;
+  },
+  ADD_BUILD_LOG(state, log) {
+    state.buildLogs.push(log);
+  },
+  CLEAR_BUILD_LOGS(state) {
+    state.buildLogs = [];
   },
 };
 
