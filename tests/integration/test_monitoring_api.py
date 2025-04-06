@@ -2,12 +2,13 @@
 DockerForge Integration Tests - Monitoring API
 """
 
-import pytest
-import sys
-import os
 import json
+import os
+import sys
 import time
 from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 # Add the src directory to the path so we can import the modules
@@ -23,25 +24,25 @@ class TestMonitoringAPI:
     def setup_method(self):
         """Set up test environment"""
         self.client = TestClient(app)
-        
+
         # Create a test user and get a token
-        self.user_data = {
-            "username": "testuser",
-            "password": "testpassword"
-        }
-        
+        self.user_data = {"username": "testuser", "password": "testpassword"}
+
         # Try to create a user (this might fail if the user already exists)
         try:
             self.client.post("/auth/register", json=self.user_data)
         except Exception:
             pass
-        
+
         # Log in and get a token
-        response = self.client.post("/auth/token", data={
-            "username": self.user_data["username"],
-            "password": self.user_data["password"]
-        })
-        
+        response = self.client.post(
+            "/auth/token",
+            data={
+                "username": self.user_data["username"],
+                "password": self.user_data["password"],
+            },
+        )
+
         if response.status_code == 200:
             self.token = response.json()["access_token"]
             self.headers = {"Authorization": f"Bearer {self.token}"}
@@ -53,12 +54,12 @@ class TestMonitoringAPI:
         """Test getting host metrics"""
         if not self.token:
             pytest.skip("Authentication failed")
-            
+
         response = self.client.get("/monitoring/host/metrics", headers=self.headers)
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Check that the response contains the expected fields
         data = response.json()
         assert "timestamp" in data
@@ -66,11 +67,11 @@ class TestMonitoringAPI:
         assert "memory" in data
         assert "disk" in data
         assert "network" in data
-        
+
         # Check CPU metrics
         assert "percent" in data["cpu"]
         assert "count" in data["cpu"]
-        
+
         # Check memory metrics
         assert "virtual" in data["memory"]
         assert "swap" in data["memory"]
@@ -82,24 +83,24 @@ class TestMonitoringAPI:
         """Test getting host metrics history"""
         if not self.token:
             pytest.skip("Authentication failed")
-            
+
         # Test for each metric type
         metric_types = ["cpu", "memory", "disk", "network"]
-        
+
         for metric_type in metric_types:
             response = self.client.get(
                 f"/monitoring/host/metrics/history/{metric_type}",
                 params={"hours": 1},
-                headers=self.headers
+                headers=self.headers,
             )
-            
+
             # Check that the request was successful
             assert response.status_code == 200
-            
+
             # Check that the response is a list
             data = response.json()
             assert isinstance(data, list)
-            
+
             # If there are metrics, check their structure
             if data:
                 assert "timestamp" in data[0]
@@ -109,12 +110,12 @@ class TestMonitoringAPI:
         """Test getting system information"""
         if not self.token:
             pytest.skip("Authentication failed")
-            
+
         response = self.client.get("/monitoring/host/system-info", headers=self.headers)
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Check that the response contains the expected fields
         data = response.json()
         assert "platform" in data
@@ -135,12 +136,14 @@ class TestMonitoringAPI:
         """Test getting resource stats summary"""
         if not self.token:
             pytest.skip("Authentication failed")
-            
-        response = self.client.get("/monitoring/host/stats-summary", headers=self.headers)
-        
+
+        response = self.client.get(
+            "/monitoring/host/stats-summary", headers=self.headers
+        )
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Check that the response contains the expected fields
         data = response.json()
         assert "cpu_usage" in data
@@ -156,11 +159,11 @@ class TestMonitoringAPI:
         assert "image_count" in data
         assert "volume_count" in data
         assert "network_count" in data
-        
+
         # Check that containers field is present and is a list
         assert "containers" in data
         assert isinstance(data["containers"], list)
-        
+
         # If there are containers, check their structure
         if data["containers"]:
             container = data["containers"][0]
@@ -174,16 +177,16 @@ class TestMonitoringAPI:
         """Test getting alerts"""
         if not self.token:
             pytest.skip("Authentication failed")
-            
+
         response = self.client.get("/monitoring/alerts", headers=self.headers)
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Check that the response is a list
         data = response.json()
         assert isinstance(data, list)
-        
+
         # If there are alerts, check their structure
         if data:
             alert = data[0]
@@ -195,13 +198,13 @@ class TestMonitoringAPI:
             assert "acknowledged" in alert
             assert "resolved" in alert
             assert "resource" in alert
-            
+
             # Check resource structure
             resource = alert["resource"]
             assert "type" in resource
             assert "id" in resource
             assert "name" in resource
-            
+
             # Check metrics structure if present
             if "metrics" in alert and alert["metrics"]:
                 metric = alert["metrics"][0]
@@ -213,47 +216,46 @@ class TestMonitoringAPI:
         """Test acknowledging an alert"""
         if not self.token:
             pytest.skip("Authentication failed")
-            
+
         # First, get the list of alerts
         response = self.client.get("/monitoring/alerts", headers=self.headers)
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Get the alerts
         alerts = response.json()
-        
+
         # If there are no alerts, skip the test
         if not alerts:
             pytest.skip("No alerts available for testing")
-            
+
         # Get the first alert
         alert_id = alerts[0]["id"]
-        
+
         # Acknowledge the alert
         response = self.client.post(
-            f"/monitoring/alerts/{alert_id}/acknowledge",
-            headers=self.headers
+            f"/monitoring/alerts/{alert_id}/acknowledge", headers=self.headers
         )
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Check that the response contains the expected fields
         data = response.json()
         assert "status" in data
         assert "message" in data
         assert data["status"] == "success"
-        
+
         # Get the alerts again to check that the alert was acknowledged
         response = self.client.get("/monitoring/alerts", headers=self.headers)
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Get the alerts
         alerts = response.json()
-        
+
         # Find the alert we acknowledged
         for alert in alerts:
             if alert["id"] == alert_id:
@@ -264,47 +266,46 @@ class TestMonitoringAPI:
         """Test resolving an alert"""
         if not self.token:
             pytest.skip("Authentication failed")
-            
+
         # First, get the list of alerts
         response = self.client.get("/monitoring/alerts", headers=self.headers)
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Get the alerts
         alerts = response.json()
-        
+
         # If there are no alerts, skip the test
         if not alerts:
             pytest.skip("No alerts available for testing")
-            
+
         # Get the first alert
         alert_id = alerts[0]["id"]
-        
+
         # Resolve the alert
         response = self.client.post(
-            f"/monitoring/alerts/{alert_id}/resolve",
-            headers=self.headers
+            f"/monitoring/alerts/{alert_id}/resolve", headers=self.headers
         )
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Check that the response contains the expected fields
         data = response.json()
         assert "status" in data
         assert "message" in data
         assert data["status"] == "success"
-        
+
         # Get the alerts again to check that the alert was resolved
         response = self.client.get("/monitoring/alerts", headers=self.headers)
-        
+
         # Check that the request was successful
         assert response.status_code == 200
-        
+
         # Get the alerts
         alerts = response.json()
-        
+
         # Check that the alert is no longer in the list
         for alert in alerts:
             assert alert["id"] != alert_id

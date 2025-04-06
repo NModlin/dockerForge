@@ -3,19 +3,44 @@ Compose router for the DockerForge Web UI.
 
 This module provides the API endpoints for Docker Compose management.
 """
-from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query, status, File, UploadFile
+
+from typing import Any, Dict, List, Optional
+
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    HTTPException,
+    Path,
+    Query,
+    UploadFile,
+    status,
+)
 from sqlalchemy.orm import Session
 
-from src.web.api.db.session import get_db
 from src.web.api.auth.dependencies import get_current_active_user
 from src.web.api.auth.permissions import check_permission
+from src.web.api.db.session import get_db
 from src.web.api.models.user import User
-from src.web.api.schemas.compose import ComposeFile, ComposeFileCreate, ComposeFileUpdate, ComposeService
+from src.web.api.schemas.compose import (
+    ComposeFile,
+    ComposeFileCreate,
+    ComposeFileUpdate,
+    ComposeService,
+)
 from src.web.api.services.compose import (
-    get_compose_files, get_compose_file, create_compose_file, update_compose_file,
-    delete_compose_file, get_compose_services, compose_up, compose_down,
-    compose_restart, compose_pull, get_compose_logs
+    compose_down,
+    compose_pull,
+    compose_restart,
+    compose_up,
+    create_compose_file,
+    delete_compose_file,
+    get_compose_file,
+    get_compose_files,
+    get_compose_logs,
+    get_compose_services,
+    update_compose_file,
 )
 
 router = APIRouter()
@@ -25,7 +50,7 @@ router = APIRouter()
 async def list_compose_files(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
-    name: Optional[str] = Query(None, description="Filter by compose file name")
+    name: Optional[str] = Query(None, description="Filter by compose file name"),
 ):
     """
     Get all compose files.
@@ -33,20 +58,16 @@ async def list_compose_files(
     # Check permission
     if not check_permission(current_user, "compose:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
-        compose_files = await get_compose_files(
-            name=name,
-            db=db
-        )
+        compose_files = await get_compose_files(name=name, db=db)
         return compose_files
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get compose files: {str(e)}"
+            detail=f"Failed to get compose files: {str(e)}",
         )
 
 
@@ -54,7 +75,7 @@ async def list_compose_files(
 async def get_compose_file_by_id(
     file_id: str = Path(..., description="Compose file ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get a compose file by ID.
@@ -62,8 +83,7 @@ async def get_compose_file_by_id(
     # Check permission
     if not check_permission(current_user, "compose:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -71,7 +91,7 @@ async def get_compose_file_by_id(
         if not compose_file:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Compose file with ID {file_id} not found"
+                detail=f"Compose file with ID {file_id} not found",
             )
         return compose_file
     except HTTPException:
@@ -79,7 +99,7 @@ async def get_compose_file_by_id(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get compose file: {str(e)}"
+            detail=f"Failed to get compose file: {str(e)}",
         )
 
 
@@ -87,7 +107,7 @@ async def get_compose_file_by_id(
 async def create_new_compose_file(
     file_data: ComposeFileCreate = Body(..., description="Compose file data"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Create a new compose file.
@@ -95,8 +115,7 @@ async def create_new_compose_file(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -105,13 +124,13 @@ async def create_new_compose_file(
             path=file_data.path,
             content=file_data.content,
             description=file_data.description,
-            db=db
+            db=db,
         )
         return compose_file
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to create compose file: {str(e)}"
+            detail=f"Failed to create compose file: {str(e)}",
         )
 
 
@@ -120,7 +139,7 @@ async def update_existing_compose_file(
     file_id: str = Path(..., description="Compose file ID"),
     file_data: ComposeFileUpdate = Body(..., description="Compose file data"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Update a compose file.
@@ -128,8 +147,7 @@ async def update_existing_compose_file(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -139,12 +157,12 @@ async def update_existing_compose_file(
             path=file_data.path,
             content=file_data.content,
             description=file_data.description,
-            db=db
+            db=db,
         )
         if not compose_file:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Compose file with ID {file_id} not found"
+                detail=f"Compose file with ID {file_id} not found",
             )
         return compose_file
     except HTTPException:
@@ -152,7 +170,7 @@ async def update_existing_compose_file(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to update compose file: {str(e)}"
+            detail=f"Failed to update compose file: {str(e)}",
         )
 
 
@@ -160,7 +178,7 @@ async def update_existing_compose_file(
 async def delete_compose_file_by_id(
     file_id: str = Path(..., description="Compose file ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Delete a compose file.
@@ -168,8 +186,7 @@ async def delete_compose_file_by_id(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -177,7 +194,7 @@ async def delete_compose_file_by_id(
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Compose file with ID {file_id} not found"
+                detail=f"Compose file with ID {file_id} not found",
             )
         return None
     except HTTPException:
@@ -185,7 +202,7 @@ async def delete_compose_file_by_id(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to delete compose file: {str(e)}"
+            detail=f"Failed to delete compose file: {str(e)}",
         )
 
 
@@ -193,7 +210,7 @@ async def delete_compose_file_by_id(
 async def get_services_for_compose_file(
     file_id: str = Path(..., description="Compose file ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get services for a compose file.
@@ -201,8 +218,7 @@ async def get_services_for_compose_file(
     # Check permission
     if not check_permission(current_user, "compose:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -211,7 +227,7 @@ async def get_services_for_compose_file(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to get compose services: {str(e)}"
+            detail=f"Failed to get compose services: {str(e)}",
         )
 
 
@@ -219,7 +235,7 @@ async def get_services_for_compose_file(
 async def start_compose_project(
     file_id: str = Path(..., description="Compose file ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Start a compose project.
@@ -227,8 +243,7 @@ async def start_compose_project(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -237,7 +252,7 @@ async def start_compose_project(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to start compose project: {str(e)}"
+            detail=f"Failed to start compose project: {str(e)}",
         )
 
 
@@ -245,7 +260,7 @@ async def start_compose_project(
 async def stop_compose_project(
     file_id: str = Path(..., description="Compose file ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Stop a compose project.
@@ -253,8 +268,7 @@ async def stop_compose_project(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -263,7 +277,7 @@ async def stop_compose_project(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to stop compose project: {str(e)}"
+            detail=f"Failed to stop compose project: {str(e)}",
         )
 
 
@@ -271,7 +285,7 @@ async def stop_compose_project(
 async def restart_compose_project(
     file_id: str = Path(..., description="Compose file ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Restart a compose project.
@@ -279,8 +293,7 @@ async def restart_compose_project(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -289,7 +302,7 @@ async def restart_compose_project(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to restart compose project: {str(e)}"
+            detail=f"Failed to restart compose project: {str(e)}",
         )
 
 
@@ -297,7 +310,7 @@ async def restart_compose_project(
 async def pull_compose_images(
     file_id: str = Path(..., description="Compose file ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Pull images for a compose project.
@@ -305,8 +318,7 @@ async def pull_compose_images(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -315,7 +327,7 @@ async def pull_compose_images(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to pull compose images: {str(e)}"
+            detail=f"Failed to pull compose images: {str(e)}",
         )
 
 
@@ -325,7 +337,7 @@ async def get_logs_for_compose_project(
     service: Optional[str] = Query(None, description="Service name"),
     tail: Optional[int] = Query(100, description="Number of lines to tail"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get logs for a compose project.
@@ -333,22 +345,18 @@ async def get_logs_for_compose_project(
     # Check permission
     if not check_permission(current_user, "compose:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
         logs = await get_compose_logs(
-            file_id=file_id,
-            service=service,
-            tail=tail,
-            db=db
+            file_id=file_id, service=service, tail=tail, db=db
         )
         return logs
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to get compose logs: {str(e)}"
+            detail=f"Failed to get compose logs: {str(e)}",
         )
 
 
@@ -358,7 +366,7 @@ async def upload_compose_file(
     name: str = Query(..., description="Compose file name"),
     description: Optional[str] = Query(None, description="Compose file description"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Upload a compose file.
@@ -366,24 +374,23 @@ async def upload_compose_file(
     # Check permission
     if not check_permission(current_user, "compose:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
         content = await file.read()
-        content_str = content.decode('utf-8')
-        
+        content_str = content.decode("utf-8")
+
         compose_file = await create_compose_file(
             name=name,
             path=file.filename,
             content=content_str,
             description=description,
-            db=db
+            db=db,
         )
         return compose_file
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to upload compose file: {str(e)}"
+            detail=f"Failed to upload compose file: {str(e)}",
         )

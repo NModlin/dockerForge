@@ -4,10 +4,10 @@ Prompt template module for DockerForge.
 This module provides functionality to manage AI prompt templates.
 """
 
-import os
 import json
 import logging
-from typing import Dict, Any, List, Optional, Union, Tuple
+import os
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from src.config.config_manager import get_config
 from src.utils.logging_manager import get_logger
@@ -18,8 +18,14 @@ logger = get_logger("prompt_template")
 class PromptTemplate:
     """A template for AI prompts with version tracking and variables."""
 
-    def __init__(self, name: str, template: str, version: str = "1.0.0",
-                 description: str = "", variables: List[str] = None):
+    def __init__(
+        self,
+        name: str,
+        template: str,
+        version: str = "1.0.0",
+        description: str = "",
+        variables: List[str] = None,
+    ):
         """
         Initialize a prompt template.
 
@@ -78,15 +84,23 @@ class PromptTemplate:
         self.performance_metrics["usage_count"] += 1
 
         # Update success rate
-        current_successes = self.performance_metrics["success_rate"] * (self.performance_metrics["usage_count"] - 1)
+        current_successes = self.performance_metrics["success_rate"] * (
+            self.performance_metrics["usage_count"] - 1
+        )
         if success:
             current_successes += 1
-        self.performance_metrics["success_rate"] = current_successes / self.performance_metrics["usage_count"]
+        self.performance_metrics["success_rate"] = (
+            current_successes / self.performance_metrics["usage_count"]
+        )
 
         # Update average tokens
-        current_total = self.performance_metrics["avg_tokens"] * (self.performance_metrics["usage_count"] - 1)
+        current_total = self.performance_metrics["avg_tokens"] * (
+            self.performance_metrics["usage_count"] - 1
+        )
         current_total += tokens
-        self.performance_metrics["avg_tokens"] = current_total / self.performance_metrics["usage_count"]
+        self.performance_metrics["avg_tokens"] = (
+            current_total / self.performance_metrics["usage_count"]
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -105,7 +119,7 @@ class PromptTemplate:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'PromptTemplate':
+    def from_dict(cls, data: Dict[str, Any]) -> "PromptTemplate":
         """
         Create template from dictionary.
 
@@ -129,7 +143,7 @@ class PromptTemplate:
         return template
 
     @classmethod
-    def from_file(cls, template_name: str) -> 'PromptTemplate':
+    def from_file(cls, template_name: str) -> "PromptTemplate":
         """
         Load a template from a file.
 
@@ -150,7 +164,9 @@ class PromptTemplate:
         template = get_template_manager().get_template(template_name)
         if template is None:
             # Try to load default templates
-            default_templates_dir = os.path.join(os.path.dirname(__file__), "../templates")
+            default_templates_dir = os.path.join(
+                os.path.dirname(__file__), "../templates"
+            )
             template_path = os.path.join(default_templates_dir, f"{template_name}.json")
 
             if not os.path.exists(template_path):
@@ -194,7 +210,9 @@ class PromptTemplateManager:
 
                     template = PromptTemplate.from_dict(template_data)
                     self.templates[template.name] = template
-                    logger.debug(f"Loaded template: {template.name} (v{template.version})")
+                    logger.debug(
+                        f"Loaded template: {template.name} (v{template.version})"
+                    )
                 except Exception as e:
                     logger.error(f"Error loading template {filename}: {str(e)}")
 
@@ -245,7 +263,9 @@ class PromptTemplateManager:
         self.save_template(template_obj)
         return template_obj
 
-    def update_template(self, name: str, template: str, **kwargs) -> Optional[PromptTemplate]:
+    def update_template(
+        self, name: str, template: str, **kwargs
+    ) -> Optional[PromptTemplate]:
         """
         Update an existing template.
 

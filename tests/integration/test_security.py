@@ -2,21 +2,22 @@
 DockerForge Integration Tests - Security Functionality
 """
 
-import pytest
-import os
-import sys
 import json
+import os
 import subprocess
+import sys
 from pathlib import Path
+
+import pytest
 
 # Add the src directory to the path so we can import the modules
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Import the necessary modules
 try:
-    from security.vulnerability_scanner import VulnerabilityScanner
     from security.config_auditor import ConfigAuditor
     from security.security_reporter import SecurityReporter
+    from security.vulnerability_scanner import VulnerabilityScanner
 except ImportError as e:
     print(f"Import error: {e}")
     print("These tests may be running in a limited environment.")
@@ -32,7 +33,7 @@ class TestSecurityFunctionality:
         self.test_dir = Path(__file__).parent
         self.project_root = self.test_dir.parent.parent
         self.test_image_name = "alpine:latest"
-        
+
         # Check if we need to pull the test image
         self.image_available = False
         try:
@@ -40,16 +41,16 @@ class TestSecurityFunctionality:
             result = subprocess.run(
                 ["docker", "image", "inspect", self.test_image_name],
                 check=False,
-                capture_output=True
+                capture_output=True,
             )
             self.image_available = result.returncode == 0
-            
+
             # Pull the image if it's not available
             if not self.image_available:
                 subprocess.run(
                     ["docker", "pull", self.test_image_name],
                     check=True,
-                    capture_output=True
+                    capture_output=True,
                 )
                 self.image_available = True
         except Exception as e:
@@ -69,7 +70,7 @@ class TestSecurityFunctionality:
         """Test vulnerability scanning of an image"""
         if not self.image_available:
             pytest.skip("Test image not available")
-            
+
         try:
             vulnerability_scanner = VulnerabilityScanner()
             scan_results = vulnerability_scanner.scan_image(self.test_image_name)
@@ -120,7 +121,7 @@ class TestSecurityFunctionality:
         """Test security report generation"""
         try:
             security_reporter = SecurityReporter()
-            
+
             # Create sample vulnerability scan results
             sample_scan_results = {
                 "vulnerabilities": [
@@ -130,41 +131,33 @@ class TestSecurityFunctionality:
                         "package": "openssl",
                         "version": "1.1.1k",
                         "fixed_version": "1.1.1l",
-                        "description": "Vulnerability in OpenSSL"
+                        "description": "Vulnerability in OpenSSL",
                     }
                 ],
-                "summary": {
-                    "critical": 0,
-                    "high": 1,
-                    "medium": 0,
-                    "low": 0
-                }
+                "summary": {"critical": 0, "high": 1, "medium": 0, "low": 0},
             }
-            
+
             # Create sample audit results
             sample_audit_results = {
                 "checks": [
                     {
                         "id": "docker-4.1",
                         "description": "Ensure that a user for the container has been created",
-                        "status": "PASS"
+                        "status": "PASS",
                     },
                     {
                         "id": "docker-4.2",
                         "description": "Ensure that containers use trusted base images",
-                        "status": "FAIL"
-                    }
+                        "status": "FAIL",
+                    },
                 ],
-                "summary": {
-                    "pass": 1,
-                    "fail": 1,
-                    "warn": 0,
-                    "info": 0
-                }
+                "summary": {"pass": 1, "fail": 1, "warn": 0, "info": 0},
             }
-            
+
             # Generate a report
-            report = security_reporter.generate_report(sample_scan_results, sample_audit_results)
+            report = security_reporter.generate_report(
+                sample_scan_results, sample_audit_results
+            )
             assert report is not None
             # Check that the report has the expected structure
             assert "vulnerabilities" in report
@@ -183,7 +176,7 @@ class TestSecurityFunctionality:
             ["python", "-m", "dockerforge", "security", "--help"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
         # Check that the command executed successfully
         assert result.returncode == 0
@@ -194,7 +187,7 @@ class TestSecurityFunctionality:
         """Test security report formats"""
         try:
             security_reporter = SecurityReporter()
-            
+
             # Create sample vulnerability scan results
             sample_scan_results = {
                 "vulnerabilities": [
@@ -204,51 +197,47 @@ class TestSecurityFunctionality:
                         "package": "openssl",
                         "version": "1.1.1k",
                         "fixed_version": "1.1.1l",
-                        "description": "Vulnerability in OpenSSL"
+                        "description": "Vulnerability in OpenSSL",
                     }
                 ],
-                "summary": {
-                    "critical": 0,
-                    "high": 1,
-                    "medium": 0,
-                    "low": 0
-                }
+                "summary": {"critical": 0, "high": 1, "medium": 0, "low": 0},
             }
-            
+
             # Create sample audit results
             sample_audit_results = {
                 "checks": [
                     {
                         "id": "docker-4.1",
                         "description": "Ensure that a user for the container has been created",
-                        "status": "PASS"
+                        "status": "PASS",
                     },
                     {
                         "id": "docker-4.2",
                         "description": "Ensure that containers use trusted base images",
-                        "status": "FAIL"
-                    }
+                        "status": "FAIL",
+                    },
                 ],
-                "summary": {
-                    "pass": 1,
-                    "fail": 1,
-                    "warn": 0,
-                    "info": 0
-                }
+                "summary": {"pass": 1, "fail": 1, "warn": 0, "info": 0},
             }
-            
+
             # Generate reports in different formats
-            json_report = security_reporter.generate_report(sample_scan_results, sample_audit_results, format="json")
+            json_report = security_reporter.generate_report(
+                sample_scan_results, sample_audit_results, format="json"
+            )
             assert json_report is not None
             # Check that the JSON report is valid JSON
             json.loads(json_report)
-            
-            html_report = security_reporter.generate_report(sample_scan_results, sample_audit_results, format="html")
+
+            html_report = security_reporter.generate_report(
+                sample_scan_results, sample_audit_results, format="html"
+            )
             assert html_report is not None
             # Check that the HTML report contains HTML tags
             assert "<html" in html_report
-            
-            text_report = security_reporter.generate_report(sample_scan_results, sample_audit_results, format="text")
+
+            text_report = security_reporter.generate_report(
+                sample_scan_results, sample_audit_results, format="text"
+            )
             assert text_report is not None
             # Check that the text report is plain text
             assert isinstance(text_report, str)

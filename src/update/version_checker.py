@@ -4,18 +4,20 @@ DockerForge Version Checker
 This module provides functionality for checking for updates to the DockerForge application.
 """
 
-import os
 import json
 import logging
+import os
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional, Tuple
+
 import requests
 import semver
-from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple, Any
 
 from src.config.config_manager import ConfigManager
 from src.utils.logging_manager import get_logger
 
 logger = get_logger(__name__)
+
 
 class VersionChecker:
     """
@@ -33,12 +35,15 @@ class VersionChecker:
         self.config = config_manager.get("update", {})
         self.current_version = self._get_current_version()
         self.cache_file = os.path.join(
-            os.path.expanduser(config_manager.get("general.data_dir", "~/.dockerforge/data")), 
-            "update_cache.json"
+            os.path.expanduser(
+                config_manager.get("general.data_dir", "~/.dockerforge/data")
+            ),
+            "update_cache.json",
         )
         self.cache_ttl = self.config.get("cache_ttl", 24)  # hours
         self.api_url = self.config.get(
-            "api_url", "https://api.github.com/repos/dockerforge/dockerforge/releases/latest"
+            "api_url",
+            "https://api.github.com/repos/dockerforge/dockerforge/releases/latest",
         )
         self.release_url = self.config.get(
             "release_url", "https://github.com/dockerforge/dockerforge/releases"
@@ -99,7 +104,9 @@ class VersionChecker:
         except (OSError, TypeError) as e:
             logger.warning(f"Error writing update cache: {e}")
 
-    def check_for_updates(self, force: bool = False) -> Tuple[bool, Optional[str], Optional[str]]:
+    def check_for_updates(
+        self, force: bool = False
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         """
         Check if updates are available.
 
@@ -136,18 +143,22 @@ class VersionChecker:
             update_available = False
             if latest_version:
                 try:
-                    update_available = semver.compare(latest_version, self.current_version) > 0
+                    update_available = (
+                        semver.compare(latest_version, self.current_version) > 0
+                    )
                 except ValueError:
                     # If semver parsing fails, fall back to string comparison
                     update_available = latest_version > self.current_version
 
             # Cache the result
-            self._write_cache({
-                "update_available": update_available,
-                "latest_version": latest_version,
-                "release_url": release_url,
-                "release_notes": release_data.get("body", ""),
-            })
+            self._write_cache(
+                {
+                    "update_available": update_available,
+                    "latest_version": latest_version,
+                    "release_url": release_url,
+                    "release_notes": release_data.get("body", ""),
+                }
+            )
 
             return update_available, latest_version, release_url
 

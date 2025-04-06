@@ -1,16 +1,17 @@
 """Initial migration
 
 Revision ID: 001
-Revises: 
+Revises:
 Create Date: 2025-03-16
 
 """
-from alembic import op
+
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '001'
+revision = "001"
 down_revision = None
 branch_labels = None
 depends_on = None

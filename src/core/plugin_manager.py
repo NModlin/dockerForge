@@ -4,34 +4,42 @@ Plugin manager module for DockerForge.
 This module provides functionality to load and manage AI provider plugins.
 """
 
-import os
-import sys
-import json
-import logging
 import importlib
 import importlib.util
-from typing import Dict, Any, List, Optional, Union, Tuple, Type
+import json
+import logging
+import os
+import sys
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from src.config.config_manager import get_config
-from src.utils.logging_manager import get_logger
 from src.core.ai_provider import AIProvider, AIProviderError
+from src.utils.logging_manager import get_logger
 
 logger = get_logger("plugin_manager")
 
 
 class PluginError(Exception):
     """Exception raised for plugin errors."""
+
     pass
 
 
 class PluginMetadata:
     """Metadata for a plugin."""
-    
-    def __init__(self, name: str, version: str, description: str, 
-                 author: str, provider_class: str, dependencies: List[str] = None):
+
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        description: str,
+        author: str,
+        provider_class: str,
+        dependencies: List[str] = None,
+    ):
         """
         Initialize plugin metadata.
-        
+
         Args:
             name: Plugin name
             version: Plugin version
@@ -46,11 +54,11 @@ class PluginMetadata:
         self.author = author
         self.provider_class = provider_class
         self.dependencies = dependencies or []
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert metadata to dictionary.
-        
+
         Returns:
             Dict[str, Any]: Metadata as dictionary
         """
@@ -62,15 +70,15 @@ class PluginMetadata:
             "provider_class": self.provider_class,
             "dependencies": self.dependencies,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'PluginMetadata':
+    def from_dict(cls, data: Dict[str, Any]) -> "PluginMetadata":
         """
         Create metadata from dictionary.
-        
+
         Args:
             data: Metadata data
-            
+
         Returns:
             PluginMetadata: Metadata instance
         """
@@ -82,25 +90,25 @@ class PluginMetadata:
             provider_class=data["provider_class"],
             dependencies=data.get("dependencies", []),
         )
-    
+
     @classmethod
-    def from_file(cls, filepath: str) -> 'PluginMetadata':
+    def from_file(cls, filepath: str) -> "PluginMetadata":
         """
         Create metadata from file.
-        
+
         Args:
             filepath: Path to metadata file
-            
+
         Returns:
             PluginMetadata: Metadata instance
-            
+
         Raises:
             PluginError: If metadata file is invalid
         """
         try:
             with open(filepath, "r") as f:
                 data = json.load(f)
-            
+
             return cls.from_dict(data)
         except Exception as e:
             raise PluginError(f"Invalid plugin metadata file: {str(e)}")
@@ -108,11 +116,11 @@ class PluginMetadata:
 
 class Plugin:
     """A plugin for DockerForge."""
-    
+
     def __init__(self, metadata: PluginMetadata, module_path: str):
         """
         Initialize a plugin.
-        
+
         Args:
             metadata: Plugin metadata
             module_path: Path to plugin module
@@ -122,68 +130,73 @@ class Plugin:
         self.module = None
         self.provider_class = None
         self.loaded = False
-    
+
     def load(self) -> bool:
         """
         Load the plugin.
-        
+
         Returns:
             bool: True if loaded successfully
-            
+
         Raises:
             PluginError: If plugin cannot be loaded
         """
         if self.loaded:
             return True
-        
+
         try:
             # Import the module
             spec = importlib.util.spec_from_file_location(
-                f"dockerforge_plugin_{self.metadata.name}",
-                self.module_path
+                f"dockerforge_plugin_{self.metadata.name}", self.module_path
             )
             if spec is None:
                 raise PluginError(f"Could not load plugin module: {self.module_path}")
-            
+
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)
             self.module = module
-            
+
             # Get the provider class
             if not hasattr(module, self.metadata.provider_class):
-                raise PluginError(f"Provider class not found: {self.metadata.provider_class}")
-            
+                raise PluginError(
+                    f"Provider class not found: {self.metadata.provider_class}"
+                )
+
             provider_class = getattr(module, self.metadata.provider_class)
-            
+
             # Check if it's a subclass of AIProvider
             if not issubclass(provider_class, AIProvider):
-                raise PluginError(f"Provider class must be a subclass of AIProvider: {self.metadata.provider_class}")
-            
+                raise PluginError(
+                    f"Provider class must be a subclass of AIProvider: {self.metadata.provider_class}"
+                )
+
             self.provider_class = provider_class
             self.loaded = True
-            
-            logger.info(f"Loaded plugin: {self.metadata.name} (v{self.metadata.version})")
+
+            logger.info(
+                f"Loaded plugin: {self.metadata.name} (v{self.metadata.version})"
+            )
             return True
         except Exception as e:
             raise PluginError(f"Error loading plugin {self.metadata.name}: {str(e)}")
-    
+
     def create_provider(self, **kwargs) -> AIProvider:
         """
         Create a provider instance.
-        
+
         Args:
             **kwargs: Provider constructor arguments
-            
+
         Returns:
             AIProvider: Provider instance
-            
+
         Raises:
             PluginError: If provider cannot be created
         """
         if not self.loaded:
             self.load()
-        
+
         try:
             return self.provider_class(**kwargs)
         except Exception as e:
@@ -192,115 +205,117 @@ class Plugin:
 
 class PluginManager:
     """Manager for DockerForge plugins."""
-    
+
     def __init__(self):
         """Initialize the plugin manager."""
         # Get plugins directory from config
         plugins_dir = get_config("ai.plugins.directory", "~/.dockerforge/plugins")
         self.plugins_dir = os.path.expanduser(plugins_dir)
         os.makedirs(self.plugins_dir, exist_ok=True)
-        
+
         # Add plugins directory to Python path
         if self.plugins_dir not in sys.path:
             sys.path.append(self.plugins_dir)
-        
+
         # Load plugins
         self.plugins = {}
         if get_config("ai.plugins.enabled", True):
             self.discover_plugins()
-    
+
     def discover_plugins(self):
         """Discover and load plugins."""
         if not os.path.exists(self.plugins_dir):
             return
-        
+
         # Look for plugin directories
         for item in os.listdir(self.plugins_dir):
             plugin_dir = os.path.join(self.plugins_dir, item)
-            
+
             # Check if it's a directory
             if not os.path.isdir(plugin_dir):
                 continue
-            
+
             # Check for metadata file
             metadata_file = os.path.join(plugin_dir, "metadata.json")
             if not os.path.exists(metadata_file):
                 continue
-            
+
             try:
                 # Load metadata
                 metadata = PluginMetadata.from_file(metadata_file)
-                
+
                 # Check for main module
                 module_file = os.path.join(plugin_dir, "plugin.py")
                 if not os.path.exists(module_file):
                     logger.warning(f"Plugin module not found: {module_file}")
                     continue
-                
+
                 # Create plugin
                 plugin = Plugin(metadata, module_file)
-                
+
                 # Add to plugins
                 self.plugins[metadata.name] = plugin
-                
-                logger.debug(f"Discovered plugin: {metadata.name} (v{metadata.version})")
+
+                logger.debug(
+                    f"Discovered plugin: {metadata.name} (v{metadata.version})"
+                )
             except Exception as e:
                 logger.error(f"Error discovering plugin in {plugin_dir}: {str(e)}")
-    
+
     def load_plugin(self, name: str) -> bool:
         """
         Load a plugin by name.
-        
+
         Args:
             name: Plugin name
-            
+
         Returns:
             bool: True if loaded successfully
-            
+
         Raises:
             PluginError: If plugin cannot be loaded
         """
         if name not in self.plugins:
             raise PluginError(f"Plugin not found: {name}")
-        
+
         return self.plugins[name].load()
-    
+
     def get_plugin(self, name: str) -> Optional[Plugin]:
         """
         Get a plugin by name.
-        
+
         Args:
             name: Plugin name
-            
+
         Returns:
             Optional[Plugin]: Plugin or None if not found
         """
         return self.plugins.get(name)
-    
+
     def create_provider(self, name: str, **kwargs) -> AIProvider:
         """
         Create a provider from a plugin.
-        
+
         Args:
             name: Plugin name
             **kwargs: Provider constructor arguments
-            
+
         Returns:
             AIProvider: Provider instance
-            
+
         Raises:
             PluginError: If provider cannot be created
         """
         plugin = self.get_plugin(name)
         if plugin is None:
             raise PluginError(f"Plugin not found: {name}")
-        
+
         return plugin.create_provider(**kwargs)
-    
+
     def list_plugins(self) -> List[Dict[str, Any]]:
         """
         List all plugins.
-        
+
         Returns:
             List[Dict[str, Any]]: List of plugin information
         """
@@ -323,28 +338,28 @@ _plugin_manager = None
 def get_plugin_manager() -> PluginManager:
     """
     Get the plugin manager (singleton).
-    
+
     Returns:
         PluginManager: Plugin manager
     """
     global _plugin_manager
     if _plugin_manager is None:
         _plugin_manager = PluginManager()
-    
+
     return _plugin_manager
 
 
 def get_plugin_provider(name: str, **kwargs) -> AIProvider:
     """
     Get a provider from a plugin.
-    
+
     Args:
         name: Plugin name
         **kwargs: Provider constructor arguments
-        
+
     Returns:
         AIProvider: Provider instance
-        
+
     Raises:
         AIProviderError: If provider cannot be created
     """
@@ -357,32 +372,32 @@ def get_plugin_provider(name: str, **kwargs) -> AIProvider:
 def create_plugin_template(name: str, output_dir: Optional[str] = None) -> str:
     """
     Create a template for a new plugin.
-    
+
     Args:
         name: Plugin name
         output_dir: Output directory (default: plugins directory)
-        
+
     Returns:
         str: Path to created plugin directory
-        
+
     Raises:
         PluginError: If plugin template cannot be created
     """
     # Normalize name
     name = name.lower().replace(" ", "_")
-    
+
     # Get output directory
     if output_dir is None:
         output_dir = get_plugin_manager().plugins_dir
-    
+
     # Create plugin directory
     plugin_dir = os.path.join(output_dir, name)
     if os.path.exists(plugin_dir):
         raise PluginError(f"Plugin directory already exists: {plugin_dir}")
-    
+
     try:
         os.makedirs(plugin_dir, exist_ok=True)
-        
+
         # Create metadata file
         metadata = {
             "name": name,
@@ -392,10 +407,10 @@ def create_plugin_template(name: str, output_dir: Optional[str] = None) -> str:
             "provider_class": f"{name.capitalize()}Provider",
             "dependencies": [],
         }
-        
+
         with open(os.path.join(plugin_dir, "metadata.json"), "w") as f:
             json.dump(metadata, f, indent=2)
-        
+
         # Create plugin module
         plugin_code = f'''"""
 DockerForge AI provider plugin: {name}
@@ -496,12 +511,12 @@ class {name.capitalize()}Provider(AIProvider):
             "token_counting": False,
         }}
 '''
-        
+
         with open(os.path.join(plugin_dir, "plugin.py"), "w") as f:
             f.write(plugin_code)
-        
+
         # Create README file
-        readme = f'''# {name.capitalize()} Provider Plugin
+        readme = f"""# {name.capitalize()} Provider Plugin
 
 A custom AI provider plugin for DockerForge.
 
@@ -549,11 +564,11 @@ ai:
 ## Development
 
 Modify the `plugin.py` file to implement your custom provider.
-'''
-        
+"""
+
         with open(os.path.join(plugin_dir, "README.md"), "w") as f:
             f.write(readme)
-        
+
         logger.info(f"Created plugin template: {plugin_dir}")
         return plugin_dir
     except Exception as e:

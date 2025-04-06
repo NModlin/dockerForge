@@ -4,27 +4,30 @@ WebSocket router for the DockerForge Web UI.
 This module provides WebSocket connections for real-time messaging, typing indicators,
 and status updates for long-running tasks.
 """
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
+
+import asyncio
+import json
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any, Optional
-from datetime import datetime
-import logging
-import json
-import asyncio
 
+from src.core.chat_handler import get_chat_handler
+from src.utils.logging_manager import get_logger
 from src.web.api.database import get_db
 from src.web.api.models.chat import ChatMessage, ChatSession
 from src.web.api.models.user import User
 from src.web.api.schemas.chat import ChatMessage as ChatMessageSchema
-from src.core.chat_handler import get_chat_handler
-from src.utils.logging_manager import get_logger
 
 # Set up logger
 logger = get_logger("web.api.websocket")
 
 # Create router
 router = APIRouter()
+
 
 # Store active connections
 class ConnectionManager:
@@ -68,7 +71,10 @@ class ConnectionManager:
             logger.info(f"User {user_id} subscribed to session {session_id}")
 
     def unsubscribe_from_session(self, user_id: str, session_id: int):
-        if session_id in self.session_subscribers and user_id in self.session_subscribers[session_id]:
+        if (
+            session_id in self.session_subscribers
+            and user_id in self.session_subscribers[session_id]
+        ):
             self.session_subscribers[session_id].remove(user_id)
             logger.info(f"User {user_id} unsubscribed from session {session_id}")
 
@@ -83,9 +89,13 @@ class ConnectionManager:
         self.typing_status[user_id] = is_typing
 
         # Notify all subscribers of the session about the typing status
-        asyncio.create_task(self.broadcast_typing_status(user_id, is_typing, session_id))
+        asyncio.create_task(
+            self.broadcast_typing_status(user_id, is_typing, session_id)
+        )
 
-    async def broadcast_typing_status(self, user_id: str, is_typing: bool, session_id: int):
+    async def broadcast_typing_status(
+        self, user_id: str, is_typing: bool, session_id: int
+    ):
         subscribers = self.get_session_subscribers(session_id)
 
         # Don't send typing status to the user who is typing
@@ -96,7 +106,7 @@ class ConnectionManager:
             "user_id": user_id,
             "is_typing": is_typing,
             "session_id": session_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
         await self.broadcast_to_users(subscribers, message)
@@ -108,7 +118,7 @@ class ConnectionManager:
             "type": "chat_message",
             "message": message.dict(),
             "session_id": session_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
         await self.broadcast_to_users(subscribers, ws_message)
@@ -128,7 +138,9 @@ class ConnectionManager:
             except Exception as e:
                 logger.error(f"Error sending message to user {user_id}: {str(e)}")
 
-    async def stream_ai_response(self, session_id: int, message_id: int, text_chunks: List[str]):
+    async def stream_ai_response(
+        self, session_id: int, message_id: int, text_chunks: List[str]
+    ):
         """
         Stream an AI response in chunks to all session subscribers.
 
@@ -152,7 +164,7 @@ class ConnectionManager:
                 "is_last": is_last,
                 "chunk_index": i,
                 "total_chunks": len(text_chunks),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
             await self.broadcast_to_users(subscribers, message)
@@ -161,8 +173,15 @@ class ConnectionManager:
             if not is_last:
                 await asyncio.sleep(0.05)
 
-    async def send_task_update(self, session_id: int, task_id: str, status: str, progress: float,
-                              message: str, data: Optional[Dict[str, Any]] = None):
+    async def send_task_update(
+        self,
+        session_id: int,
+        task_id: str,
+        status: str,
+        progress: float,
+        message: str,
+        data: Optional[Dict[str, Any]] = None,
+    ):
         """
         Send a task update to all session subscribers.
 
@@ -184,7 +203,7 @@ class ConnectionManager:
             "progress": progress,
             "message": message,
             "data": data or {},
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
         await self.broadcast_to_users(subscribers, update)
@@ -208,7 +227,7 @@ class ConnectionManager:
             "session_id": session_id,
             "message_id": message_id,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
         await self.broadcast_to_users(subscribers, receipt)
@@ -220,9 +239,7 @@ manager = ConnectionManager()
 
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(
-    websocket: WebSocket,
-    user_id: str,
-    db: Session = Depends(get_db)
+    websocket: WebSocket, user_id: str, db: Session = Depends(get_db)
 ):
     """
     WebSocket endpoint for real-time communication.
@@ -236,11 +253,13 @@ async def websocket_endpoint(
 
     try:
         # Send initial connection confirmation
-        await websocket.send_json({
-            "type": "connection_established",
-            "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        await websocket.send_json(
+            {
+                "type": "connection_established",
+                "user_id": user_id,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+        )
 
         while True:
             # Wait for messages from the client
@@ -257,22 +276,26 @@ async def websocket_endpoint(
                     session_id = message_data.get("session_id")
                     if session_id:
                         manager.subscribe_to_session(user_id, session_id)
-                        await websocket.send_json({
-                            "type": "subscription_confirmed",
-                            "session_id": session_id,
-                            "timestamp": datetime.utcnow().isoformat()
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "subscription_confirmed",
+                                "session_id": session_id,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            }
+                        )
 
                 elif message_type == "unsubscribe":
                     # Unsubscribe from a session
                     session_id = message_data.get("session_id")
                     if session_id:
                         manager.unsubscribe_from_session(user_id, session_id)
-                        await websocket.send_json({
-                            "type": "unsubscription_confirmed",
-                            "session_id": session_id,
-                            "timestamp": datetime.utcnow().isoformat()
-                        })
+                        await websocket.send_json(
+                            {
+                                "type": "unsubscription_confirmed",
+                                "session_id": session_id,
+                                "timestamp": datetime.utcnow().isoformat(),
+                            }
+                        )
 
                 elif message_type == "typing":
                     # Update typing status
@@ -290,35 +313,40 @@ async def websocket_endpoint(
 
                 elif message_type == "ping":
                     # Respond to ping with pong
-                    await websocket.send_json({
-                        "type": "pong",
-                        "timestamp": datetime.utcnow().isoformat()
-                    })
+                    await websocket.send_json(
+                        {"type": "pong", "timestamp": datetime.utcnow().isoformat()}
+                    )
 
                 else:
                     # Unknown message type
                     logger.warning(f"Unknown WebSocket message type: {message_type}")
-                    await websocket.send_json({
-                        "type": "error",
-                        "error": f"Unknown message type: {message_type}",
-                        "timestamp": datetime.utcnow().isoformat()
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "error",
+                            "error": f"Unknown message type: {message_type}",
+                            "timestamp": datetime.utcnow().isoformat(),
+                        }
+                    )
 
             except json.JSONDecodeError:
                 logger.error(f"Invalid JSON received: {data}")
-                await websocket.send_json({
-                    "type": "error",
-                    "error": "Invalid JSON",
-                    "timestamp": datetime.utcnow().isoformat()
-                })
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "error": "Invalid JSON",
+                        "timestamp": datetime.utcnow().isoformat(),
+                    }
+                )
 
             except Exception as e:
                 logger.error(f"Error processing WebSocket message: {str(e)}")
-                await websocket.send_json({
-                    "type": "error",
-                    "error": f"Error processing message: {str(e)}",
-                    "timestamp": datetime.utcnow().isoformat()
-                })
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "error": f"Error processing message: {str(e)}",
+                        "timestamp": datetime.utcnow().isoformat(),
+                    }
+                )
 
     except WebSocketDisconnect:
         manager.disconnect(user_id)

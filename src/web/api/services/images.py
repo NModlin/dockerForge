@@ -3,19 +3,31 @@ Image service for the DockerForge Web UI.
 
 This module provides the image management services for the DockerForge Web UI.
 """
-from typing import List, Optional, Dict, Any
-from datetime import datetime
-import logging
+
 import asyncio
-import tempfile
+import logging
 import os
 import re
+import tempfile
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session
 
-from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageVulnerability, ImageScanResult, DockerfileValidation, DockerfileBuild
+from src.core.troubleshooter import TroubleshooterError, get_troubleshooter
+from src.web.api.models.image import Image as ImageModel
+from src.web.api.models.image import SecurityScan, Vulnerability
+from src.web.api.schemas.images import (
+    DockerfileBuild,
+    DockerfileValidation,
+    Image,
+    ImageCreate,
+    ImageScan,
+    ImageScanResult,
+    ImageUpdate,
+    ImageVulnerability,
+)
 from src.web.api.services import docker
-from src.web.api.models.image import Image as ImageModel, SecurityScan, Vulnerability
-from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -38,12 +50,24 @@ async def get_images(
         # Filter images
         filtered_images = docker_images
         if name:
-            filtered_images = [img for img in filtered_images if any(name in tag.split(':')[0] for tag in img.get('tags', []) if tag)]
+            filtered_images = [
+                img
+                for img in filtered_images
+                if any(name in tag.split(":")[0] for tag in img.get("tags", []) if tag)
+            ]
         if tag:
-            filtered_images = [img for img in filtered_images if any(tag == tag.split(':')[1] for tag in img.get('tags', []) if tag and ':' in tag)]
+            filtered_images = [
+                img
+                for img in filtered_images
+                if any(
+                    tag == tag.split(":")[1]
+                    for tag in img.get("tags", [])
+                    if tag and ":" in tag
+                )
+            ]
 
         # Apply pagination
-        paginated_images = filtered_images[skip:skip + limit]
+        paginated_images = filtered_images[skip : skip + limit]
 
         # Convert to Image objects
         return [Image(**image) for image in paginated_images]
@@ -99,7 +123,9 @@ async def delete_image(image_id: str, force: bool = False, db: Session = None) -
         raise
 
 
-async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Session = None) -> ImageScanResult:
+async def scan_image(
+    image_id: str, scan_type: str = "vulnerability", db: Session = None
+) -> ImageScanResult:
     """
     Scan an image for vulnerabilities.
 
@@ -187,7 +213,9 @@ async def scan_image(image_id: str, scan_type: str = "vulnerability", db: Sessio
         scan.status = "completed"
         scan.completed_at = datetime.now()
         scan.vulnerabilities_count = len(vulnerabilities)
-        scan.critical_count = sum(1 for v in vulnerabilities if v.severity == "critical")
+        scan.critical_count = sum(
+            1 for v in vulnerabilities if v.severity == "critical"
+        )
         scan.high_count = sum(1 for v in vulnerabilities if v.severity == "high")
         scan.medium_count = sum(1 for v in vulnerabilities if v.severity == "medium")
         scan.low_count = sum(1 for v in vulnerabilities if v.severity == "low")
@@ -244,7 +272,9 @@ async def get_image_scans(image_id: str, db: Session = None) -> List[ImageScan]:
             return []
 
         # Get scans
-        scans = db.query(SecurityScan).filter(SecurityScan.image_id == db_image.id).all()
+        scans = (
+            db.query(SecurityScan).filter(SecurityScan.image_id == db_image.id).all()
+        )
 
         # Convert to ImageScan objects
         return [
@@ -268,7 +298,9 @@ async def get_image_scans(image_id: str, db: Session = None) -> List[ImageScan]:
         raise
 
 
-async def get_image_scan(image_id: str, scan_id: int, db: Session = None) -> Optional[ImageScanResult]:
+async def get_image_scan(
+    image_id: str, scan_id: int, db: Session = None
+) -> Optional[ImageScanResult]:
     """
     Get a scan for an image by ID.
     """
@@ -279,12 +311,18 @@ async def get_image_scan(image_id: str, scan_id: int, db: Session = None) -> Opt
             return None
 
         # Get scan
-        scan = db.query(SecurityScan).filter(SecurityScan.id == scan_id, SecurityScan.image_id == db_image.id).first()
+        scan = (
+            db.query(SecurityScan)
+            .filter(SecurityScan.id == scan_id, SecurityScan.image_id == db_image.id)
+            .first()
+        )
         if not scan:
             return None
 
         # Get vulnerabilities
-        vulnerabilities = db.query(Vulnerability).filter(Vulnerability.scan_id == scan.id).all()
+        vulnerabilities = (
+            db.query(Vulnerability).filter(Vulnerability.scan_id == scan.id).all()
+        )
 
         # Convert to ImageScan and ImageVulnerability objects
         scan_result = ImageScanResult(
@@ -324,7 +362,9 @@ async def get_image_scan(image_id: str, scan_id: int, db: Session = None) -> Opt
         raise
 
 
-async def search_docker_hub(query: str, page: int = 1, page_size: int = 10) -> Dict[str, Any]:
+async def search_docker_hub(
+    query: str, page: int = 1, page_size: int = 10
+) -> Dict[str, Any]:
     """
     Search Docker Hub for images.
     """
@@ -379,7 +419,12 @@ async def search_docker_hub(query: str, page: int = 1, page_size: int = 10) -> D
 
         # Filter by query
         if query:
-            results = [r for r in results if query.lower() in r["name"].lower() or query.lower() in r["description"].lower()]
+            results = [
+                r
+                for r in results
+                if query.lower() in r["name"].lower()
+                or query.lower() in r["description"].lower()
+            ]
 
         # Calculate pagination
         total = len(results)
@@ -468,9 +513,17 @@ async def validate_dockerfile(dockerfile_content: str) -> DockerfileValidation:
                     warnings.append(line.strip())
 
         # Check for suggestions
-        if "suggestion" in analysis_text or "recommend" in analysis_text or "best practice" in analysis_text:
+        if (
+            "suggestion" in analysis_text
+            or "recommend" in analysis_text
+            or "best practice" in analysis_text
+        ):
             for line in analysis_text.split("\n"):
-                if "suggestion" in line.lower() or "recommend" in line.lower() or "best practice" in line.lower():
+                if (
+                    "suggestion" in line.lower()
+                    or "recommend" in line.lower()
+                    or "best practice" in line.lower()
+                ):
                     suggestions.append(line.strip())
 
         return DockerfileValidation(
@@ -480,7 +533,7 @@ async def validate_dockerfile(dockerfile_content: str) -> DockerfileValidation:
             suggestions=suggestions,
             analysis=result["analysis"],
             provider=result["provider"],
-            model=result["model"]
+            model=result["model"],
         )
     except Exception as e:
         logger.error(f"Failed to validate Dockerfile: {e}")
@@ -492,7 +545,7 @@ async def build_image_from_dockerfile(
     name: str,
     tag: str = "latest",
     options: Dict[str, Any] = None,
-    db: Session = None
+    db: Session = None,
 ) -> Dict[str, Any]:
     """
     Build a Docker image from a Dockerfile.
@@ -539,8 +592,10 @@ async def build_image_from_dockerfile(
             build_logs.append(f"Step 4/8 : RUN echo 'Building...'")
             build_logs.append(f"Step 5/8 : EXPOSE 80")
             build_logs.append(f"Step 6/8 : ENV NODE_ENV=production")
-            build_logs.append(f"Step 7/8 : CMD [\"npm\", \"start\"]")
-            build_logs.append(f"Step 8/8 : HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1")
+            build_logs.append(f'Step 7/8 : CMD ["npm", "start"]')
+            build_logs.append(
+                f"Step 8/8 : HEALTHCHECK CMD curl --fail http://localhost:80/ || exit 1"
+            )
             build_logs.append(f"Successfully built image {image_tag}")
 
             # Get the built image
@@ -559,14 +614,16 @@ async def build_image_from_dockerfile(
                 "author": "DockerForge",
                 "architecture": "amd64",
                 "os": "linux",
-                "labels": {"org.opencontainers.image.created": datetime.now().isoformat()}
+                "labels": {
+                    "org.opencontainers.image.created": datetime.now().isoformat()
+                },
             }
 
             return {
                 "success": True,
                 "image": image_data,
                 "logs": build_logs,
-                "message": f"Successfully built image {image_tag}"
+                "message": f"Successfully built image {image_tag}",
             }
     except Exception as e:
         logger.error(f"Failed to build image: {e}")
@@ -574,10 +631,7 @@ async def build_image_from_dockerfile(
 
 
 async def add_tag_to_image(
-    image_id: str,
-    tag: str,
-    is_latest: bool = False,
-    db: Session = None
+    image_id: str, tag: str, is_latest: bool = False, db: Session = None
 ) -> Dict[str, Any]:
     """
     Add a tag to an image.
@@ -598,8 +652,10 @@ async def add_tag_to_image(
             raise ValueError(f"Image with ID {image_id} not found")
 
         # Validate tag name
-        if not tag or not re.match(r'^[a-zA-Z0-9._-]+$', tag):
-            raise ValueError("Invalid tag name. Tag must contain only alphanumeric characters, dots, hyphens, and underscores.")
+        if not tag or not re.match(r"^[a-zA-Z0-9._-]+$", tag):
+            raise ValueError(
+                "Invalid tag name. Tag must contain only alphanumeric characters, dots, hyphens, and underscores."
+            )
 
         # In a real implementation, this would call the Docker API to add the tag
         # For now, we'll simulate the operation
@@ -634,7 +690,7 @@ async def add_tag_to_image(
         return {
             "success": True,
             "tags": new_tags,
-            "message": f"Successfully added tag {tag} to image {image.name}"
+            "message": f"Successfully added tag {tag} to image {image.name}",
         }
     except Exception as e:
         logger.error(f"Failed to add tag to image: {e}")
@@ -642,9 +698,7 @@ async def add_tag_to_image(
 
 
 async def remove_tag_from_image(
-    image_id: str,
-    tag: str,
-    db: Session = None
+    image_id: str, tag: str, db: Session = None
 ) -> Dict[str, Any]:
     """
     Remove a tag from an image.
@@ -692,7 +746,7 @@ async def remove_tag_from_image(
         return {
             "success": True,
             "tags": new_tags,
-            "message": f"Successfully removed tag {tag} from image {image.name}"
+            "message": f"Successfully removed tag {tag} from image {image.name}",
         }
     except Exception as e:
         logger.error(f"Failed to remove tag from image: {e}")

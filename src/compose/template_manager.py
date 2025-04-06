@@ -5,19 +5,20 @@ It includes template storage, variable substitution, inheritance, validation, an
 
 """
 
-import os
-import json
-import yaml
-import re
 import copy
-from typing import Dict, List, Any, Optional, Set
+import json
+import os
+import re
+from typing import Any, Dict, List, Optional, Set
+
+import yaml
 
 from ..utils.logging_manager import get_logger
 
 logger = get_logger(__name__)
 
 # Regular expression for template variable references
-TEMPLATE_VAR_PATTERN = re.compile(r'\{\{([^}^{]+)\}\}')
+TEMPLATE_VAR_PATTERN = re.compile(r"\{\{([^}^{]+)\}\}")
 
 
 class TemplateManager:
@@ -34,7 +35,7 @@ class TemplateManager:
         "production",
         "testing",
         "infrastructure",
-        "custom"
+        "custom",
     ]
 
     # Template difficulty levels
@@ -58,7 +59,9 @@ class TemplateManager:
         Returns:
             Path to the template directory
         """
-        template_dir = self.config.get('template_dir', os.path.expanduser('~/.dockerforge/templates/compose'))
+        template_dir = self.config.get(
+            "template_dir", os.path.expanduser("~/.dockerforge/templates/compose")
+        )
         os.makedirs(template_dir, exist_ok=True)
 
         # Create category subdirectories
@@ -75,7 +78,7 @@ class TemplateManager:
             List of template categories
         """
         # Get categories from config or use defaults
-        categories = self.config.get('categories', self.DEFAULT_CATEGORIES)
+        categories = self.config.get("categories", self.DEFAULT_CATEGORIES)
         return categories
 
     def _load_templates(self) -> None:
@@ -84,7 +87,7 @@ class TemplateManager:
             # Load templates from template directory
             for root, _, files in os.walk(self.template_dir):
                 for file in files:
-                    if file.endswith(('.yml', '.yaml', '.json')):
+                    if file.endswith((".yml", ".yaml", ".json")):
                         file_path = os.path.join(root, file)
                         try:
                             template = self._load_template_file(file_path)
@@ -103,24 +106,28 @@ class TemplateManager:
                                 template_name = os.path.splitext(file)[0]
 
                             # Add metadata if not present
-                            if 'metadata' not in template:
-                                template['metadata'] = {}
+                            if "metadata" not in template:
+                                template["metadata"] = {}
 
                             # Set category in metadata
-                            if 'category' not in template['metadata']:
-                                template['metadata']['category'] = category
+                            if "category" not in template["metadata"]:
+                                template["metadata"]["category"] = category
 
                             # Set name in metadata if not present
-                            if 'name' not in template['metadata']:
-                                template['metadata']['name'] = template_name
+                            if "name" not in template["metadata"]:
+                                template["metadata"]["name"] = template_name
 
                             # Add template to collection
                             self.templates[template_name] = template
-                            logger.debug(f"Loaded template: {template_name} (category: {category})")
+                            logger.debug(
+                                f"Loaded template: {template_name} (category: {category})"
+                            )
                         except Exception as e:
                             logger.warning(f"Failed to load template {file_path}: {e}")
 
-            logger.info(f"Loaded {len(self.templates)} templates from {self.template_dir}")
+            logger.info(
+                f"Loaded {len(self.templates)} templates from {self.template_dir}"
+            )
         except Exception as e:
             logger.warning(f"Failed to load templates: {e}")
 
@@ -133,8 +140,8 @@ class TemplateManager:
         Returns:
             Template dictionary
         """
-        with open(file_path, 'r') as f:
-            if file_path.endswith('.json'):
+        with open(file_path, "r") as f:
+            if file_path.endswith(".json"):
                 return json.load(f)
             else:
                 return yaml.safe_load(f)
@@ -163,8 +170,8 @@ class TemplateManager:
 
         for name, template in self.templates.items():
             # Get template metadata
-            metadata = template.get('metadata', {})
-            template_category = metadata.get('category', 'custom')
+            metadata = template.get("metadata", {})
+            template_category = metadata.get("category", "custom")
 
             # Filter by category if specified
             if category and template_category != category:
@@ -172,15 +179,15 @@ class TemplateManager:
 
             # Create template info dictionary
             template_info = {
-                'name': name,
-                'category': template_category,
-                'description': metadata.get('description', ''),
-                'difficulty': metadata.get('difficulty', 'beginner'),
-                'created_at': metadata.get('created_at', ''),
-                'updated_at': metadata.get('updated_at', ''),
-                'tags': metadata.get('tags', []),
-                'services': list(template.get('services', {}).keys()),
-                'variables': list(self.extract_template_variables(template))
+                "name": name,
+                "category": template_category,
+                "description": metadata.get("description", ""),
+                "difficulty": metadata.get("difficulty", "beginner"),
+                "created_at": metadata.get("created_at", ""),
+                "updated_at": metadata.get("updated_at", ""),
+                "tags": metadata.get("tags", []),
+                "services": list(template.get("services", {}).keys()),
+                "variables": list(self.extract_template_variables(template)),
             }
 
             result.append(template_info)
@@ -204,24 +211,24 @@ class TemplateManager:
         result = {category: [] for category in self.categories}
 
         # Add "all" category
-        result['all'] = []
+        result["all"] = []
 
         for name, template in self.templates.items():
             # Get template metadata
-            metadata = template.get('metadata', {})
-            category = metadata.get('category', 'custom')
+            metadata = template.get("metadata", {})
+            category = metadata.get("category", "custom")
 
             # Create template info dictionary
             template_info = {
-                'name': name,
-                'category': category,
-                'description': metadata.get('description', ''),
-                'difficulty': metadata.get('difficulty', 'beginner'),
-                'created_at': metadata.get('created_at', ''),
-                'updated_at': metadata.get('updated_at', ''),
-                'tags': metadata.get('tags', []),
-                'services': list(template.get('services', {}).keys()),
-                'variables': list(self.extract_template_variables(template))
+                "name": name,
+                "category": category,
+                "description": metadata.get("description", ""),
+                "difficulty": metadata.get("difficulty", "beginner"),
+                "created_at": metadata.get("created_at", ""),
+                "updated_at": metadata.get("updated_at", ""),
+                "tags": metadata.get("tags", []),
+                "services": list(template.get("services", {}).keys()),
+                "variables": list(self.extract_template_variables(template)),
             }
 
             # Add to appropriate category
@@ -229,14 +236,16 @@ class TemplateManager:
                 result[category].append(template_info)
             else:
                 # If category doesn't exist, add to custom
-                result['custom'].append(template_info)
+                result["custom"].append(template_info)
 
             # Add to "all" category
-            result['all'].append(template_info)
+            result["all"].append(template_info)
 
         return result
 
-    def save_template(self, template_name: str, template_data: Dict, category: str = "custom") -> str:
+    def save_template(
+        self, template_name: str, template_data: Dict, category: str = "custom"
+    ) -> str:
         """Save a template to disk.
 
         Args:
@@ -257,7 +266,9 @@ class TemplateManager:
                     self.categories.append(category)
                 else:
                     # Not a recognized category, use custom
-                    logger.warning(f"Category {category} not recognized, using 'custom' instead")
+                    logger.warning(
+                        f"Category {category} not recognized, using 'custom' instead"
+                    )
                     category = "custom"
 
             # Create template file path in the category directory
@@ -266,20 +277,21 @@ class TemplateManager:
             file_path = os.path.join(category_dir, f"{template_name}.yml")
 
             # Ensure template has metadata
-            if 'metadata' not in template_data:
-                template_data['metadata'] = {}
+            if "metadata" not in template_data:
+                template_data["metadata"] = {}
 
             # Update metadata
-            template_data['metadata']['name'] = template_name
-            template_data['metadata']['category'] = category
+            template_data["metadata"]["name"] = template_name
+            template_data["metadata"]["category"] = category
 
             # Add timestamp if not present
-            if 'created_at' not in template_data['metadata']:
+            if "created_at" not in template_data["metadata"]:
                 from datetime import datetime
-                template_data['metadata']['created_at'] = datetime.now().isoformat()
+
+                template_data["metadata"]["created_at"] = datetime.now().isoformat()
 
             # Save template to file
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 yaml.dump(template_data, f, default_flow_style=False, sort_keys=False)
 
             # Add to in-memory templates
@@ -308,7 +320,7 @@ class TemplateManager:
 
             # Get template category
             template = self.templates[template_name]
-            category = template.get('metadata', {}).get('category', 'custom')
+            category = template.get("metadata", {}).get("category", "custom")
 
             # Remove from in-memory templates
             del self.templates[template_name]
@@ -323,7 +335,7 @@ class TemplateManager:
                 return True
 
             # Check for other extensions
-            for ext in ['.yaml', '.json']:
+            for ext in [".yaml", ".json"]:
                 file_path = os.path.join(category_dir, f"{template_name}{ext}")
                 if os.path.exists(file_path):
                     os.remove(file_path)
@@ -385,7 +397,9 @@ class TemplateManager:
             return self._substitute_variables_in_string(data, variables)
         elif isinstance(data, dict):
             # Substitute variables in dictionary
-            return {k: self._substitute_variables(v, variables) for k, v in data.items()}
+            return {
+                k: self._substitute_variables(v, variables) for k, v in data.items()
+            }
         elif isinstance(data, list):
             # Substitute variables in list
             return [self._substitute_variables(item, variables) for item in data]
@@ -403,6 +417,7 @@ class TemplateManager:
         Returns:
             String with variables substituted
         """
+
         def _replace_var(match):
             var_name = match.group(1).strip()
             if var_name in variables:
@@ -423,8 +438,8 @@ class TemplateManager:
             Template with inheritance resolved
         """
         # Check for extends property
-        if 'extends' in template:
-            extends = template.pop('extends')
+        if "extends" in template:
+            extends = template.pop("extends")
 
             # Get parent template
             if isinstance(extends, str):
@@ -441,8 +456,8 @@ class TemplateManager:
                 return merged
             elif isinstance(extends, dict):
                 # Dictionary with template name and optional service
-                parent_name = extends.get('template')
-                service = extends.get('service')
+                parent_name = extends.get("template")
+                service = extends.get("service")
 
                 if not parent_name:
                     logger.warning("Parent template name not specified in extends")
@@ -455,13 +470,15 @@ class TemplateManager:
 
                 if service:
                     # Extend from a specific service in the parent
-                    if 'services' in parent and service in parent['services']:
-                        parent_service = parent['services'][service]
+                    if "services" in parent and service in parent["services"]:
+                        parent_service = parent["services"][service]
                         merged = copy.deepcopy(parent_service)
                         self._deep_merge(merged, template)
                         return merged
                     else:
-                        logger.warning(f"Service {service} not found in parent template {parent_name}")
+                        logger.warning(
+                            f"Service {service} not found in parent template {parent_name}"
+                        )
                         return template
                 else:
                     # Extend from the entire parent
@@ -480,14 +497,20 @@ class TemplateManager:
             source: Source dictionary
         """
         for key, value in source.items():
-            if key in target and isinstance(target[key], dict) and isinstance(value, dict):
+            if (
+                key in target
+                and isinstance(target[key], dict)
+                and isinstance(value, dict)
+            ):
                 # Recursively merge dictionaries
                 self._deep_merge(target[key], value)
             else:
                 # Replace or add value
                 target[key] = copy.deepcopy(value)
 
-    def create_service_from_template(self, template_name: str, service_name: str = None, variables: Dict = None) -> Dict:
+    def create_service_from_template(
+        self, template_name: str, service_name: str = None, variables: Dict = None
+    ) -> Dict:
         """Create a service definition from a template.
 
         Args:
@@ -502,9 +525,9 @@ class TemplateManager:
         rendered = self.render_template(template_name, variables)
 
         # Extract service definition
-        if 'services' in rendered and len(rendered['services']) > 0:
+        if "services" in rendered and len(rendered["services"]) > 0:
             # If the template has a services section, use the first service as a base
-            service_template = list(rendered['services'].values())[0]
+            service_template = list(rendered["services"].values())[0]
         else:
             # Otherwise, use the entire template as the service definition
             service_template = rendered
@@ -514,11 +537,15 @@ class TemplateManager:
 
         # Log the service creation
         if service_name:
-            logger.debug(f"Created service '{service_name}' from template '{template_name}'")
+            logger.debug(
+                f"Created service '{service_name}' from template '{template_name}'"
+            )
 
         return service
 
-    def add_service_to_compose(self, compose_data: Dict, service_name: str, service_def: Dict) -> Dict:
+    def add_service_to_compose(
+        self, compose_data: Dict, service_name: str, service_def: Dict
+    ) -> Dict:
         """Add a service to a Docker Compose file.
 
         Args:
@@ -533,15 +560,17 @@ class TemplateManager:
         result = copy.deepcopy(compose_data)
 
         # Ensure services section exists
-        if 'services' not in result:
-            result['services'] = {}
+        if "services" not in result:
+            result["services"] = {}
 
         # Add service
-        result['services'][service_name] = service_def
+        result["services"][service_name] = service_def
 
         return result
 
-    def create_compose_from_template(self, template_name: str, variables: Dict = None) -> Dict:
+    def create_compose_from_template(
+        self, template_name: str, variables: Dict = None
+    ) -> Dict:
         """Create a Docker Compose file from a template.
 
         Args:
@@ -555,11 +584,11 @@ class TemplateManager:
         rendered = self.render_template(template_name, variables)
 
         # Ensure it's a valid Docker Compose file
-        if 'version' not in rendered:
-            rendered['version'] = '3'
+        if "version" not in rendered:
+            rendered["version"] = "3"
 
-        if 'services' not in rendered:
-            rendered['services'] = {}
+        if "services" not in rendered:
+            rendered["services"] = {}
 
         return rendered
 
@@ -575,9 +604,9 @@ class TemplateManager:
         errors = []
 
         # Check for required sections
-        if 'services' in template_data:
+        if "services" in template_data:
             # Check services
-            services = template_data['services']
+            services = template_data["services"]
             if not isinstance(services, dict):
                 errors.append("'services' must be a dictionary")
             else:
@@ -587,12 +616,14 @@ class TemplateManager:
                         errors.append(f"Service '{service_name}' must be a dictionary")
                     else:
                         # Check for required service properties
-                        if 'image' not in service and 'build' not in service:
-                            errors.append(f"Service '{service_name}' must have either 'image' or 'build' property")
+                        if "image" not in service and "build" not in service:
+                            errors.append(
+                                f"Service '{service_name}' must have either 'image' or 'build' property"
+                            )
 
         # Check for extends
-        if 'extends' in template_data:
-            extends = template_data['extends']
+        if "extends" in template_data:
+            extends = template_data["extends"]
             if isinstance(extends, str):
                 # Simple string reference
                 parent_name = extends
@@ -600,18 +631,23 @@ class TemplateManager:
                     errors.append(f"Parent template '{parent_name}' not found")
             elif isinstance(extends, dict):
                 # Dictionary with template name and optional service
-                if 'template' not in extends:
+                if "template" not in extends:
                     errors.append("'extends' must have a 'template' property")
                 else:
-                    parent_name = extends['template']
+                    parent_name = extends["template"]
                     if parent_name not in self.templates:
                         errors.append(f"Parent template '{parent_name}' not found")
 
-                    if 'service' in extends:
-                        service = extends['service']
+                    if "service" in extends:
+                        service = extends["service"]
                         parent = self.templates.get(parent_name)
-                        if parent and ('services' not in parent or service not in parent['services']):
-                            errors.append(f"Service '{service}' not found in parent template '{parent_name}'")
+                        if parent and (
+                            "services" not in parent
+                            or service not in parent["services"]
+                        ):
+                            errors.append(
+                                f"Service '{service}' not found in parent template '{parent_name}'"
+                            )
             else:
                 errors.append("'extends' must be a string or dictionary")
 
@@ -662,7 +698,7 @@ class TemplateManager:
             file_path = os.path.join(output_path, f"{template_name}.yml")
 
             # Save template to file
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 yaml.dump(template, f, default_flow_style=False, sort_keys=False)
 
             logger.info(f"Exported template {template_name} to {file_path}")
@@ -671,7 +707,9 @@ class TemplateManager:
             logger.error(f"Failed to export template {template_name}: {e}")
             raise
 
-    def import_template(self, file_path: str, new_name: str = None, category: str = None) -> str:
+    def import_template(
+        self, file_path: str, new_name: str = None, category: str = None
+    ) -> str:
         """Import a template from a file.
 
         Args:
@@ -684,8 +722,8 @@ class TemplateManager:
         """
         try:
             # Load template from file
-            with open(file_path, 'r') as f:
-                if file_path.endswith('.json'):
+            with open(file_path, "r") as f:
+                if file_path.endswith(".json"):
                     template_data = json.load(f)
                 else:
                     template_data = yaml.safe_load(f)
@@ -700,7 +738,7 @@ class TemplateManager:
             # Determine category
             if not category:
                 # Use category from metadata or default to custom
-                category = template_data.get('metadata', {}).get('category', 'custom')
+                category = template_data.get("metadata", {}).get("category", "custom")
 
             # Save template
             self.save_template(template_name, template_data, category)
@@ -711,7 +749,9 @@ class TemplateManager:
             logger.error(f"Failed to import template {file_path}: {e}")
             raise
 
-    def customize_template_with_ai(self, template_name: str, instructions: str, ai_provider=None) -> Dict:
+    def customize_template_with_ai(
+        self, template_name: str, instructions: str, ai_provider=None
+    ) -> Dict:
         """Customize a template using AI.
 
         Args:
@@ -731,10 +771,13 @@ class TemplateManager:
             # Get AI provider if not provided
             if not ai_provider:
                 from ..core.ai_provider import get_ai_provider
+
                 ai_provider = get_ai_provider()
 
             # Convert template to YAML string for AI
-            template_yaml = yaml.dump(template, default_flow_style=False, sort_keys=False)
+            template_yaml = yaml.dump(
+                template, default_flow_style=False, sort_keys=False
+            )
 
             # Create prompt for AI
             prompt = f"""You are an expert in Docker and Docker Compose.
@@ -758,15 +801,15 @@ class TemplateManager:
             # Extract YAML content from response
             # This is a simple extraction - in production, you might need more robust parsing
             yaml_content = response.strip()
-            if '```yaml' in yaml_content and '```' in yaml_content:
+            if "```yaml" in yaml_content and "```" in yaml_content:
                 # Extract content between yaml code blocks if present
-                start = yaml_content.find('```yaml') + 7
-                end = yaml_content.rfind('```')
+                start = yaml_content.find("```yaml") + 7
+                end = yaml_content.rfind("```")
                 yaml_content = yaml_content[start:end].strip()
-            elif '```' in yaml_content:
+            elif "```" in yaml_content:
                 # Extract content between generic code blocks if present
-                start = yaml_content.find('```') + 3
-                end = yaml_content.rfind('```')
+                start = yaml_content.find("```") + 3
+                end = yaml_content.rfind("```")
                 yaml_content = yaml_content[start:end].strip()
 
             # Parse the customized YAML
@@ -779,31 +822,46 @@ class TemplateManager:
                 raise ValueError(f"AI generated invalid YAML: {yaml_error}")
 
             # Preserve metadata
-            if 'metadata' in template:
-                if 'metadata' not in customized_template:
-                    customized_template['metadata'] = {}
+            if "metadata" in template:
+                if "metadata" not in customized_template:
+                    customized_template["metadata"] = {}
 
                 # Copy metadata fields but allow AI to update some
-                for key, value in template['metadata'].items():
-                    if key not in customized_template['metadata'] and key not in ['description', 'tags']:
-                        customized_template['metadata'][key] = value
+                for key, value in template["metadata"].items():
+                    if key not in customized_template["metadata"] and key not in [
+                        "description",
+                        "tags",
+                    ]:
+                        customized_template["metadata"][key] = value
 
                 # Update metadata
-                customized_template['metadata']['customized'] = True
+                customized_template["metadata"]["customized"] = True
                 from datetime import datetime
-                customized_template['metadata']['updated_at'] = datetime.now().isoformat()
+
+                customized_template["metadata"][
+                    "updated_at"
+                ] = datetime.now().isoformat()
 
                 # Add customization instructions to metadata
-                customized_template['metadata']['customization_instructions'] = instructions
+                customized_template["metadata"][
+                    "customization_instructions"
+                ] = instructions
 
             return customized_template
         except Exception as e:
             logger.error(f"Failed to customize template {template_name} with AI: {e}")
             raise
 
-    def create_template_from_service(self, compose_data: Dict, service_name: str, template_name: str,
-                                   category: str = "custom", description: str = "",
-                                   difficulty: str = "beginner", tags: List[str] = None) -> str:
+    def create_template_from_service(
+        self,
+        compose_data: Dict,
+        service_name: str,
+        template_name: str,
+        category: str = "custom",
+        description: str = "",
+        difficulty: str = "beginner",
+        tags: List[str] = None,
+    ) -> str:
         """Create a template from a service in a Docker Compose file.
 
         Args:
@@ -819,25 +877,26 @@ class TemplateManager:
             Path to the saved template file
         """
         # Check if service exists
-        if 'services' not in compose_data or service_name not in compose_data['services']:
+        if (
+            "services" not in compose_data
+            or service_name not in compose_data["services"]
+        ):
             raise ValueError(f"Service {service_name} not found in Docker Compose file")
 
         # Extract service definition
-        service = compose_data['services'][service_name]
+        service = compose_data["services"][service_name]
 
         # Create template
         template = {
-            'services': {
-                'service': service
+            "services": {"service": service},
+            "metadata": {
+                "name": template_name,
+                "category": category,
+                "description": description,
+                "difficulty": difficulty,
+                "tags": tags or [],
+                "source_service": service_name,
             },
-            'metadata': {
-                'name': template_name,
-                'category': category,
-                'description': description,
-                'difficulty': difficulty,
-                'tags': tags or [],
-                'source_service': service_name
-            }
         }
 
         # Save template

@@ -3,14 +3,16 @@ Container service for the DockerForge Web UI.
 
 This module provides the container management services for the DockerForge Web UI.
 """
-from typing import List, Optional, Dict, Any
-from datetime import datetime
+
 import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session
 
+from src.web.api.models.container import Container as ContainerModel
 from src.web.api.schemas.containers import Container, ContainerCreate, ContainerUpdate
 from src.web.api.services import docker
-from src.web.api.models.container import Container as ContainerModel
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ async def get_containers(
         docker_containers = docker.get_containers(all=True, filters=filters)
 
         # Apply pagination
-        paginated_containers = docker_containers[skip:skip + limit]
+        paginated_containers = docker_containers[skip : skip + limit]
 
         # Convert to Container objects
         return [Container(**container) for container in paginated_containers]
@@ -82,7 +84,9 @@ async def create_container(container: ContainerCreate, db: Session = None) -> Co
         raise
 
 
-async def update_container(container_id: str, container: ContainerUpdate, db: Session = None) -> Optional[Container]:
+async def update_container(
+    container_id: str, container: ContainerUpdate, db: Session = None
+) -> Optional[Container]:
     """
     Update a container by ID.
 
@@ -171,7 +175,9 @@ async def stop_container(container_id: str, db: Session = None) -> Optional[Cont
         raise
 
 
-async def restart_container(container_id: str, db: Session = None) -> Optional[Container]:
+async def restart_container(
+    container_id: str, db: Session = None
+) -> Optional[Container]:
     """
     Restart a container by ID.
     """
@@ -188,7 +194,9 @@ async def restart_container(container_id: str, db: Session = None) -> Optional[C
         raise
 
 
-async def get_container_logs(container_id: str, tail: int = 100, db: Session = None) -> List[str]:
+async def get_container_logs(
+    container_id: str, tail: int = 100, db: Session = None
+) -> List[str]:
     """
     Get container logs.
     """
@@ -212,7 +220,9 @@ async def get_system_info(db: Session = None) -> Dict[str, Any]:
         raise
 
 
-async def inspect_container(container_id: str, db: Session = None) -> Optional[Dict[str, Any]]:
+async def inspect_container(
+    container_id: str, db: Session = None
+) -> Optional[Dict[str, Any]]:
     """
     Get detailed inspection data for a container by ID.
     """

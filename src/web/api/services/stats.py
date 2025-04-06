@@ -3,16 +3,18 @@ Stats service for the DockerForge Web UI.
 
 This module provides container stats services for monitoring container resource usage.
 """
-from typing import Dict, Any, Optional, List, Tuple
-import logging
+
 import asyncio
+import logging
 import time
-import docker
-from docker.errors import DockerException
-from fastapi import WebSocket
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+from fastapi import WebSocket
 from sqlalchemy.orm import Session
 
+import docker
+from docker.errors import DockerException
 from src.web.api.models.monitoring import MetricSample
 from src.web.api.services import docker as docker_service
 
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Docker client
 docker_client = docker.from_env()
+
 
 # Stats session class
 class StatsSession:
@@ -31,6 +34,7 @@ class StatsSession:
         self.stats_history: List[Dict[str, Any]] = []
         self.max_history_length = 60  # Store up to 60 data points
         self.active = True
+
 
 # Store active stats sessions
 class StatsManager:
@@ -79,7 +83,9 @@ class StatsManager:
         try:
             while self.running:
                 # Get all running containers
-                containers = docker_client.containers.list(filters={"status": "running"})
+                containers = docker_client.containers.list(
+                    filters={"status": "running"}
+                )
 
                 # Collect stats for each container
                 for container in containers:
@@ -95,7 +101,9 @@ class StatsManager:
                         await self._broadcast_stats(container.id, parsed_stats)
 
                     except Exception as e:
-                        logger.error(f"Error collecting stats for container {container.id}: {str(e)}")
+                        logger.error(
+                            f"Error collecting stats for container {container.id}: {str(e)}"
+                        )
 
                 # Wait before next collection
                 await asyncio.sleep(2)  # Collect stats every 2 seconds
@@ -123,7 +131,7 @@ class StatsManager:
             "type": "stats",
             "container_id": container_id,
             "stats": stats,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         # Send to all subscribers
@@ -244,7 +252,7 @@ async def get_container_stats_history(
     metric_type: str,
     start_time: datetime,
     end_time: datetime,
-    db: Session
+    db: Session,
 ) -> List[Dict[str, Any]]:
     """
     Get historical stats for a container.
@@ -264,7 +272,7 @@ async def get_container_stats_history(
         query = db.query(MetricSample).filter(
             MetricSample.container_id == container_id,
             MetricSample.timestamp >= start_time,
-            MetricSample.timestamp <= end_time
+            MetricSample.timestamp <= end_time,
         )
 
         if metric_type:
@@ -283,7 +291,7 @@ async def get_container_stats_history(
                 "timestamp": sample.timestamp.isoformat(),
                 "value": sample.value,
                 "unit": sample.unit,
-                "labels": sample.labels
+                "labels": sample.labels,
             }
             for sample in samples
         ]
@@ -292,7 +300,9 @@ async def get_container_stats_history(
         return []
 
 
-async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Session) -> bool:
+async def store_container_stats(
+    container_id: str, stats: Dict[str, Any], db: Session
+) -> bool:
     """
     Store container stats in the database.
 
@@ -315,7 +325,7 @@ async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Se
             timestamp=timestamp,
             value=stats["cpu_percent"],
             unit="%",
-            labels={"type": "usage"}
+            labels={"type": "usage"},
         )
 
         # Memory usage
@@ -325,7 +335,7 @@ async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Se
             timestamp=timestamp,
             value=stats["memory_usage"],
             unit="bytes",
-            labels={"type": "usage"}
+            labels={"type": "usage"},
         )
 
         # Memory percent
@@ -335,7 +345,7 @@ async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Se
             timestamp=timestamp,
             value=stats["memory_percent"],
             unit="%",
-            labels={"type": "percent"}
+            labels={"type": "percent"},
         )
 
         # Network RX
@@ -345,7 +355,7 @@ async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Se
             timestamp=timestamp,
             value=stats["network_rx_bytes"],
             unit="bytes",
-            labels={"type": "rx"}
+            labels={"type": "rx"},
         )
 
         # Network TX
@@ -355,7 +365,7 @@ async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Se
             timestamp=timestamp,
             value=stats["network_tx_bytes"],
             unit="bytes",
-            labels={"type": "tx"}
+            labels={"type": "tx"},
         )
 
         # Block read
@@ -365,7 +375,7 @@ async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Se
             timestamp=timestamp,
             value=stats["block_read_bytes"],
             unit="bytes",
-            labels={"type": "read"}
+            labels={"type": "read"},
         )
 
         # Block write
@@ -375,19 +385,21 @@ async def store_container_stats(container_id: str, stats: Dict[str, Any], db: Se
             timestamp=timestamp,
             value=stats["block_write_bytes"],
             unit="bytes",
-            labels={"type": "write"}
+            labels={"type": "write"},
         )
 
         # Add to database
-        db.add_all([
-            cpu_sample,
-            memory_sample,
-            memory_percent_sample,
-            network_rx_sample,
-            network_tx_sample,
-            block_read_sample,
-            block_write_sample
-        ])
+        db.add_all(
+            [
+                cpu_sample,
+                memory_sample,
+                memory_percent_sample,
+                network_rx_sample,
+                network_tx_sample,
+                block_read_sample,
+                block_write_sample,
+            ]
+        )
 
         # Commit
         db.commit()

@@ -5,30 +5,30 @@ This module provides functionality to connect to the Docker daemon
 using different methods based on the platform.
 """
 
-import os
 import logging
+import os
 import socket
 import time
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import docker
 from docker.errors import DockerException
-
-from src.platforms.platform_detector import get_platform_info, PlatformType
 from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import PlatformType, get_platform_info
 
 logger = logging.getLogger(__name__)
 
 
 class DockerConnectionError(Exception):
     """Exception raised for Docker connection errors."""
+
     pass
 
 
 class DockerConnectionManager:
     """
     Manager for Docker connections.
-    
+
     This class handles connecting to the Docker daemon using different
     methods based on the platform.
     """
@@ -36,7 +36,7 @@ class DockerConnectionManager:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         Initialize the Docker connection manager.
-        
+
         Args:
             config: Optional configuration dictionary
         """
@@ -47,17 +47,19 @@ class DockerConnectionManager:
         self.connection_method = None
         self.connection_params = {}
 
-    def connect(self, retry_count: int = 3, retry_delay: float = 1.0) -> docker.DockerClient:
+    def connect(
+        self, retry_count: int = 3, retry_delay: float = 1.0
+    ) -> docker.DockerClient:
         """
         Connect to the Docker daemon.
-        
+
         Args:
             retry_count: Number of connection attempts
             retry_delay: Delay between retries in seconds
-            
+
         Returns:
             docker.DockerClient: Docker client
-            
+
         Raises:
             DockerConnectionError: If connection fails
         """
@@ -70,7 +72,7 @@ class DockerConnectionManager:
                 # Connection is invalid, create a new one
                 self.client = None
                 self.connection_method = None
-        
+
         # Try different connection methods
         connection_methods = [
             self._connect_with_environment,
@@ -79,7 +81,7 @@ class DockerConnectionManager:
             self._connect_with_tcp,
             self._connect_with_ssh,
         ]
-        
+
         last_error = None
         for method in connection_methods:
             for attempt in range(retry_count):
@@ -94,10 +96,12 @@ class DockerConnectionManager:
                         return client
                 except Exception as e:
                     last_error = e
-                    logger.debug(f"Connection attempt {attempt+1} with {method.__name__} failed: {str(e)}")
+                    logger.debug(
+                        f"Connection attempt {attempt+1} with {method.__name__} failed: {str(e)}"
+                    )
                     if attempt < retry_count - 1:
                         time.sleep(retry_delay)
-        
+
         # All connection methods failed
         error_msg = f"Failed to connect to Docker daemon: {str(last_error)}"
         logger.error(error_msg)
@@ -106,7 +110,7 @@ class DockerConnectionManager:
     def _connect_with_environment(self) -> Optional[docker.DockerClient]:
         """
         Connect to Docker using environment variables.
-        
+
         Returns:
             Optional[docker.DockerClient]: Docker client or None
         """
@@ -120,13 +124,13 @@ class DockerConnectionManager:
     def _connect_with_socket(self) -> Optional[docker.DockerClient]:
         """
         Connect to Docker using Unix socket.
-        
+
         Returns:
             Optional[docker.DockerClient]: Docker client or None
         """
         if self.platform_info.platform_type in (PlatformType.LINUX, PlatformType.MACOS):
             socket_path = self.platform_info.docker_socket_path
-            
+
             if not socket_path or not os.path.exists(socket_path):
                 # Try common socket paths
                 socket_paths = [
@@ -134,12 +138,12 @@ class DockerConnectionManager:
                     "/run/docker.sock",
                     os.path.expanduser("~/.docker/run/docker.sock"),
                 ]
-                
+
                 for path in socket_paths:
                     if os.path.exists(path):
                         socket_path = path
                         break
-            
+
             if socket_path and os.path.exists(socket_path):
                 try:
                     # Check if socket is accessible
@@ -147,32 +151,41 @@ class DockerConnectionManager:
                     sock.settimeout(1)
                     sock.connect(socket_path)
                     sock.close()
-                    
+
                     # Connect to Docker
                     client = docker.DockerClient(base_url=f"unix://{socket_path}")
                     self.connection_params = {"method": "socket", "path": socket_path}
                     return client
                 except (socket.error, DockerException) as e:
                     logger.debug(f"Socket connection failed: {str(e)}")
-                    
+
                     # Try to fix permissions
                     try:
-                        success, message = self.platform_adapter.fix_permissions(socket_path)
+                        success, message = self.platform_adapter.fix_permissions(
+                            socket_path
+                        )
                         if success:
-                            logger.info(f"Fixed permissions for {socket_path}: {message}")
+                            logger.info(
+                                f"Fixed permissions for {socket_path}: {message}"
+                            )
                             # Try connecting again
-                            client = docker.DockerClient(base_url=f"unix://{socket_path}")
-                            self.connection_params = {"method": "socket", "path": socket_path}
+                            client = docker.DockerClient(
+                                base_url=f"unix://{socket_path}"
+                            )
+                            self.connection_params = {
+                                "method": "socket",
+                                "path": socket_path,
+                            }
                             return client
                     except Exception as fix_error:
                         logger.debug(f"Failed to fix permissions: {str(fix_error)}")
-        
+
         return None
 
     def _connect_with_named_pipe(self) -> Optional[docker.DockerClient]:
         """
         Connect to Docker using Windows named pipe.
-        
+
         Returns:
             Optional[docker.DockerClient]: Docker client or None
         """
@@ -183,13 +196,13 @@ class DockerConnectionManager:
                 return client
             except DockerException as e:
                 logger.debug(f"Named pipe connection failed: {str(e)}")
-        
+
         return None
 
     def _connect_with_tcp(self) -> Optional[docker.DockerClient]:
         """
         Connect to Docker using TCP.
-        
+
         Returns:
             Optional[docker.DockerClient]: Docker client or None
         """
@@ -197,7 +210,7 @@ class DockerConnectionManager:
         host = self.config.get("docker_host")
         if not host:
             host = os.environ.get("DOCKER_HOST")
-        
+
         if host and host.startswith(("tcp://", "http://", "https://")):
             try:
                 client = docker.DockerClient(base_url=host)
@@ -205,13 +218,13 @@ class DockerConnectionManager:
                 return client
             except DockerException as e:
                 logger.debug(f"TCP connection failed: {str(e)}")
-        
+
         return None
 
     def _connect_with_ssh(self) -> Optional[docker.DockerClient]:
         """
         Connect to Docker using SSH.
-        
+
         Returns:
             Optional[docker.DockerClient]: Docker client or None
         """
@@ -219,7 +232,7 @@ class DockerConnectionManager:
         ssh_host = self.config.get("docker_ssh_host")
         if not ssh_host:
             ssh_host = os.environ.get("DOCKER_SSH_HOST")
-        
+
         if ssh_host:
             try:
                 client = docker.DockerClient(base_url=f"ssh://{ssh_host}")
@@ -227,23 +240,23 @@ class DockerConnectionManager:
                 return client
             except DockerException as e:
                 logger.debug(f"SSH connection failed: {str(e)}")
-        
+
         return None
 
     def get_connection_info(self) -> Dict[str, Any]:
         """
         Get information about the current Docker connection.
-        
+
         Returns:
             Dict[str, Any]: Connection information
         """
         if not self.client:
             return {"connected": False}
-        
+
         try:
             version = self.client.version()
             info = self.client.info()
-            
+
             return {
                 "connected": True,
                 "method": self.connection_method,
@@ -259,14 +272,11 @@ class DockerConnectionManager:
                     "driver": info.get("Driver"),
                     "cpu_count": info.get("NCPU"),
                     "memory_total": info.get("MemTotal"),
-                }
+                },
             }
         except Exception as e:
             logger.error(f"Error getting Docker connection info: {str(e)}")
-            return {
-                "connected": False,
-                "error": str(e)
-            }
+            return {"connected": False, "error": str(e)}
 
     def disconnect(self) -> None:
         """Disconnect from Docker."""
@@ -293,13 +303,15 @@ class DockerConnectionManager:
 _docker_connection_manager = None
 
 
-def get_docker_connection_manager(config: Optional[Dict[str, Any]] = None) -> DockerConnectionManager:
+def get_docker_connection_manager(
+    config: Optional[Dict[str, Any]] = None,
+) -> DockerConnectionManager:
     """
     Get the Docker connection manager (singleton).
-    
+
     Args:
         config: Optional configuration dictionary
-        
+
     Returns:
         DockerConnectionManager: Docker connection manager
     """
@@ -309,20 +321,20 @@ def get_docker_connection_manager(config: Optional[Dict[str, Any]] = None) -> Do
     elif config is not None:
         # Update config if provided
         _docker_connection_manager.config.update(config)
-    
+
     return _docker_connection_manager
 
 
 def get_docker_client(config: Optional[Dict[str, Any]] = None) -> docker.DockerClient:
     """
     Get a Docker client.
-    
+
     Args:
         config: Optional configuration dictionary
-        
+
     Returns:
         docker.DockerClient: Docker client
-        
+
     Raises:
         DockerConnectionError: If connection fails
     """

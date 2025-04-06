@@ -5,23 +5,24 @@ This module provides functionality for visualizing and reporting Docker containe
 including time-series charts, resource heatmaps, comparative analysis, and scheduled report generation.
 """
 
-import os
-import logging
-import json
-import csv
-from typing import Dict, List, Any, Optional, Tuple, Union
-from datetime import datetime, timedelta
-import tempfile
 import base64
-from pathlib import Path
+import csv
+import io
+import json
+import logging
+import os
+import tempfile
 import threading
 import time
-import io
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from src.config.config_manager import ConfigManager
 from src.resource_monitoring.metrics_collector import MetricsCollector
 
 logger = logging.getLogger(__name__)
+
 
 class VisualizationEngine:
     """
@@ -35,7 +36,9 @@ class VisualizationEngine:
     - Export to multiple formats
     """
 
-    def __init__(self, config_manager: ConfigManager, metrics_collector: MetricsCollector):
+    def __init__(
+        self, config_manager: ConfigManager, metrics_collector: MetricsCollector
+    ):
         """
         Initialize the visualization engine.
 
@@ -48,16 +51,20 @@ class VisualizationEngine:
         self.metrics_collector = metrics_collector
 
         # Visualization configuration
-        self.visualization_config = self.config.get('resource_monitoring', {}).get('visualization', {})
-        self.output_dir = self.visualization_config.get('output_dir', '~/.dockerforge/visualizations')
+        self.visualization_config = self.config.get("resource_monitoring", {}).get(
+            "visualization", {}
+        )
+        self.output_dir = self.visualization_config.get(
+            "output_dir", "~/.dockerforge/visualizations"
+        )
         self.output_dir = os.path.expanduser(self.output_dir)
-        self.default_format = self.visualization_config.get('default_format', 'png')
-        self.chart_width = self.visualization_config.get('chart_width', 800)
-        self.chart_height = self.visualization_config.get('chart_height', 400)
-        self.color_scheme = self.visualization_config.get('color_scheme', 'default')
+        self.default_format = self.visualization_config.get("default_format", "png")
+        self.chart_width = self.visualization_config.get("chart_width", 800)
+        self.chart_height = self.visualization_config.get("chart_height", 400)
+        self.color_scheme = self.visualization_config.get("color_scheme", "default")
 
         # Scheduled reports
-        self.scheduled_reports = self.visualization_config.get('scheduled_reports', [])
+        self.scheduled_reports = self.visualization_config.get("scheduled_reports", [])
         self.report_thread = None
         self.running = False
 
@@ -71,21 +78,30 @@ class VisualizationEngine:
 
         try:
             import matplotlib
+
             self.has_matplotlib = True
         except ImportError:
-            logger.warning("Matplotlib not available, some visualization features will be limited")
+            logger.warning(
+                "Matplotlib not available, some visualization features will be limited"
+            )
 
         try:
             import plotly
+
             self.has_plotly = True
         except ImportError:
-            logger.warning("Plotly not available, some visualization features will be limited")
+            logger.warning(
+                "Plotly not available, some visualization features will be limited"
+            )
 
         try:
             import pandas
+
             self.has_pandas = True
         except ImportError:
-            logger.warning("Pandas not available, some data processing features will be limited")
+            logger.warning(
+                "Pandas not available, some data processing features will be limited"
+            )
 
     def start_scheduled_reports(self) -> None:
         """
@@ -114,33 +130,47 @@ class VisualizationEngine:
         """
         Main loop for scheduled report generation.
         """
-        last_run_times = {report['name']: None for report in self.scheduled_reports}
+        last_run_times = {report["name"]: None for report in self.scheduled_reports}
 
         while self.running:
             try:
                 current_time = datetime.now()
 
                 for report in self.scheduled_reports:
-                    report_name = report['name']
-                    interval = report.get('interval', 24 * 60 * 60)  # Default: daily (in seconds)
+                    report_name = report["name"]
+                    interval = report.get(
+                        "interval", 24 * 60 * 60
+                    )  # Default: daily (in seconds)
 
                     # Check if it's time to run this report
-                    if (last_run_times[report_name] is None or
-                        (current_time - last_run_times[report_name]).total_seconds() >= interval):
+                    if (
+                        last_run_times[report_name] is None
+                        or (current_time - last_run_times[report_name]).total_seconds()
+                        >= interval
+                    ):
 
                         # Generate the report
                         try:
                             self.generate_report(
-                                report.get('containers', []),
-                                report.get('metrics', ['cpu', 'memory', 'disk', 'network']),
-                                report.get('duration', 24),  # Default: 24 hours
-                                report.get('format', self.default_format),
-                                report.get('output_file', f"{report_name}_{current_time.strftime('%Y%m%d_%H%M%S')}")
+                                report.get("containers", []),
+                                report.get(
+                                    "metrics", ["cpu", "memory", "disk", "network"]
+                                ),
+                                report.get("duration", 24),  # Default: 24 hours
+                                report.get("format", self.default_format),
+                                report.get(
+                                    "output_file",
+                                    f"{report_name}_{current_time.strftime('%Y%m%d_%H%M%S')}",
+                                ),
                             )
                             last_run_times[report_name] = current_time
                             logger.info("Generated scheduled report: %s", report_name)
                         except Exception as e:
-                            logger.error("Error generating scheduled report %s: %s", report_name, e)
+                            logger.error(
+                                "Error generating scheduled report %s: %s",
+                                report_name,
+                                e,
+                            )
 
                 # Sleep for a minute before checking again
                 time.sleep(60)
@@ -148,10 +178,14 @@ class VisualizationEngine:
                 logger.error("Error in report scheduler: %s", e)
                 time.sleep(60)  # Wait a bit before retrying
 
-    def generate_time_series_chart(self, container_id: str, metric_type: str,
-                                  duration: int = 1, # hours
-                                  format: str = None,
-                                  output_file: Optional[str] = None) -> Optional[str]:
+    def generate_time_series_chart(
+        self,
+        container_id: str,
+        metric_type: str,
+        duration: int = 1,  # hours
+        format: str = None,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a time-series chart for a specific container and metric.
 
@@ -170,13 +204,15 @@ class VisualizationEngine:
 
         # Get metrics data
         metrics_data = self.metrics_collector.get_metrics_history(
-            container_id,
-            metric_type,
-            timedelta(hours=duration)
+            container_id, metric_type, timedelta(hours=duration)
         )
 
         if not metrics_data:
-            logger.warning("No metrics data available for container %s, metric %s", container_id, metric_type)
+            logger.warning(
+                "No metrics data available for container %s, metric %s",
+                container_id,
+                metric_type,
+            )
             return None
 
         # Prepare data for visualization
@@ -184,10 +220,10 @@ class VisualizationEngine:
         values = {}
 
         for entry in metrics_data:
-            timestamp = datetime.fromisoformat(entry['timestamp'])
+            timestamp = datetime.fromisoformat(entry["timestamp"])
             timestamps.append(timestamp)
 
-            data = entry['data']
+            data = entry["data"]
             for key, value in data.items():
                 if isinstance(value, (int, float)):
                     if key not in values:
@@ -195,19 +231,33 @@ class VisualizationEngine:
                     values[key].append(value)
 
         # Select appropriate visualization method based on available libraries
-        if format.lower() in ['json', 'csv']:
-            return self._export_time_series_data(container_id, metric_type, timestamps, values, format, output_file)
-        elif self.has_plotly and format.lower() in ['html', 'interactive']:
-            return self._generate_plotly_time_series(container_id, metric_type, timestamps, values, output_file)
+        if format.lower() in ["json", "csv"]:
+            return self._export_time_series_data(
+                container_id, metric_type, timestamps, values, format, output_file
+            )
+        elif self.has_plotly and format.lower() in ["html", "interactive"]:
+            return self._generate_plotly_time_series(
+                container_id, metric_type, timestamps, values, output_file
+            )
         elif self.has_matplotlib:
-            return self._generate_matplotlib_time_series(container_id, metric_type, timestamps, values, format, output_file)
+            return self._generate_matplotlib_time_series(
+                container_id, metric_type, timestamps, values, format, output_file
+            )
         else:
             # Fallback to text-based visualization
-            return self._generate_text_time_series(container_id, metric_type, timestamps, values, output_file)
+            return self._generate_text_time_series(
+                container_id, metric_type, timestamps, values, output_file
+            )
 
-    def _generate_matplotlib_time_series(self, container_id: str, metric_type: str,
-                                        timestamps: List[datetime], values: Dict[str, List[float]],
-                                        format: str, output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_matplotlib_time_series(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a time-series chart using Matplotlib.
 
@@ -227,7 +277,9 @@ class VisualizationEngine:
             from matplotlib.dates import DateFormatter
 
             # Create figure and axis
-            fig, ax = plt.subplots(figsize=(self.chart_width/100, self.chart_height/100), dpi=100)
+            fig, ax = plt.subplots(
+                figsize=(self.chart_width / 100, self.chart_height / 100), dpi=100
+            )
 
             # Plot each metric
             for key, vals in values.items():
@@ -235,23 +287,25 @@ class VisualizationEngine:
                     ax.plot(timestamps, vals, label=key)
 
             # Format the chart
-            ax.set_title(f"{metric_type.capitalize()} Usage for Container {container_id[:12]}")
+            ax.set_title(
+                f"{metric_type.capitalize()} Usage for Container {container_id[:12]}"
+            )
             ax.set_xlabel("Time")
 
             # Set y-axis label based on metric type
-            if metric_type == 'cpu':
+            if metric_type == "cpu":
                 ax.set_ylabel("CPU Usage (%)")
-            elif metric_type == 'memory':
+            elif metric_type == "memory":
                 ax.set_ylabel("Memory Usage (%)")
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 ax.set_ylabel("Disk I/O (bytes)")
-            elif metric_type == 'network':
+            elif metric_type == "network":
                 ax.set_ylabel("Network Traffic (bytes)")
             else:
                 ax.set_ylabel("Value")
 
             # Format x-axis
-            ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
+            ax.xaxis.set_major_formatter(DateFormatter("%H:%M:%S"))
             plt.xticks(rotation=45)
 
             # Add legend if multiple metrics
@@ -265,7 +319,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -288,9 +342,14 @@ class VisualizationEngine:
             logger.error("Error generating Matplotlib time series: %s", e)
             return None
 
-    def _generate_plotly_time_series(self, container_id: str, metric_type: str,
-                                    timestamps: List[datetime], values: Dict[str, List[float]],
-                                    output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_plotly_time_series(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate an interactive time-series chart using Plotly.
 
@@ -315,7 +374,7 @@ class VisualizationEngine:
             for key, vals in values.items():
                 if len(timestamps) == len(vals):
                     fig.add_trace(
-                        go.Scatter(x=timestamps, y=vals, name=key, mode='lines'),
+                        go.Scatter(x=timestamps, y=vals, name=key, mode="lines"),
                         secondary_y=False,
                     )
 
@@ -326,18 +385,20 @@ class VisualizationEngine:
                 legend_title="Metrics",
                 width=self.chart_width,
                 height=self.chart_height,
-                hovermode="x unified"
+                hovermode="x unified",
             )
 
             # Set y-axis title based on metric type
-            if metric_type == 'cpu':
+            if metric_type == "cpu":
                 fig.update_yaxes(title_text="CPU Usage (%)", secondary_y=False)
-            elif metric_type == 'memory':
+            elif metric_type == "memory":
                 fig.update_yaxes(title_text="Memory Usage (%)", secondary_y=False)
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 fig.update_yaxes(title_text="Disk I/O (bytes)", secondary_y=False)
-            elif metric_type == 'network':
-                fig.update_yaxes(title_text="Network Traffic (bytes)", secondary_y=False)
+            elif metric_type == "network":
+                fig.update_yaxes(
+                    title_text="Network Traffic (bytes)", secondary_y=False
+                )
             else:
                 fig.update_yaxes(title_text="Value", secondary_y=False)
 
@@ -345,7 +406,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -367,9 +428,14 @@ class VisualizationEngine:
             logger.error("Error generating Plotly time series: %s", e)
             return None
 
-    def _generate_text_time_series(self, container_id: str, metric_type: str,
-                                  timestamps: List[datetime], values: Dict[str, List[float]],
-                                  output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_text_time_series(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a text-based time-series visualization.
 
@@ -385,9 +451,16 @@ class VisualizationEngine:
         """
         try:
             # Create a simple text-based visualization
-            lines = [f"{metric_type.capitalize()} Usage for Container {container_id[:12]}"]
+            lines = [
+                f"{metric_type.capitalize()} Usage for Container {container_id[:12]}"
+            ]
             lines.append("=" * 80)
-            lines.append("Timestamp" + " " * 20 + " | " + " | ".join(f"{key:>10}" for key in values.keys()))
+            lines.append(
+                "Timestamp"
+                + " " * 20
+                + " | "
+                + " | ".join(f"{key:>10}" for key in values.keys())
+            )
             lines.append("-" * 80)
 
             # Add data rows
@@ -405,7 +478,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -420,7 +493,7 @@ class VisualizationEngine:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             # Write to file
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write("\n".join(lines))
 
             return output_file
@@ -428,9 +501,15 @@ class VisualizationEngine:
             logger.error("Error generating text time series: %s", e)
             return None
 
-    def _export_time_series_data(self, container_id: str, metric_type: str,
-                                timestamps: List[datetime], values: Dict[str, List[float]],
-                                format: str, output_file: Optional[str] = None) -> Optional[str]:
+    def _export_time_series_data(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Export time-series data to a file.
 
@@ -450,7 +529,11 @@ class VisualizationEngine:
             export_data = []
             for i, timestamp in enumerate(timestamps):
                 if i < len(timestamps):
-                    row = {'timestamp': timestamp.isoformat(), 'container_id': container_id, 'metric_type': metric_type}
+                    row = {
+                        "timestamp": timestamp.isoformat(),
+                        "container_id": container_id,
+                        "metric_type": metric_type,
+                    }
                     for key in values.keys():
                         if i < len(values[key]):
                             row[key] = values[key][i]
@@ -460,7 +543,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format.lower()}"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format.lower()}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -475,11 +558,11 @@ class VisualizationEngine:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             # Write to file
-            if format.lower() == 'json':
-                with open(output_file, 'w') as f:
+            if format.lower() == "json":
+                with open(output_file, "w") as f:
                     json.dump(export_data, f, indent=2)
-            elif format.lower() == 'csv':
-                with open(output_file, 'w', newline='') as f:
+            elif format.lower() == "csv":
+                with open(output_file, "w", newline="") as f:
                     if export_data:
                         fieldnames = export_data[0].keys()
                         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -491,8 +574,13 @@ class VisualizationEngine:
             logger.error("Error exporting time series data: %s", e)
             return None
 
-    def generate_resource_heatmap(self, metric_type: str, duration: int = 24,
-                                 format: str = None, output_file: Optional[str] = None) -> Optional[str]:
+    def generate_resource_heatmap(
+        self,
+        metric_type: str,
+        duration: int = 24,
+        format: str = None,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a resource heatmap showing usage across all containers.
 
@@ -516,7 +604,7 @@ class VisualizationEngine:
             container_id=None,
             metric_type=metric_type,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         if not metrics:
@@ -532,21 +620,25 @@ class VisualizationEngine:
                 container_data[container_id] = {}
 
                 for entry in container_metrics[metric_type]:
-                    timestamp = datetime.fromisoformat(entry['timestamp'])
+                    timestamp = datetime.fromisoformat(entry["timestamp"])
                     all_timestamps.add(timestamp)
 
                     # Extract the main value based on metric type
-                    if metric_type == 'cpu':
-                        value = entry['data'].get('usage_percent', 0)
-                    elif metric_type == 'memory':
-                        value = entry['data'].get('usage_percent', 0)
-                    elif metric_type == 'disk':
-                        value = entry['data'].get('read_bytes', 0) + entry['data'].get('write_bytes', 0)
-                    elif metric_type == 'network':
-                        value = entry['data'].get('rx_bytes', 0) + entry['data'].get('tx_bytes', 0)
+                    if metric_type == "cpu":
+                        value = entry["data"].get("usage_percent", 0)
+                    elif metric_type == "memory":
+                        value = entry["data"].get("usage_percent", 0)
+                    elif metric_type == "disk":
+                        value = entry["data"].get("read_bytes", 0) + entry["data"].get(
+                            "write_bytes", 0
+                        )
+                    elif metric_type == "network":
+                        value = entry["data"].get("rx_bytes", 0) + entry["data"].get(
+                            "tx_bytes", 0
+                        )
                     else:
                         # Try to find a numeric value
-                        for k, v in entry['data'].items():
+                        for k, v in entry["data"].items():
                             if isinstance(v, (int, float)):
                                 value = v
                                 break
@@ -564,27 +656,48 @@ class VisualizationEngine:
         for container_id in sorted_containers:
             container_values = []
             for timestamp in sorted_timestamps:
-                container_values.append(container_data.get(container_id, {}).get(timestamp, 0))
+                container_values.append(
+                    container_data.get(container_id, {}).get(timestamp, 0)
+                )
             heatmap_data.append(container_values)
 
         # Select appropriate visualization method based on available libraries
         if self.has_matplotlib:
             return self._generate_matplotlib_heatmap(
-                sorted_containers, sorted_timestamps, heatmap_data, metric_type, format, output_file
+                sorted_containers,
+                sorted_timestamps,
+                heatmap_data,
+                metric_type,
+                format,
+                output_file,
             )
         elif self.has_plotly:
             return self._generate_plotly_heatmap(
-                sorted_containers, sorted_timestamps, heatmap_data, metric_type, output_file
+                sorted_containers,
+                sorted_timestamps,
+                heatmap_data,
+                metric_type,
+                output_file,
             )
         else:
             # Fallback to text-based visualization
             return self._generate_text_heatmap(
-                sorted_containers, sorted_timestamps, heatmap_data, metric_type, output_file
+                sorted_containers,
+                sorted_timestamps,
+                heatmap_data,
+                metric_type,
+                output_file,
             )
 
-    def _generate_matplotlib_heatmap(self, containers: List[str], timestamps: List[datetime],
-                                    data: List[List[float]], metric_type: str, format: str,
-                                    output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_matplotlib_heatmap(
+        self,
+        containers: List[str],
+        timestamps: List[datetime],
+        data: List[List[float]],
+        metric_type: str,
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a heatmap using Matplotlib.
 
@@ -605,10 +718,12 @@ class VisualizationEngine:
             from matplotlib.dates import DateFormatter
 
             # Create figure and axis
-            fig, ax = plt.subplots(figsize=(self.chart_width/100, self.chart_height/100), dpi=100)
+            fig, ax = plt.subplots(
+                figsize=(self.chart_width / 100, self.chart_height / 100), dpi=100
+            )
 
             # Create the heatmap
-            im = ax.imshow(data, aspect='auto', cmap='viridis')
+            im = ax.imshow(data, aspect="auto", cmap="viridis")
 
             # Set labels
             ax.set_title(f"{metric_type.capitalize()} Usage Heatmap")
@@ -625,16 +740,18 @@ class VisualizationEngine:
             if num_ticks > 0:
                 tick_indices = np.linspace(0, len(timestamps) - 1, num_ticks, dtype=int)
                 ax.set_xticks(tick_indices)
-                ax.set_xticklabels([timestamps[i].strftime('%H:%M:%S') for i in tick_indices])
+                ax.set_xticklabels(
+                    [timestamps[i].strftime("%H:%M:%S") for i in tick_indices]
+                )
                 plt.xticks(rotation=45)
 
             # Add colorbar
             cbar = ax.figure.colorbar(im, ax=ax)
-            if metric_type == 'cpu' or metric_type == 'memory':
+            if metric_type == "cpu" or metric_type == "memory":
                 cbar.ax.set_ylabel("Usage (%)", rotation=-90, va="bottom")
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 cbar.ax.set_ylabel("Disk I/O (bytes)", rotation=-90, va="bottom")
-            elif metric_type == 'network':
+            elif metric_type == "network":
                 cbar.ax.set_ylabel("Network Traffic (bytes)", rotation=-90, va="bottom")
             else:
                 cbar.ax.set_ylabel("Value", rotation=-90, va="bottom")
@@ -646,7 +763,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}"
+                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -669,9 +786,14 @@ class VisualizationEngine:
             logger.error("Error generating Matplotlib heatmap: %s", e)
             return None
 
-    def _generate_plotly_heatmap(self, containers: List[str], timestamps: List[datetime],
-                                data: List[List[float]], metric_type: str,
-                                output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_plotly_heatmap(
+        self,
+        containers: List[str],
+        timestamps: List[datetime],
+        data: List[List[float]],
+        metric_type: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate an interactive heatmap using Plotly.
 
@@ -686,23 +808,25 @@ class VisualizationEngine:
             The path to the generated heatmap file, or None if generation failed
         """
         try:
-            import plotly.graph_objects as go
             import numpy as np
+            import plotly.graph_objects as go
 
             # Format timestamps
-            time_labels = [t.strftime('%Y-%m-%d %H:%M:%S') for t in timestamps]
+            time_labels = [t.strftime("%Y-%m-%d %H:%M:%S") for t in timestamps]
 
             # Format container IDs
             container_labels = [c[:12] for c in containers]
 
             # Create the heatmap
-            fig = go.Figure(data=go.Heatmap(
-                z=data,
-                x=time_labels,
-                y=container_labels,
-                colorscale='Viridis',
-                hovertemplate='Container: %{y}<br>Time: %{x}<br>Value: %{z}<extra></extra>'
-            ))
+            fig = go.Figure(
+                data=go.Heatmap(
+                    z=data,
+                    x=time_labels,
+                    y=container_labels,
+                    colorscale="Viridis",
+                    hovertemplate="Container: %{y}<br>Time: %{x}<br>Value: %{z}<extra></extra>",
+                )
+            )
 
             # Update layout
             fig.update_layout(
@@ -710,15 +834,15 @@ class VisualizationEngine:
                 xaxis_title="Time",
                 yaxis_title="Container",
                 width=self.chart_width,
-                height=self.chart_height
+                height=self.chart_height,
             )
 
             # Set colorbar title based on metric type
-            if metric_type == 'cpu' or metric_type == 'memory':
+            if metric_type == "cpu" or metric_type == "memory":
                 fig.update_traces(colorbar_title="Usage (%)")
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 fig.update_traces(colorbar_title="Disk I/O (bytes)")
-            elif metric_type == 'network':
+            elif metric_type == "network":
                 fig.update_traces(colorbar_title="Network Traffic (bytes)")
             else:
                 fig.update_traces(colorbar_title="Value")
@@ -727,7 +851,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -749,9 +873,14 @@ class VisualizationEngine:
             logger.error("Error generating Plotly heatmap: %s", e)
             return None
 
-    def _generate_text_heatmap(self, containers: List[str], timestamps: List[datetime],
-                              data: List[List[float]], metric_type: str,
-                              output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_text_heatmap(
+        self,
+        containers: List[str],
+        timestamps: List[datetime],
+        data: List[List[float]],
+        metric_type: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a text-based heatmap visualization.
 
@@ -775,9 +904,12 @@ class VisualizationEngine:
             num_ticks = min(10, len(timestamps))
             if num_ticks > 0:
                 import numpy as np
+
                 tick_indices = np.linspace(0, len(timestamps) - 1, num_ticks, dtype=int)
                 header = "Container" + " " * 10 + " | "
-                header += " | ".join(f"{timestamps[i].strftime('%H:%M:%S'):>8}" for i in tick_indices)
+                header += " | ".join(
+                    f"{timestamps[i].strftime('%H:%M:%S'):>8}" for i in tick_indices
+                )
                 lines.append(header)
                 lines.append("-" * 80)
 
@@ -811,7 +943,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -826,7 +958,7 @@ class VisualizationEngine:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             # Write to file
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write("\n".join(lines))
 
             return output_file
@@ -834,9 +966,14 @@ class VisualizationEngine:
             logger.error("Error generating text heatmap: %s", e)
             return None
 
-    def generate_comparative_analysis(self, container_ids: List[str], metric_type: str,
-                                     duration: int = 24, format: str = None,
-                                     output_file: Optional[str] = None) -> Optional[str]:
+    def generate_comparative_analysis(
+        self,
+        container_ids: List[str],
+        metric_type: str,
+        duration: int = 24,
+        format: str = None,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a comparative analysis of multiple containers for a specific metric.
 
@@ -863,9 +1000,13 @@ class VisualizationEngine:
                 container_id=container_id,
                 metric_type=metric_type,
                 start_time=start_time,
-                end_time=end_time
+                end_time=end_time,
             )
-            if metrics and container_id in metrics and metric_type in metrics[container_id]:
+            if (
+                metrics
+                and container_id in metrics
+                and metric_type in metrics[container_id]
+            ):
                 all_metrics[container_id] = metrics[container_id][metric_type]
 
         if not all_metrics:
@@ -880,21 +1021,25 @@ class VisualizationEngine:
             container_data[container_id] = {}
 
             for entry in metrics_data:
-                timestamp = datetime.fromisoformat(entry['timestamp'])
+                timestamp = datetime.fromisoformat(entry["timestamp"])
                 all_timestamps.add(timestamp)
 
                 # Extract the main value based on metric type
-                if metric_type == 'cpu':
-                    value = entry['data'].get('usage_percent', 0)
-                elif metric_type == 'memory':
-                    value = entry['data'].get('usage_percent', 0)
-                elif metric_type == 'disk':
-                    value = entry['data'].get('read_bytes', 0) + entry['data'].get('write_bytes', 0)
-                elif metric_type == 'network':
-                    value = entry['data'].get('rx_bytes', 0) + entry['data'].get('tx_bytes', 0)
+                if metric_type == "cpu":
+                    value = entry["data"].get("usage_percent", 0)
+                elif metric_type == "memory":
+                    value = entry["data"].get("usage_percent", 0)
+                elif metric_type == "disk":
+                    value = entry["data"].get("read_bytes", 0) + entry["data"].get(
+                        "write_bytes", 0
+                    )
+                elif metric_type == "network":
+                    value = entry["data"].get("rx_bytes", 0) + entry["data"].get(
+                        "tx_bytes", 0
+                    )
                 else:
                     # Try to find a numeric value
-                    for k, v in entry['data'].items():
+                    for k, v in entry["data"].items():
                         if isinstance(v, (int, float)):
                             value = v
                             break
@@ -915,19 +1060,43 @@ class VisualizationEngine:
             plot_data[container_id] = values
 
         # Select appropriate visualization method based on available libraries
-        if format.lower() in ['json', 'csv']:
-            return self._export_comparative_data(container_ids, metric_type, sorted_timestamps, plot_data, format, output_file)
-        elif self.has_plotly and format.lower() in ['html', 'interactive']:
-            return self._generate_plotly_comparative(container_ids, metric_type, sorted_timestamps, plot_data, output_file)
+        if format.lower() in ["json", "csv"]:
+            return self._export_comparative_data(
+                container_ids,
+                metric_type,
+                sorted_timestamps,
+                plot_data,
+                format,
+                output_file,
+            )
+        elif self.has_plotly and format.lower() in ["html", "interactive"]:
+            return self._generate_plotly_comparative(
+                container_ids, metric_type, sorted_timestamps, plot_data, output_file
+            )
         elif self.has_matplotlib:
-            return self._generate_matplotlib_comparative(container_ids, metric_type, sorted_timestamps, plot_data, format, output_file)
+            return self._generate_matplotlib_comparative(
+                container_ids,
+                metric_type,
+                sorted_timestamps,
+                plot_data,
+                format,
+                output_file,
+            )
         else:
             # Fallback to text-based visualization
-            return self._generate_text_comparative(container_ids, metric_type, sorted_timestamps, plot_data, output_file)
+            return self._generate_text_comparative(
+                container_ids, metric_type, sorted_timestamps, plot_data, output_file
+            )
 
-    def _generate_matplotlib_comparative(self, container_ids: List[str], metric_type: str,
-                                        timestamps: List[datetime], data: Dict[str, List[float]],
-                                        format: str, output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_matplotlib_comparative(
+        self,
+        container_ids: List[str],
+        metric_type: str,
+        timestamps: List[datetime],
+        data: Dict[str, List[float]],
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a comparative analysis chart using Matplotlib.
 
@@ -947,7 +1116,9 @@ class VisualizationEngine:
             from matplotlib.dates import DateFormatter
 
             # Create figure and axis
-            fig, ax = plt.subplots(figsize=(self.chart_width/100, self.chart_height/100), dpi=100)
+            fig, ax = plt.subplots(
+                figsize=(self.chart_width / 100, self.chart_height / 100), dpi=100
+            )
 
             # Plot each container's data
             for container_id, values in data.items():
@@ -959,19 +1130,19 @@ class VisualizationEngine:
             ax.set_xlabel("Time")
 
             # Set y-axis label based on metric type
-            if metric_type == 'cpu':
+            if metric_type == "cpu":
                 ax.set_ylabel("CPU Usage (%)")
-            elif metric_type == 'memory':
+            elif metric_type == "memory":
                 ax.set_ylabel("Memory Usage (%)")
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 ax.set_ylabel("Disk I/O (bytes)")
-            elif metric_type == 'network':
+            elif metric_type == "network":
                 ax.set_ylabel("Network Traffic (bytes)")
             else:
                 ax.set_ylabel("Value")
 
             # Format x-axis
-            ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
+            ax.xaxis.set_major_formatter(DateFormatter("%H:%M:%S"))
             plt.xticks(rotation=45)
 
             # Add legend
@@ -984,7 +1155,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}"
+                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1007,9 +1178,14 @@ class VisualizationEngine:
             logger.error("Error generating Matplotlib comparative analysis: %s", e)
             return None
 
-    def _generate_plotly_comparative(self, container_ids: List[str], metric_type: str,
-                                    timestamps: List[datetime], data: Dict[str, List[float]],
-                                    output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_plotly_comparative(
+        self,
+        container_ids: List[str],
+        metric_type: str,
+        timestamps: List[datetime],
+        data: Dict[str, List[float]],
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate an interactive comparative analysis chart using Plotly.
 
@@ -1033,7 +1209,9 @@ class VisualizationEngine:
             for container_id, values in data.items():
                 if len(timestamps) == len(values):
                     fig.add_trace(
-                        go.Scatter(x=timestamps, y=values, name=container_id[:12], mode='lines')
+                        go.Scatter(
+                            x=timestamps, y=values, name=container_id[:12], mode="lines"
+                        )
                     )
 
             # Update layout
@@ -1044,14 +1222,14 @@ class VisualizationEngine:
                 legend_title="Containers",
                 width=self.chart_width,
                 height=self.chart_height,
-                hovermode="x unified"
+                hovermode="x unified",
             )
 
             # Save the chart
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1073,9 +1251,14 @@ class VisualizationEngine:
             logger.error("Error generating Plotly comparative analysis: %s", e)
             return None
 
-    def _generate_text_comparative(self, container_ids: List[str], metric_type: str,
-                                  timestamps: List[datetime], data: Dict[str, List[float]],
-                                  output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_text_comparative(
+        self,
+        container_ids: List[str],
+        metric_type: str,
+        timestamps: List[datetime],
+        data: Dict[str, List[float]],
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a text-based comparative analysis.
 
@@ -1099,9 +1282,12 @@ class VisualizationEngine:
             num_ticks = min(10, len(timestamps))
             if num_ticks > 0:
                 import numpy as np
+
                 tick_indices = np.linspace(0, len(timestamps) - 1, num_ticks, dtype=int)
                 header = "Container" + " " * 10 + " | "
-                header += " | ".join(f"{timestamps[i].strftime('%H:%M:%S'):>8}" for i in tick_indices)
+                header += " | ".join(
+                    f"{timestamps[i].strftime('%H:%M:%S'):>8}" for i in tick_indices
+                )
                 lines.append(header)
                 lines.append("-" * 80)
 
@@ -1121,7 +1307,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1136,7 +1322,7 @@ class VisualizationEngine:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             # Write to file
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write("\n".join(lines))
 
             return output_file
@@ -1144,9 +1330,15 @@ class VisualizationEngine:
             logger.error("Error generating text comparative analysis: %s", e)
             return None
 
-    def _export_comparative_data(self, container_ids: List[str], metric_type: str,
-                                timestamps: List[datetime], data: Dict[str, List[float]],
-                                format: str, output_file: Optional[str] = None) -> Optional[str]:
+    def _export_comparative_data(
+        self,
+        container_ids: List[str],
+        metric_type: str,
+        timestamps: List[datetime],
+        data: Dict[str, List[float]],
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Export comparative analysis data to a file.
 
@@ -1166,7 +1358,10 @@ class VisualizationEngine:
             export_data = []
             for i, timestamp in enumerate(timestamps):
                 if i < len(timestamps):
-                    row = {'timestamp': timestamp.isoformat(), 'metric_type': metric_type}
+                    row = {
+                        "timestamp": timestamp.isoformat(),
+                        "metric_type": metric_type,
+                    }
                     for container_id, values in data.items():
                         if i < len(values):
                             row[container_id] = values[i]
@@ -1176,7 +1371,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format.lower()}"
+                    f"comparative_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format.lower()}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1191,11 +1386,11 @@ class VisualizationEngine:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             # Write to file
-            if format.lower() == 'json':
-                with open(output_file, 'w') as f:
+            if format.lower() == "json":
+                with open(output_file, "w") as f:
                     json.dump(export_data, f, indent=2)
-            elif format.lower() == 'csv':
-                with open(output_file, 'w', newline='') as f:
+            elif format.lower() == "csv":
+                with open(output_file, "w", newline="") as f:
                     if export_data:
                         fieldnames = export_data[0].keys()
                         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -1217,20 +1412,25 @@ class VisualizationEngine:
         Returns:
             A human-readable label
         """
-        if metric_type == 'cpu':
+        if metric_type == "cpu":
             return "CPU Usage (%)"
-        elif metric_type == 'memory':
+        elif metric_type == "memory":
             return "Memory Usage (%)"
-        elif metric_type == 'disk':
+        elif metric_type == "disk":
             return "Disk I/O (bytes)"
-        elif metric_type == 'network':
+        elif metric_type == "network":
             return "Network Traffic (bytes)"
         else:
             return "Value"
 
-    def generate_report(self, container_ids: List[str], metric_types: List[str],
-                       duration: int = 24, format: str = None,
-                       output_file: Optional[str] = None) -> Optional[str]:
+    def generate_report(
+        self,
+        container_ids: List[str],
+        metric_types: List[str],
+        duration: int = 24,
+        format: str = None,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a comprehensive report with multiple visualizations.
 
@@ -1255,55 +1455,95 @@ class VisualizationEngine:
             for container_id in container_ids:
                 for metric_type in metric_types:
                     chart_file = self.generate_time_series_chart(
-                        container_id, metric_type, duration, format,
-                        os.path.join(temp_dir, f"timeseries_{container_id[:12]}_{metric_type}")
+                        container_id,
+                        metric_type,
+                        duration,
+                        format,
+                        os.path.join(
+                            temp_dir, f"timeseries_{container_id[:12]}_{metric_type}"
+                        ),
                     )
                     if chart_file:
-                        report_components.append({
-                            'type': 'time_series',
-                            'container_id': container_id,
-                            'metric_type': metric_type,
-                            'file': chart_file
-                        })
+                        report_components.append(
+                            {
+                                "type": "time_series",
+                                "container_id": container_id,
+                                "metric_type": metric_type,
+                                "file": chart_file,
+                            }
+                        )
 
             # Generate comparative analysis for each metric
             for metric_type in metric_types:
                 if len(container_ids) > 1:
                     chart_file = self.generate_comparative_analysis(
-                        container_ids, metric_type, duration, format,
-                        os.path.join(temp_dir, f"comparative_{metric_type}")
+                        container_ids,
+                        metric_type,
+                        duration,
+                        format,
+                        os.path.join(temp_dir, f"comparative_{metric_type}"),
                     )
                     if chart_file:
-                        report_components.append({
-                            'type': 'comparative',
-                            'metric_type': metric_type,
-                            'file': chart_file
-                        })
+                        report_components.append(
+                            {
+                                "type": "comparative",
+                                "metric_type": metric_type,
+                                "file": chart_file,
+                            }
+                        )
 
             # Generate heatmaps for each metric
             for metric_type in metric_types:
                 chart_file = self.generate_resource_heatmap(
-                    metric_type, duration, format,
-                    os.path.join(temp_dir, f"heatmap_{metric_type}")
+                    metric_type,
+                    duration,
+                    format,
+                    os.path.join(temp_dir, f"heatmap_{metric_type}"),
                 )
                 if chart_file:
-                    report_components.append({
-                        'type': 'heatmap',
-                        'metric_type': metric_type,
-                        'file': chart_file
-                    })
+                    report_components.append(
+                        {
+                            "type": "heatmap",
+                            "metric_type": metric_type,
+                            "file": chart_file,
+                        }
+                    )
 
             # Compile the report based on the format
-            if format.lower() in ['html', 'interactive']:
-                return self._compile_html_report(report_components, container_ids, metric_types, duration, output_file)
-            elif format.lower() in ['pdf', 'png', 'jpg', 'svg']:
-                return self._compile_image_report(report_components, container_ids, metric_types, duration, format, output_file)
+            if format.lower() in ["html", "interactive"]:
+                return self._compile_html_report(
+                    report_components,
+                    container_ids,
+                    metric_types,
+                    duration,
+                    output_file,
+                )
+            elif format.lower() in ["pdf", "png", "jpg", "svg"]:
+                return self._compile_image_report(
+                    report_components,
+                    container_ids,
+                    metric_types,
+                    duration,
+                    format,
+                    output_file,
+                )
             else:
-                return self._compile_text_report(report_components, container_ids, metric_types, duration, output_file)
+                return self._compile_text_report(
+                    report_components,
+                    container_ids,
+                    metric_types,
+                    duration,
+                    output_file,
+                )
 
-    def _compile_html_report(self, components: List[Dict[str, Any]], container_ids: List[str],
-                            metric_types: List[str], duration: int,
-                            output_file: Optional[str] = None) -> Optional[str]:
+    def _compile_html_report(
+        self,
+        components: List[Dict[str, Any]],
+        container_ids: List[str],
+        metric_types: List[str],
+        duration: int,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Compile an HTML report from the generated components.
 
@@ -1354,16 +1594,18 @@ class VisualizationEngine:
     </div>"""
 
             # Add comparative analysis section
-            comparative_components = [c for c in components if c.get('type') == 'comparative']
+            comparative_components = [
+                c for c in components if c.get("type") == "comparative"
+            ]
             if comparative_components:
                 html_content += """\n    <div class="section">
         <h2>Comparative Analysis</h2>"""
 
                 for component in comparative_components:
-                    metric_type = component.get('metric_type', '')
-                    file_path = component.get('file', '')
+                    metric_type = component.get("metric_type", "")
+                    file_path = component.get("file", "")
 
-                    if file_path and file_path.endswith('.html'):
+                    if file_path and file_path.endswith(".html"):
                         # For HTML files, embed using iframe
                         html_content += f"""\n        <div class="chart">
             <h3>{metric_type.capitalize()} Comparison</h3>
@@ -1379,16 +1621,16 @@ class VisualizationEngine:
                 html_content += """\n    </div>"""
 
             # Add heatmap section
-            heatmap_components = [c for c in components if c.get('type') == 'heatmap']
+            heatmap_components = [c for c in components if c.get("type") == "heatmap"]
             if heatmap_components:
                 html_content += """\n    <div class="section">
         <h2>Resource Heatmaps</h2>"""
 
                 for component in heatmap_components:
-                    metric_type = component.get('metric_type', '')
-                    file_path = component.get('file', '')
+                    metric_type = component.get("metric_type", "")
+                    file_path = component.get("file", "")
 
-                    if file_path and file_path.endswith('.html'):
+                    if file_path and file_path.endswith(".html"):
                         # For HTML files, embed using iframe
                         html_content += f"""\n        <div class="chart">
             <h3>{metric_type.capitalize()} Heatmap</h3>
@@ -1408,12 +1650,17 @@ class VisualizationEngine:
                 html_content += f"""\n    <div class="section">
         <h2>Container: {container_id[:12] if len(container_id) > 12 else container_id}</h2>"""
 
-                container_components = [c for c in components if c.get('type') == 'time_series' and c.get('container_id') == container_id]
+                container_components = [
+                    c
+                    for c in components
+                    if c.get("type") == "time_series"
+                    and c.get("container_id") == container_id
+                ]
                 for component in container_components:
-                    metric_type = component.get('metric_type', '')
-                    file_path = component.get('file', '')
+                    metric_type = component.get("metric_type", "")
+                    file_path = component.get("file", "")
 
-                    if file_path and file_path.endswith('.html'):
+                    if file_path and file_path.endswith(".html"):
                         # For HTML files, embed using iframe
                         html_content += f"""\n        <div class="chart">
             <h3>{metric_type.capitalize()} Usage</h3>
@@ -1433,28 +1680,33 @@ class VisualizationEngine:
 
             # Save the HTML report
             if output_file is None:
-                output_file = tempfile.mktemp(suffix='.html')
+                output_file = tempfile.mktemp(suffix=".html")
 
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write(html_content)
 
             # Copy component files to the same directory as the report
             report_dir = os.path.dirname(output_file)
             for component in components:
-                file_path = component.get('file', '')
+                file_path = component.get("file", "")
                 if file_path and os.path.exists(file_path):
                     import shutil
-                    shutil.copy2(file_path, os.path.join(report_dir, os.path.basename(file_path)))
+
+                    shutil.copy2(
+                        file_path, os.path.join(report_dir, os.path.basename(file_path))
+                    )
 
             return output_file
         except Exception as e:
             logger.error(f"Error compiling HTML report: {e}")
             return None
 
+
 from src.config.config_manager import ConfigManager
 from src.resource_monitoring.metrics_collector import MetricsCollector
 
 logger = logging.getLogger(__name__)
+
 
 class VisualizationEngine:
     """
@@ -1468,7 +1720,9 @@ class VisualizationEngine:
     - Export to multiple formats
     """
 
-    def __init__(self, config_manager: ConfigManager, metrics_collector: MetricsCollector):
+    def __init__(
+        self, config_manager: ConfigManager, metrics_collector: MetricsCollector
+    ):
         """
         Initialize the visualization engine.
 
@@ -1481,16 +1735,20 @@ class VisualizationEngine:
         self.metrics_collector = metrics_collector
 
         # Visualization configuration
-        self.visualization_config = self.config.get('resource_monitoring', {}).get('visualization', {})
-        self.output_dir = self.visualization_config.get('output_dir', '~/.dockerforge/visualizations')
+        self.visualization_config = self.config.get("resource_monitoring", {}).get(
+            "visualization", {}
+        )
+        self.output_dir = self.visualization_config.get(
+            "output_dir", "~/.dockerforge/visualizations"
+        )
         self.output_dir = os.path.expanduser(self.output_dir)
-        self.default_format = self.visualization_config.get('default_format', 'png')
-        self.chart_width = self.visualization_config.get('chart_width', 800)
-        self.chart_height = self.visualization_config.get('chart_height', 400)
-        self.color_scheme = self.visualization_config.get('color_scheme', 'default')
+        self.default_format = self.visualization_config.get("default_format", "png")
+        self.chart_width = self.visualization_config.get("chart_width", 800)
+        self.chart_height = self.visualization_config.get("chart_height", 400)
+        self.color_scheme = self.visualization_config.get("color_scheme", "default")
 
         # Scheduled reports
-        self.scheduled_reports = self.visualization_config.get('scheduled_reports', [])
+        self.scheduled_reports = self.visualization_config.get("scheduled_reports", [])
         self.report_thread = None
         self.running = False
 
@@ -1504,21 +1762,30 @@ class VisualizationEngine:
 
         try:
             import matplotlib
+
             self.has_matplotlib = True
         except ImportError:
-            logger.warning("Matplotlib not available, some visualization features will be limited")
+            logger.warning(
+                "Matplotlib not available, some visualization features will be limited"
+            )
 
         try:
             import plotly
+
             self.has_plotly = True
         except ImportError:
-            logger.warning("Plotly not available, some visualization features will be limited")
+            logger.warning(
+                "Plotly not available, some visualization features will be limited"
+            )
 
         try:
             import pandas
+
             self.has_pandas = True
         except ImportError:
-            logger.warning("Pandas not available, some data processing features will be limited")
+            logger.warning(
+                "Pandas not available, some data processing features will be limited"
+            )
 
     def start_scheduled_reports(self) -> None:
         """
@@ -1547,33 +1814,47 @@ class VisualizationEngine:
         """
         Main loop for scheduled report generation.
         """
-        last_run_times = {report['name']: None for report in self.scheduled_reports}
+        last_run_times = {report["name"]: None for report in self.scheduled_reports}
 
         while self.running:
             try:
                 current_time = datetime.now()
 
                 for report in self.scheduled_reports:
-                    report_name = report['name']
-                    interval = report.get('interval', 24 * 60 * 60)  # Default: daily (in seconds)
+                    report_name = report["name"]
+                    interval = report.get(
+                        "interval", 24 * 60 * 60
+                    )  # Default: daily (in seconds)
 
                     # Check if it's time to run this report
-                    if (last_run_times[report_name] is None or
-                        (current_time - last_run_times[report_name]).total_seconds() >= interval):
+                    if (
+                        last_run_times[report_name] is None
+                        or (current_time - last_run_times[report_name]).total_seconds()
+                        >= interval
+                    ):
 
                         # Generate the report
                         try:
                             self.generate_report(
-                                report.get('containers', []),
-                                report.get('metrics', ['cpu', 'memory', 'disk', 'network']),
-                                report.get('duration', 24),  # Default: 24 hours
-                                report.get('format', self.default_format),
-                                report.get('output_file', f"{report_name}_{current_time.strftime('%Y%m%d_%H%M%S')}")
+                                report.get("containers", []),
+                                report.get(
+                                    "metrics", ["cpu", "memory", "disk", "network"]
+                                ),
+                                report.get("duration", 24),  # Default: 24 hours
+                                report.get("format", self.default_format),
+                                report.get(
+                                    "output_file",
+                                    f"{report_name}_{current_time.strftime('%Y%m%d_%H%M%S')}",
+                                ),
                             )
                             last_run_times[report_name] = current_time
                             logger.info("Generated scheduled report: %s", report_name)
                         except Exception as e:
-                            logger.error("Error generating scheduled report %s: %s", report_name, e)
+                            logger.error(
+                                "Error generating scheduled report %s: %s",
+                                report_name,
+                                e,
+                            )
 
                 # Sleep for a minute before checking again
                 time.sleep(60)
@@ -1581,10 +1862,14 @@ class VisualizationEngine:
                 logger.error("Error in report scheduler: %s", e)
                 time.sleep(60)  # Wait a bit before retrying
 
-    def generate_time_series_chart(self, container_id: str, metric_type: str,
-                                  duration: int = 1, # hours
-                                  format: str = None,
-                                  output_file: Optional[str] = None) -> Optional[str]:
+    def generate_time_series_chart(
+        self,
+        container_id: str,
+        metric_type: str,
+        duration: int = 1,  # hours
+        format: str = None,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a time-series chart for a specific container and metric.
 
@@ -1603,13 +1888,15 @@ class VisualizationEngine:
 
         # Get metrics data
         metrics_data = self.metrics_collector.get_metrics_history(
-            container_id,
-            metric_type,
-            timedelta(hours=duration)
+            container_id, metric_type, timedelta(hours=duration)
         )
 
         if not metrics_data:
-            logger.warning("No metrics data available for container %s, metric %s", container_id, metric_type)
+            logger.warning(
+                "No metrics data available for container %s, metric %s",
+                container_id,
+                metric_type,
+            )
             return None
 
         # Prepare data for visualization
@@ -1617,10 +1904,10 @@ class VisualizationEngine:
         values = {}
 
         for entry in metrics_data:
-            timestamp = datetime.fromisoformat(entry['timestamp'])
+            timestamp = datetime.fromisoformat(entry["timestamp"])
             timestamps.append(timestamp)
 
-            data = entry['data']
+            data = entry["data"]
             for key, value in data.items():
                 if isinstance(value, (int, float)):
                     if key not in values:
@@ -1628,19 +1915,33 @@ class VisualizationEngine:
                     values[key].append(value)
 
         # Select appropriate visualization method based on available libraries
-        if format.lower() in ['json', 'csv']:
-            return self._export_time_series_data(container_id, metric_type, timestamps, values, format, output_file)
-        elif self.has_plotly and format.lower() in ['html', 'interactive']:
-            return self._generate_plotly_time_series(container_id, metric_type, timestamps, values, output_file)
+        if format.lower() in ["json", "csv"]:
+            return self._export_time_series_data(
+                container_id, metric_type, timestamps, values, format, output_file
+            )
+        elif self.has_plotly and format.lower() in ["html", "interactive"]:
+            return self._generate_plotly_time_series(
+                container_id, metric_type, timestamps, values, output_file
+            )
         elif self.has_matplotlib:
-            return self._generate_matplotlib_time_series(container_id, metric_type, timestamps, values, format, output_file)
+            return self._generate_matplotlib_time_series(
+                container_id, metric_type, timestamps, values, format, output_file
+            )
         else:
             # Fallback to text-based visualization
-            return self._generate_text_time_series(container_id, metric_type, timestamps, values, output_file)
+            return self._generate_text_time_series(
+                container_id, metric_type, timestamps, values, output_file
+            )
 
-    def _generate_matplotlib_time_series(self, container_id: str, metric_type: str,
-                                        timestamps: List[datetime], values: Dict[str, List[float]],
-                                        format: str, output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_matplotlib_time_series(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a time-series chart using Matplotlib.
 
@@ -1660,7 +1961,9 @@ class VisualizationEngine:
             from matplotlib.dates import DateFormatter
 
             # Create figure and axis
-            fig, ax = plt.subplots(figsize=(self.chart_width/100, self.chart_height/100), dpi=100)
+            fig, ax = plt.subplots(
+                figsize=(self.chart_width / 100, self.chart_height / 100), dpi=100
+            )
 
             # Plot each metric
             for key, vals in values.items():
@@ -1668,23 +1971,25 @@ class VisualizationEngine:
                     ax.plot(timestamps, vals, label=key)
 
             # Format the chart
-            ax.set_title(f"{metric_type.capitalize()} Usage for Container {container_id[:12]}")
+            ax.set_title(
+                f"{metric_type.capitalize()} Usage for Container {container_id[:12]}"
+            )
             ax.set_xlabel("Time")
 
             # Set y-axis label based on metric type
-            if metric_type == 'cpu':
+            if metric_type == "cpu":
                 ax.set_ylabel("CPU Usage (%)")
-            elif metric_type == 'memory':
+            elif metric_type == "memory":
                 ax.set_ylabel("Memory Usage (%)")
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 ax.set_ylabel("Disk I/O (bytes)")
-            elif metric_type == 'network':
+            elif metric_type == "network":
                 ax.set_ylabel("Network Traffic (bytes)")
             else:
                 ax.set_ylabel("Value")
 
             # Format x-axis
-            ax.xaxis.set_major_formatter(DateFormatter('%H:%M:%S'))
+            ax.xaxis.set_major_formatter(DateFormatter("%H:%M:%S"))
             plt.xticks(rotation=45)
 
             # Add legend if multiple metrics
@@ -1698,7 +2003,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1721,9 +2026,14 @@ class VisualizationEngine:
             logger.error("Error generating Matplotlib time series: %s", e)
             return None
 
-    def _generate_plotly_time_series(self, container_id: str, metric_type: str,
-                                    timestamps: List[datetime], values: Dict[str, List[float]],
-                                    output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_plotly_time_series(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate an interactive time-series chart using Plotly.
 
@@ -1748,7 +2058,7 @@ class VisualizationEngine:
             for key, vals in values.items():
                 if len(timestamps) == len(vals):
                     fig.add_trace(
-                        go.Scatter(x=timestamps, y=vals, name=key, mode='lines'),
+                        go.Scatter(x=timestamps, y=vals, name=key, mode="lines"),
                         secondary_y=False,
                     )
 
@@ -1759,18 +2069,20 @@ class VisualizationEngine:
                 legend_title="Metrics",
                 width=self.chart_width,
                 height=self.chart_height,
-                hovermode="x unified"
+                hovermode="x unified",
             )
 
             # Set y-axis title based on metric type
-            if metric_type == 'cpu':
+            if metric_type == "cpu":
                 fig.update_yaxes(title_text="CPU Usage (%)", secondary_y=False)
-            elif metric_type == 'memory':
+            elif metric_type == "memory":
                 fig.update_yaxes(title_text="Memory Usage (%)", secondary_y=False)
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 fig.update_yaxes(title_text="Disk I/O (bytes)", secondary_y=False)
-            elif metric_type == 'network':
-                fig.update_yaxes(title_text="Network Traffic (bytes)", secondary_y=False)
+            elif metric_type == "network":
+                fig.update_yaxes(
+                    title_text="Network Traffic (bytes)", secondary_y=False
+                )
             else:
                 fig.update_yaxes(title_text="Value", secondary_y=False)
 
@@ -1778,7 +2090,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1800,9 +2112,14 @@ class VisualizationEngine:
             logger.error("Error generating Plotly time series: %s", e)
             return None
 
-    def _generate_text_time_series(self, container_id: str, metric_type: str,
-                                  timestamps: List[datetime], values: Dict[str, List[float]],
-                                  output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_text_time_series(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a text-based time-series visualization.
 
@@ -1818,9 +2135,16 @@ class VisualizationEngine:
         """
         try:
             # Create a simple text-based visualization
-            lines = [f"{metric_type.capitalize()} Usage for Container {container_id[:12]}"]
+            lines = [
+                f"{metric_type.capitalize()} Usage for Container {container_id[:12]}"
+            ]
             lines.append("=" * 80)
-            lines.append("Timestamp" + " " * 20 + " | " + " | ".join(f"{key:>10}" for key in values.keys()))
+            lines.append(
+                "Timestamp"
+                + " " * 20
+                + " | "
+                + " | ".join(f"{key:>10}" for key in values.keys())
+            )
             lines.append("-" * 80)
 
             # Add data rows
@@ -1838,7 +2162,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1853,7 +2177,7 @@ class VisualizationEngine:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             # Write to file
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write("\n".join(lines))
 
             return output_file
@@ -1861,9 +2185,15 @@ class VisualizationEngine:
             logger.error("Error generating text time series: %s", e)
             return None
 
-    def _export_time_series_data(self, container_id: str, metric_type: str,
-                                timestamps: List[datetime], values: Dict[str, List[float]],
-                                format: str, output_file: Optional[str] = None) -> Optional[str]:
+    def _export_time_series_data(
+        self,
+        container_id: str,
+        metric_type: str,
+        timestamps: List[datetime],
+        values: Dict[str, List[float]],
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Export time-series data to a file.
 
@@ -1883,7 +2213,11 @@ class VisualizationEngine:
             export_data = []
             for i, timestamp in enumerate(timestamps):
                 if i < len(timestamps):
-                    row = {'timestamp': timestamp.isoformat(), 'container_id': container_id, 'metric_type': metric_type}
+                    row = {
+                        "timestamp": timestamp.isoformat(),
+                        "container_id": container_id,
+                        "metric_type": metric_type,
+                    }
                     for key in values.keys():
                         if i < len(values[key]):
                             row[key] = values[key][i]
@@ -1893,7 +2227,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format.lower()}"
+                    f"{container_id[:12]}_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format.lower()}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -1908,11 +2242,11 @@ class VisualizationEngine:
             os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
             # Write to file
-            if format.lower() == 'json':
-                with open(output_file, 'w') as f:
+            if format.lower() == "json":
+                with open(output_file, "w") as f:
                     json.dump(export_data, f, indent=2)
-            elif format.lower() == 'csv':
-                with open(output_file, 'w', newline='') as f:
+            elif format.lower() == "csv":
+                with open(output_file, "w", newline="") as f:
                     if export_data:
                         fieldnames = export_data[0].keys()
                         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -1924,8 +2258,13 @@ class VisualizationEngine:
             logger.error("Error exporting time series data: %s", e)
             return None
 
-    def generate_resource_heatmap(self, metric_type: str, duration: int = 24,
-                                 format: str = None, output_file: Optional[str] = None) -> Optional[str]:
+    def generate_resource_heatmap(
+        self,
+        metric_type: str,
+        duration: int = 24,
+        format: str = None,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a resource heatmap showing usage across all containers.
 
@@ -1949,7 +2288,7 @@ class VisualizationEngine:
             container_id=None,
             metric_type=metric_type,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         if not metrics:
@@ -1965,21 +2304,25 @@ class VisualizationEngine:
                 container_data[container_id] = {}
 
                 for entry in container_metrics[metric_type]:
-                    timestamp = datetime.fromisoformat(entry['timestamp'])
+                    timestamp = datetime.fromisoformat(entry["timestamp"])
                     all_timestamps.add(timestamp)
 
                     # Extract the main value based on metric type
-                    if metric_type == 'cpu':
-                        value = entry['data'].get('usage_percent', 0)
-                    elif metric_type == 'memory':
-                        value = entry['data'].get('usage_percent', 0)
-                    elif metric_type == 'disk':
-                        value = entry['data'].get('read_bytes', 0) + entry['data'].get('write_bytes', 0)
-                    elif metric_type == 'network':
-                        value = entry['data'].get('rx_bytes', 0) + entry['data'].get('tx_bytes', 0)
+                    if metric_type == "cpu":
+                        value = entry["data"].get("usage_percent", 0)
+                    elif metric_type == "memory":
+                        value = entry["data"].get("usage_percent", 0)
+                    elif metric_type == "disk":
+                        value = entry["data"].get("read_bytes", 0) + entry["data"].get(
+                            "write_bytes", 0
+                        )
+                    elif metric_type == "network":
+                        value = entry["data"].get("rx_bytes", 0) + entry["data"].get(
+                            "tx_bytes", 0
+                        )
                     else:
                         # Try to find a numeric value
-                        for k, v in entry['data'].items():
+                        for k, v in entry["data"].items():
                             if isinstance(v, (int, float)):
                                 value = v
                                 break
@@ -1997,27 +2340,48 @@ class VisualizationEngine:
         for container_id in sorted_containers:
             container_values = []
             for timestamp in sorted_timestamps:
-                container_values.append(container_data.get(container_id, {}).get(timestamp, 0))
+                container_values.append(
+                    container_data.get(container_id, {}).get(timestamp, 0)
+                )
             heatmap_data.append(container_values)
 
         # Select appropriate visualization method based on available libraries
         if self.has_matplotlib:
             return self._generate_matplotlib_heatmap(
-                sorted_containers, sorted_timestamps, heatmap_data, metric_type, format, output_file
+                sorted_containers,
+                sorted_timestamps,
+                heatmap_data,
+                metric_type,
+                format,
+                output_file,
             )
         elif self.has_plotly:
             return self._generate_plotly_heatmap(
-                sorted_containers, sorted_timestamps, heatmap_data, metric_type, output_file
+                sorted_containers,
+                sorted_timestamps,
+                heatmap_data,
+                metric_type,
+                output_file,
             )
         else:
             # Fallback to text-based visualization
             return self._generate_text_heatmap(
-                sorted_containers, sorted_timestamps, heatmap_data, metric_type, output_file
+                sorted_containers,
+                sorted_timestamps,
+                heatmap_data,
+                metric_type,
+                output_file,
             )
 
-    def _generate_matplotlib_heatmap(self, containers: List[str], timestamps: List[datetime],
-                                    data: List[List[float]], metric_type: str, format: str,
-                                    output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_matplotlib_heatmap(
+        self,
+        containers: List[str],
+        timestamps: List[datetime],
+        data: List[List[float]],
+        metric_type: str,
+        format: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a heatmap using Matplotlib.
 
@@ -2038,10 +2402,12 @@ class VisualizationEngine:
             from matplotlib.dates import DateFormatter
 
             # Create figure and axis
-            fig, ax = plt.subplots(figsize=(self.chart_width/100, self.chart_height/100), dpi=100)
+            fig, ax = plt.subplots(
+                figsize=(self.chart_width / 100, self.chart_height / 100), dpi=100
+            )
 
             # Create the heatmap
-            im = ax.imshow(data, aspect='auto', cmap='viridis')
+            im = ax.imshow(data, aspect="auto", cmap="viridis")
 
             # Set labels
             ax.set_title(f"{metric_type.capitalize()} Usage Heatmap")
@@ -2058,16 +2424,18 @@ class VisualizationEngine:
             if num_ticks > 0:
                 tick_indices = np.linspace(0, len(timestamps) - 1, num_ticks, dtype=int)
                 ax.set_xticks(tick_indices)
-                ax.set_xticklabels([timestamps[i].strftime('%H:%M:%S') for i in tick_indices])
+                ax.set_xticklabels(
+                    [timestamps[i].strftime("%H:%M:%S") for i in tick_indices]
+                )
                 plt.xticks(rotation=45)
 
             # Add colorbar
             cbar = ax.figure.colorbar(im, ax=ax)
-            if metric_type == 'cpu' or metric_type == 'memory':
+            if metric_type == "cpu" or metric_type == "memory":
                 cbar.ax.set_ylabel("Usage (%)", rotation=-90, va="bottom")
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 cbar.ax.set_ylabel("Disk I/O (bytes)", rotation=-90, va="bottom")
-            elif metric_type == 'network':
+            elif metric_type == "network":
                 cbar.ax.set_ylabel("Network Traffic (bytes)", rotation=-90, va="bottom")
             else:
                 cbar.ax.set_ylabel("Value", rotation=-90, va="bottom")
@@ -2079,7 +2447,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}"
+                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{format}",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -2102,9 +2470,14 @@ class VisualizationEngine:
             logger.error("Error generating Matplotlib heatmap: %s", e)
             return None
 
-    def _generate_plotly_heatmap(self, containers: List[str], timestamps: List[datetime],
-                                data: List[List[float]], metric_type: str,
-                                output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_plotly_heatmap(
+        self,
+        containers: List[str],
+        timestamps: List[datetime],
+        data: List[List[float]],
+        metric_type: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate an interactive heatmap using Plotly.
 
@@ -2119,23 +2492,25 @@ class VisualizationEngine:
             The path to the generated heatmap file, or None if generation failed
         """
         try:
-            import plotly.graph_objects as go
             import numpy as np
+            import plotly.graph_objects as go
 
             # Format timestamps
-            time_labels = [t.strftime('%Y-%m-%d %H:%M:%S') for t in timestamps]
+            time_labels = [t.strftime("%Y-%m-%d %H:%M:%S") for t in timestamps]
 
             # Format container IDs
             container_labels = [c[:12] for c in containers]
 
             # Create the heatmap
-            fig = go.Figure(data=go.Heatmap(
-                z=data,
-                x=time_labels,
-                y=container_labels,
-                colorscale='Viridis',
-                hovertemplate='Container: %{y}<br>Time: %{x}<br>Value: %{z}<extra></extra>'
-            ))
+            fig = go.Figure(
+                data=go.Heatmap(
+                    z=data,
+                    x=time_labels,
+                    y=container_labels,
+                    colorscale="Viridis",
+                    hovertemplate="Container: %{y}<br>Time: %{x}<br>Value: %{z}<extra></extra>",
+                )
+            )
 
             # Update layout
             fig.update_layout(
@@ -2143,15 +2518,15 @@ class VisualizationEngine:
                 xaxis_title="Time",
                 yaxis_title="Container",
                 width=self.chart_width,
-                height=self.chart_height
+                height=self.chart_height,
             )
 
             # Set colorbar title based on metric type
-            if metric_type == 'cpu' or metric_type == 'memory':
+            if metric_type == "cpu" or metric_type == "memory":
                 fig.update_traces(colorbar_title="Usage (%)")
-            elif metric_type == 'disk':
+            elif metric_type == "disk":
                 fig.update_traces(colorbar_title="Disk I/O (bytes)")
-            elif metric_type == 'network':
+            elif metric_type == "network":
                 fig.update_traces(colorbar_title="Network Traffic (bytes)")
             else:
                 fig.update_traces(colorbar_title="Value")
@@ -2160,7 +2535,7 @@ class VisualizationEngine:
             if not output_file:
                 output_file = os.path.join(
                     self.output_dir,
-                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"heatmap_{metric_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
             else:
                 # Ensure the output file has the correct extension
@@ -2182,9 +2557,14 @@ class VisualizationEngine:
             logger.error("Error generating Plotly heatmap: %s", e)
             return None
 
-    def _generate_text_heatmap(self, containers: List[str], timestamps: List[datetime],
-                              data: List[List[float]], metric_type: str,
-                              output_file: Optional[str] = None) -> Optional[str]:
+    def _generate_text_heatmap(
+        self,
+        containers: List[str],
+        timestamps: List[datetime],
+        data: List[List[float]],
+        metric_type: str,
+        output_file: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Generate a text-based heatmap visualization.
 
@@ -2208,9 +2588,12 @@ class VisualizationEngine:
             num_ticks = min(10, len(timestamps))
             if num_ticks > 0:
                 import numpy as np
+
                 tick_indices = np.linspace(0, len(timestamps) - 1, num_ticks, dtype=int)
                 header = "Container" + " " * 10 + " | "
-                header += " | ".join(f"{timestamps[i].strftime('%H:%M:%S'):>8}" for i in tick_indices)
+                header += " | ".join(
+                    f"{timestamps[i].strftime('%H:%M:%S'):>8}" for i in tick_indices
+                )
                 lines.append(header)
 
             # Return the file path

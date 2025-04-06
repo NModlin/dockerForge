@@ -3,23 +3,39 @@ Containers router for the DockerForge Web UI.
 
 This module provides the API endpoints for container management.
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List, Optional, Dict, Any
+
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from src.web.api.schemas.containers import Container, ContainerCreate, ContainerUpdate
-from src.web.api.services.containers import (
-    get_containers, get_container, create_container, update_container, delete_container,
-    start_container as start_container_service,
-    stop_container as stop_container_service,
-    restart_container as restart_container_service,
-    get_container_logs as get_container_logs_service,
-    get_system_info as get_system_info_service,
-    inspect_container as inspect_container_service,
-)
-from src.web.api.services.auth import get_current_active_user, check_permission
 from src.web.api.database import get_db
 from src.web.api.models.user import User
+from src.web.api.schemas.containers import Container, ContainerCreate, ContainerUpdate
+from src.web.api.services.auth import check_permission, get_current_active_user
+from src.web.api.services.containers import (
+    create_container,
+    delete_container,
+    get_container,
+)
+from src.web.api.services.containers import (
+    get_container_logs as get_container_logs_service,
+)
+from src.web.api.services.containers import (
+    get_containers,
+)
+from src.web.api.services.containers import get_system_info as get_system_info_service
+from src.web.api.services.containers import (
+    inspect_container as inspect_container_service,
+)
+from src.web.api.services.containers import (
+    restart_container as restart_container_service,
+)
+from src.web.api.services.containers import start_container as start_container_service
+from src.web.api.services.containers import stop_container as stop_container_service
+from src.web.api.services.containers import (
+    update_container,
+)
 
 # Create router
 router = APIRouter()
@@ -27,7 +43,9 @@ router = APIRouter()
 
 @router.get("/", response_model=List[Container])
 async def list_containers(
-    status: Optional[str] = Query(None, description="Filter by container status (running, stopped, etc.)"),
+    status: Optional[str] = Query(
+        None, description="Filter by container status (running, stopped, etc.)"
+    ),
     name: Optional[str] = Query(None, description="Filter by container name"),
     limit: int = Query(100, ge=1, le=1000, description="Limit the number of results"),
     skip: int = Query(0, ge=0, description="Skip the first N results"),
@@ -223,7 +241,12 @@ async def restart_container(
 @router.get("/{container_id}/logs")
 async def get_container_logs(
     container_id: str,
-    tail: int = Query(100, ge=1, le=10000, description="Number of lines to show from the end of the logs"),
+    tail: int = Query(
+        100,
+        ge=1,
+        le=10000,
+        description="Number of lines to show from the end of the logs",
+    ),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):

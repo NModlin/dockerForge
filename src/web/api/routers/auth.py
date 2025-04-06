@@ -3,24 +3,38 @@ Authentication router for the DockerForge Web UI.
 
 This module provides the API endpoints for user authentication.
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Body
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+
 from datetime import timedelta
 from typing import List
 
-from src.web.api.schemas.auth import (
-    Token, User, UserCreate, UserUpdate, UserResponse,
-    PasswordChange, PasswordReset, PasswordResetVerify
-)
-from src.web.api.services.auth import (
-    authenticate_user, create_access_token, get_current_active_user,
-    create_user, get_users, get_user_by_id, check_permission,
-    change_password, reset_password_with_local_auth,
-    ACCESS_TOKEN_EXPIRE_MINUTES
-)
+from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+
 from src.web.api.database import get_db
 from src.web.api.models.user import User as UserModel
+from src.web.api.schemas.auth import (
+    PasswordChange,
+    PasswordReset,
+    PasswordResetVerify,
+    Token,
+    User,
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+)
+from src.web.api.services.auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    authenticate_user,
+    change_password,
+    check_permission,
+    create_access_token,
+    create_user,
+    get_current_active_user,
+    get_user_by_id,
+    get_users,
+    reset_password_with_local_auth,
+)
 
 # Create router
 router = APIRouter()
@@ -28,8 +42,7 @@ router = APIRouter()
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     """
     Authenticate user and return JWT token.
@@ -52,14 +65,13 @@ async def login_for_access_token(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "password_change_required": user.password_change_required
+        "password_change_required": user.password_change_required,
     }
 
 
 @router.post("/login", response_model=Token)
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
     """
     Authenticate user and return JWT token.
@@ -84,15 +96,14 @@ async def login(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "password_change_required": user.password_change_required
+        "password_change_required": user.password_change_required,
     }
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def register_user(
-    user: UserCreate,
-    db: Session = Depends(get_db)
-):
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
+async def register_user(user: UserCreate, db: Session = Depends(get_db)):
     """
     Register a new user.
     """
@@ -111,9 +122,7 @@ async def register_user(
 
 
 @router.get("/me", response_model=UserResponse)
-async def read_users_me(
-    current_user: UserModel = Depends(get_current_active_user)
-):
+async def read_users_me(current_user: UserModel = Depends(get_current_active_user)):
     """
     Get current user information.
     """
@@ -133,7 +142,7 @@ async def read_users(
     skip: int = 0,
     limit: int = 100,
     current_user: UserModel = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get all users.
@@ -165,7 +174,7 @@ async def read_users(
 async def read_user(
     user_id: int,
     current_user: UserModel = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get a user by ID.
@@ -199,16 +208,13 @@ async def read_user(
 async def change_user_password(
     password_data: PasswordChange,
     current_user: UserModel = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Change the current user's password.
     """
     success = change_password(
-        current_user,
-        password_data.current_password,
-        password_data.new_password,
-        db
+        current_user, password_data.current_password, password_data.new_password, db
     )
 
     if not success:
@@ -222,8 +228,7 @@ async def change_user_password(
 
 @router.post("/reset-password-request")
 async def request_password_reset(
-    reset_data: PasswordReset,
-    db: Session = Depends(get_db)
+    reset_data: PasswordReset, db: Session = Depends(get_db)
 ):
     """
     Request a password reset.
@@ -234,17 +239,20 @@ async def request_password_reset(
     user = db.query(UserModel).filter(UserModel.username == reset_data.username).first()
     if not user:
         # Return success even if user doesn't exist to prevent username enumeration
-        return {"message": "If the username exists, password reset instructions will be provided"}
+        return {
+            "message": "If the username exists, password reset instructions will be provided"
+        }
 
     # In a real implementation, this would send an email with a reset link
     # For this implementation, we'll just return a success message
-    return {"message": "If the username exists, password reset instructions will be provided"}
+    return {
+        "message": "If the username exists, password reset instructions will be provided"
+    }
 
 
 @router.post("/reset-password-verify")
 async def verify_and_reset_password(
-    reset_data: PasswordResetVerify,
-    db: Session = Depends(get_db)
+    reset_data: PasswordResetVerify, db: Session = Depends(get_db)
 ):
     """
     Verify local credentials and reset password.
@@ -254,7 +262,7 @@ async def verify_and_reset_password(
         reset_data.local_username,
         reset_data.local_password,
         reset_data.new_password,
-        db
+        db,
     )
 
     if not success:

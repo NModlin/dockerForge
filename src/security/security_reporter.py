@@ -5,17 +5,17 @@ This module provides functionality to generate security reports based on
 vulnerability scans and configuration audits.
 """
 
-import os
 import json
 import logging
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime
+import os
 import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
 
-from src.utils.logging_manager import get_logger
 from src.config.config_manager import get_config
-from src.security.vulnerability_scanner import get_vulnerability_scanner
 from src.security.config_auditor import get_config_auditor
+from src.security.vulnerability_scanner import get_vulnerability_scanner
+from src.utils.logging_manager import get_logger
 
 # Set up logging
 logger = get_logger("security.security_reporter")
@@ -35,7 +35,9 @@ class SecurityReporter:
             audit_results: Audit results from a previous audit. If None, no audit results will be used.
         """
         self.config = config or get_config("security.security_reporter", {})
-        self.reports_dir = self.config.get("reports_dir", os.path.expanduser("~/.dockerforge/security-reports"))
+        self.reports_dir = self.config.get(
+            "reports_dir", os.path.expanduser("~/.dockerforge/security-reports")
+        )
         self.vulnerability_scanner = get_vulnerability_scanner()
         self.config_auditor = get_config_auditor()
         self.docker_client = docker_client
@@ -50,7 +52,7 @@ class SecurityReporter:
         image_name: Optional[str] = None,
         severity: Optional[List[str]] = None,
         output_format: str = "json",
-        include_summary: bool = True
+        include_summary: bool = True,
     ) -> Dict[str, Any]:
         """
         Generate a vulnerability report for a Docker image.
@@ -64,7 +66,9 @@ class SecurityReporter:
         Returns:
             Dict containing the vulnerability report.
         """
-        logger.info(f"Generating vulnerability report for {'all images' if image_name is None else image_name}")
+        logger.info(
+            f"Generating vulnerability report for {'all images' if image_name is None else image_name}"
+        )
 
         # Initialize report
         report = {
@@ -72,7 +76,7 @@ class SecurityReporter:
             "timestamp": datetime.now().isoformat(),
             "target": image_name or "all_images",
             "results": {},
-            "summary": {}
+            "summary": {},
         }
 
         try:
@@ -82,18 +86,22 @@ class SecurityReporter:
                 scan_result = self.vulnerability_scanner.scan_image(
                     image_name=image_name,
                     severity=severity,
-                    output_format="json"  # Always use JSON for processing
+                    output_format="json",  # Always use JSON for processing
                 )
                 report["results"] = {image_name: scan_result}
 
                 # Generate summary if requested
                 if include_summary:
-                    report["summary"] = self.vulnerability_scanner.get_vulnerability_summary(scan_result)
+                    report["summary"] = (
+                        self.vulnerability_scanner.get_vulnerability_summary(
+                            scan_result
+                        )
+                    )
             else:
                 # Scan all images
                 scan_results = self.vulnerability_scanner.scan_all_images(
                     severity=severity,
-                    output_format="json"  # Always use JSON for processing
+                    output_format="json",  # Always use JSON for processing
                 )
                 report["results"] = scan_results
 
@@ -106,22 +114,32 @@ class SecurityReporter:
                         "HIGH": 0,
                         "MEDIUM": 0,
                         "LOW": 0,
-                        "UNKNOWN": 0
+                        "UNKNOWN": 0,
                     }
                     fixable_vulnerabilities = 0
                     top_vulnerabilities = []
 
                     for image_id, result in scan_results.items():
                         if result.get("success", False):
-                            summary = self.vulnerability_scanner.get_vulnerability_summary(result)
+                            summary = (
+                                self.vulnerability_scanner.get_vulnerability_summary(
+                                    result
+                                )
+                            )
 
                             # Aggregate counts
-                            total_vulnerabilities += summary.get("total_vulnerabilities", 0)
+                            total_vulnerabilities += summary.get(
+                                "total_vulnerabilities", 0
+                            )
 
-                            for severity, count in summary.get("severity_counts", {}).items():
+                            for severity, count in summary.get(
+                                "severity_counts", {}
+                            ).items():
                                 severity_counts[severity] += count
 
-                            fixable_vulnerabilities += summary.get("fixable_vulnerabilities", 0)
+                            fixable_vulnerabilities += summary.get(
+                                "fixable_vulnerabilities", 0
+                            )
 
                             # Add top vulnerabilities
                             for vuln in summary.get("top_vulnerabilities", []):
@@ -132,8 +150,10 @@ class SecurityReporter:
                     top_vulnerabilities = sorted(
                         top_vulnerabilities,
                         key=lambda v: v.get("cvss_score", 0),
-                        reverse=True
-                    )[:20]  # Limit to top 20
+                        reverse=True,
+                    )[
+                        :20
+                    ]  # Limit to top 20
 
                     # Create aggregate summary
                     report["summary"] = {
@@ -141,13 +161,13 @@ class SecurityReporter:
                         "total_vulnerabilities": total_vulnerabilities,
                         "severity_counts": severity_counts,
                         "fixable_vulnerabilities": fixable_vulnerabilities,
-                        "top_vulnerabilities": top_vulnerabilities
+                        "top_vulnerabilities": top_vulnerabilities,
                     }
 
             # Save report to file
             report_file = os.path.join(
                 self.reports_dir,
-                f"vulnerability_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                f"vulnerability_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             )
             with open(report_file, "w") as f:
                 json.dump(report, f, indent=2)
@@ -157,7 +177,7 @@ class SecurityReporter:
                 html_report = self._convert_to_html(report, "vulnerability")
                 html_file = os.path.join(
                     self.reports_dir,
-                    f"vulnerability_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"vulnerability_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
                 with open(html_file, "w") as f:
                     f.write(html_report)
@@ -166,7 +186,7 @@ class SecurityReporter:
                 text_report = self._convert_to_text(report, "vulnerability")
                 text_file = os.path.join(
                     self.reports_dir,
-                    f"vulnerability_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    f"vulnerability_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 )
                 with open(text_file, "w") as f:
                     f.write(text_report)
@@ -185,7 +205,7 @@ class SecurityReporter:
         check_type: Optional[str] = None,
         output_format: str = "json",
         include_summary: bool = True,
-        include_remediation: bool = True
+        include_remediation: bool = True,
     ) -> Dict[str, Any]:
         """
         Generate an audit report for Docker configuration.
@@ -208,14 +228,14 @@ class SecurityReporter:
             "check_type": check_type or "all",
             "results": {},
             "summary": {},
-            "remediation_steps": []
+            "remediation_steps": [],
         }
 
         try:
             # Run audit
             audit_result = self.config_auditor.run_docker_bench(
                 check_type=check_type,
-                output_format="json"  # Always use JSON for processing
+                output_format="json",  # Always use JSON for processing
             )
             report["results"] = audit_result
 
@@ -225,12 +245,14 @@ class SecurityReporter:
 
             # Generate remediation steps if requested
             if include_remediation:
-                report["remediation_steps"] = self.config_auditor.get_remediation_steps(audit_result)
+                report["remediation_steps"] = self.config_auditor.get_remediation_steps(
+                    audit_result
+                )
 
             # Save report to file
             report_file = os.path.join(
                 self.reports_dir,
-                f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             )
             with open(report_file, "w") as f:
                 json.dump(report, f, indent=2)
@@ -240,7 +262,7 @@ class SecurityReporter:
                 html_report = self._convert_to_html(report, "audit")
                 html_file = os.path.join(
                     self.reports_dir,
-                    f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
                 with open(html_file, "w") as f:
                     f.write(html_report)
@@ -249,7 +271,7 @@ class SecurityReporter:
                 text_report = self._convert_to_text(report, "audit")
                 text_file = os.path.join(
                     self.reports_dir,
-                    f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    f"audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 )
                 with open(text_file, "w") as f:
                     f.write(text_report)
@@ -268,7 +290,7 @@ class SecurityReporter:
         image_name: Optional[str] = None,
         check_type: Optional[str] = None,
         severity: Optional[List[str]] = None,
-        output_format: str = "json"
+        output_format: str = "json",
     ) -> Dict[str, Any]:
         """
         Generate a comprehensive security report including vulnerabilities and audit.
@@ -295,8 +317,8 @@ class SecurityReporter:
                 "vulnerability_score": 0.0,
                 "audit_score": 0.0,
                 "critical_issues": [],
-                "high_priority_remediation": []
-            }
+                "high_priority_remediation": [],
+            },
         }
 
         try:
@@ -305,7 +327,7 @@ class SecurityReporter:
                 image_name=image_name,
                 severity=severity,
                 output_format="json",  # Always use JSON for processing
-                include_summary=True
+                include_summary=True,
             )
             report["vulnerability_report"] = vulnerability_report
 
@@ -314,7 +336,7 @@ class SecurityReporter:
                 check_type=check_type,
                 output_format="json",  # Always use JSON for processing
                 include_summary=True,
-                include_remediation=True
+                include_remediation=True,
             )
             report["audit_report"] = audit_report
 
@@ -327,10 +349,13 @@ class SecurityReporter:
             if total_vulns > 0:
                 # Weight vulnerabilities by severity
                 weighted_score = (
-                    vulnerability_summary.get("severity_counts", {}).get("CRITICAL", 0) * 10 +
-                    vulnerability_summary.get("severity_counts", {}).get("HIGH", 0) * 5 +
-                    vulnerability_summary.get("severity_counts", {}).get("MEDIUM", 0) * 2 +
-                    vulnerability_summary.get("severity_counts", {}).get("LOW", 0) * 1
+                    vulnerability_summary.get("severity_counts", {}).get("CRITICAL", 0)
+                    * 10
+                    + vulnerability_summary.get("severity_counts", {}).get("HIGH", 0)
+                    * 5
+                    + vulnerability_summary.get("severity_counts", {}).get("MEDIUM", 0)
+                    * 2
+                    + vulnerability_summary.get("severity_counts", {}).get("LOW", 0) * 1
                 )
                 max_weighted_score = total_vulns * 10  # Worst case: all CRITICAL
                 vulnerability_score = 100 - (weighted_score / max_weighted_score * 100)
@@ -350,49 +375,57 @@ class SecurityReporter:
             # Collect critical issues
             # Add top vulnerabilities
             for vuln in vulnerability_summary.get("top_vulnerabilities", [])[:5]:
-                report["summary"]["critical_issues"].append({
-                    "type": "vulnerability",
-                    "id": vuln.get("id", "unknown"),
-                    "severity": vuln.get("severity", "unknown"),
-                    "title": vuln.get("title", ""),
-                    "description": vuln.get("description", ""),
-                    "affected_component": f"{vuln.get('package', 'unknown')} {vuln.get('installed_version', '')}"
-                })
+                report["summary"]["critical_issues"].append(
+                    {
+                        "type": "vulnerability",
+                        "id": vuln.get("id", "unknown"),
+                        "severity": vuln.get("severity", "unknown"),
+                        "title": vuln.get("title", ""),
+                        "description": vuln.get("description", ""),
+                        "affected_component": f"{vuln.get('package', 'unknown')} {vuln.get('installed_version', '')}",
+                    }
+                )
 
             # Add critical audit issues
             for issue in audit_summary.get("critical_issues", [])[:5]:
-                report["summary"]["critical_issues"].append({
-                    "type": "audit",
-                    "id": issue.get("id", "unknown"),
-                    "severity": "HIGH",
-                    "title": issue.get("id", "unknown"),
-                    "description": issue.get("description", "")
-                })
+                report["summary"]["critical_issues"].append(
+                    {
+                        "type": "audit",
+                        "id": issue.get("id", "unknown"),
+                        "severity": "HIGH",
+                        "title": issue.get("id", "unknown"),
+                        "description": issue.get("description", ""),
+                    }
+                )
 
             # Add high priority remediation steps
             # Add vulnerability fixes
             for vuln in vulnerability_summary.get("top_vulnerabilities", [])[:3]:
                 if vuln.get("fixed_version"):
-                    report["summary"]["high_priority_remediation"].append({
-                        "type": "vulnerability",
-                        "id": vuln.get("id", "unknown"),
-                        "title": f"Update {vuln.get('package', 'unknown')} to {vuln.get('fixed_version', '')}",
-                        "description": f"Update {vuln.get('package', 'unknown')} from {vuln.get('installed_version', '')} to {vuln.get('fixed_version', '')} to fix {vuln.get('id', 'unknown')}"
-                    })
+                    report["summary"]["high_priority_remediation"].append(
+                        {
+                            "type": "vulnerability",
+                            "id": vuln.get("id", "unknown"),
+                            "title": f"Update {vuln.get('package', 'unknown')} to {vuln.get('fixed_version', '')}",
+                            "description": f"Update {vuln.get('package', 'unknown')} from {vuln.get('installed_version', '')} to {vuln.get('fixed_version', '')} to fix {vuln.get('id', 'unknown')}",
+                        }
+                    )
 
             # Add audit remediation steps
             for step in audit_report.get("remediation_steps", [])[:5]:
-                report["summary"]["high_priority_remediation"].append({
-                    "type": "audit",
-                    "id": step.get("id", "unknown"),
-                    "title": step.get("id", "unknown"),
-                    "description": step.get("remediation", "")
-                })
+                report["summary"]["high_priority_remediation"].append(
+                    {
+                        "type": "audit",
+                        "id": step.get("id", "unknown"),
+                        "title": step.get("id", "unknown"),
+                        "description": step.get("remediation", ""),
+                    }
+                )
 
             # Save report to file
             report_file = os.path.join(
                 self.reports_dir,
-                f"comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                f"comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
             )
             with open(report_file, "w") as f:
                 json.dump(report, f, indent=2)
@@ -402,7 +435,7 @@ class SecurityReporter:
                 html_report = self._convert_to_html(report, "comprehensive")
                 html_file = os.path.join(
                     self.reports_dir,
-                    f"comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+                    f"comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
                 )
                 with open(html_file, "w") as f:
                     f.write(html_report)
@@ -411,7 +444,7 @@ class SecurityReporter:
                 text_report = self._convert_to_text(report, "comprehensive")
                 text_file = os.path.join(
                     self.reports_dir,
-                    f"comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+                    f"comprehensive_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                 )
                 with open(text_file, "w") as f:
                     f.write(text_report)
@@ -466,7 +499,7 @@ class SecurityReporter:
             return template.render(
                 report_type=report_type.capitalize(),
                 timestamp=report.get("timestamp", datetime.now().isoformat()),
-                content=json.dumps(report, indent=2)
+                content=json.dumps(report, indent=2),
             )
         except Exception as e:
             self.logger.error(f"Error converting report to HTML: {str(e)}")
@@ -487,26 +520,40 @@ class SecurityReporter:
             # Create a simple text report
             text = []
             text.append(f"=== Docker {report_type.capitalize()} Report ===")
-            text.append(f"Generated on: {report.get('timestamp', datetime.now().isoformat())}")
+            text.append(
+                f"Generated on: {report.get('timestamp', datetime.now().isoformat())}"
+            )
             text.append("")
 
             # Add summary if available
             if "summary" in report:
                 text.append("--- Summary ---")
                 if report_type == "vulnerability":
-                    text.append(f"Total Vulnerabilities: {report['summary'].get('total_vulnerabilities', 0)}")
+                    text.append(
+                        f"Total Vulnerabilities: {report['summary'].get('total_vulnerabilities', 0)}"
+                    )
                     text.append("Severity Counts:")
-                    for severity, count in report["summary"].get("severity_counts", {}).items():
+                    for severity, count in (
+                        report["summary"].get("severity_counts", {}).items()
+                    ):
                         text.append(f"  {severity}: {count}")
                 elif report_type == "audit":
-                    text.append(f"Total Checks: {report['summary'].get('total_checks', 0)}")
+                    text.append(
+                        f"Total Checks: {report['summary'].get('total_checks', 0)}"
+                    )
                     text.append(f"Passed: {report['summary'].get('passed', 0)}")
                     text.append(f"Failed: {report['summary'].get('failed', 0)}")
                     text.append(f"Score: {report['summary'].get('score', 0)}%")
                 elif report_type == "comprehensive":
-                    text.append(f"Overall Score: {report['summary'].get('overall_score', 0)}%")
-                    text.append(f"Vulnerability Score: {report['summary'].get('vulnerability_score', 0)}%")
-                    text.append(f"Audit Score: {report['summary'].get('audit_score', 0)}%")
+                    text.append(
+                        f"Overall Score: {report['summary'].get('overall_score', 0)}%"
+                    )
+                    text.append(
+                        f"Vulnerability Score: {report['summary'].get('vulnerability_score', 0)}%"
+                    )
+                    text.append(
+                        f"Audit Score: {report['summary'].get('audit_score', 0)}%"
+                    )
                 text.append("")
 
             # Add report file path

@@ -5,15 +5,16 @@ This module provides functionality for collecting host system resource metrics,
 including CPU, memory, disk, and network usage.
 """
 
-import os
-import time
-import logging
-import threading
-import psutil
-from typing import Dict, Any, List, Optional
-from datetime import datetime, timedelta
 import json
+import logging
+import os
 import platform
+import threading
+import time
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import psutil
 
 from src.config.config_manager import ConfigManager
 from src.docker.connection_manager import ConnectionManager
@@ -33,7 +34,9 @@ class HostMetricsCollector:
     - Network traffic monitoring
     """
 
-    def __init__(self, config_manager: ConfigManager, connection_manager: ConnectionManager):
+    def __init__(
+        self, config_manager: ConfigManager, connection_manager: ConnectionManager
+    ):
         """
         Initialize the host metrics collector.
 
@@ -47,21 +50,25 @@ class HostMetricsCollector:
         self.client = connection_manager.get_client()
 
         # Metrics configuration
-        self.metrics_config = self.config.get('resource_monitoring', {}).get('metrics', {})
-        self.collection_interval = self.metrics_config.get('collection_interval', 10)  # seconds
-        self.retention_period = self.metrics_config.get('retention_period', 7)  # days
-        self.storage_path = self.metrics_config.get('storage_path', '~/.dockerforge/metrics')
-        self.enabled_metrics = self.metrics_config.get('enabled_metrics', {
-            'cpu': True,
-            'memory': True,
-            'disk': True,
-            'network': True
-        })
+        self.metrics_config = self.config.get("resource_monitoring", {}).get(
+            "metrics", {}
+        )
+        self.collection_interval = self.metrics_config.get(
+            "collection_interval", 10
+        )  # seconds
+        self.retention_period = self.metrics_config.get("retention_period", 7)  # days
+        self.storage_path = self.metrics_config.get(
+            "storage_path", "~/.dockerforge/metrics"
+        )
+        self.enabled_metrics = self.metrics_config.get(
+            "enabled_metrics",
+            {"cpu": True, "memory": True, "disk": True, "network": True},
+        )
 
         # Expand storage path
         self.storage_path = os.path.expanduser(self.storage_path)
         ensure_directory_exists(self.storage_path)
-        self.host_metrics_path = os.path.join(self.storage_path, 'host')
+        self.host_metrics_path = os.path.join(self.storage_path, "host")
         ensure_directory_exists(self.host_metrics_path)
 
         # Collection thread
@@ -69,12 +76,7 @@ class HostMetricsCollector:
         self.collection_thread = None
 
         # Initialize metrics history
-        self.metrics_history = {
-            'cpu': [],
-            'memory': [],
-            'disk': [],
-            'network': []
-        }
+        self.metrics_history = {"cpu": [], "memory": [], "disk": [], "network": []}
 
         # Initialize previous network counters for rate calculation
         self.prev_net_io = psutil.net_io_counters()
@@ -132,28 +134,28 @@ class HostMetricsCollector:
             A dictionary of host metrics
         """
         metrics = {
-            'timestamp': datetime.now().isoformat(),
-            'cpu': {},
-            'memory': {},
-            'disk': {},
-            'network': {}
+            "timestamp": datetime.now().isoformat(),
+            "cpu": {},
+            "memory": {},
+            "disk": {},
+            "network": {},
         }
 
         # Collect CPU metrics
-        if self.enabled_metrics.get('cpu', True):
-            metrics['cpu'] = self._collect_cpu_metrics()
+        if self.enabled_metrics.get("cpu", True):
+            metrics["cpu"] = self._collect_cpu_metrics()
 
         # Collect memory metrics
-        if self.enabled_metrics.get('memory', True):
-            metrics['memory'] = self._collect_memory_metrics()
+        if self.enabled_metrics.get("memory", True):
+            metrics["memory"] = self._collect_memory_metrics()
 
         # Collect disk metrics
-        if self.enabled_metrics.get('disk', True):
-            metrics['disk'] = self._collect_disk_metrics()
+        if self.enabled_metrics.get("disk", True):
+            metrics["disk"] = self._collect_disk_metrics()
 
         # Collect network metrics
-        if self.enabled_metrics.get('network', True):
-            metrics['network'] = self._collect_network_metrics()
+        if self.enabled_metrics.get("network", True):
+            metrics["network"] = self._collect_network_metrics()
 
         return metrics
 
@@ -165,36 +167,36 @@ class HostMetricsCollector:
             A dictionary of CPU metrics
         """
         cpu_metrics = {
-            'percent': psutil.cpu_percent(interval=0.1),
-            'count': psutil.cpu_count(),
-            'physical_count': psutil.cpu_count(logical=False),
-            'per_cpu': psutil.cpu_percent(interval=0.1, percpu=True),
-            'load_avg': psutil.getloadavg()
+            "percent": psutil.cpu_percent(interval=0.1),
+            "count": psutil.cpu_count(),
+            "physical_count": psutil.cpu_count(logical=False),
+            "per_cpu": psutil.cpu_percent(interval=0.1, percpu=True),
+            "load_avg": psutil.getloadavg(),
         }
 
         # Add CPU frequency if available
         try:
             cpu_freq = psutil.cpu_freq()
             if cpu_freq:
-                cpu_metrics['frequency'] = {
-                    'current': cpu_freq.current,
-                    'min': cpu_freq.min,
-                    'max': cpu_freq.max
+                cpu_metrics["frequency"] = {
+                    "current": cpu_freq.current,
+                    "min": cpu_freq.min,
+                    "max": cpu_freq.max,
                 }
         except Exception:
             pass
 
         # Add CPU times
         cpu_times = psutil.cpu_times_percent()
-        cpu_metrics['times'] = {
-            'user': cpu_times.user,
-            'system': cpu_times.system,
-            'idle': cpu_times.idle,
-            'iowait': getattr(cpu_times, 'iowait', 0),
-            'irq': getattr(cpu_times, 'irq', 0),
-            'softirq': getattr(cpu_times, 'softirq', 0),
-            'steal': getattr(cpu_times, 'steal', 0),
-            'guest': getattr(cpu_times, 'guest', 0)
+        cpu_metrics["times"] = {
+            "user": cpu_times.user,
+            "system": cpu_times.system,
+            "idle": cpu_times.idle,
+            "iowait": getattr(cpu_times, "iowait", 0),
+            "irq": getattr(cpu_times, "irq", 0),
+            "softirq": getattr(cpu_times, "softirq", 0),
+            "steal": getattr(cpu_times, "steal", 0),
+            "guest": getattr(cpu_times, "guest", 0),
         }
 
         return cpu_metrics
@@ -210,26 +212,26 @@ class HostMetricsCollector:
         swap_memory = psutil.swap_memory()
 
         memory_metrics = {
-            'virtual': {
-                'total': virtual_memory.total,
-                'available': virtual_memory.available,
-                'used': virtual_memory.used,
-                'free': virtual_memory.free,
-                'percent': virtual_memory.percent,
-                'active': getattr(virtual_memory, 'active', 0),
-                'inactive': getattr(virtual_memory, 'inactive', 0),
-                'buffers': getattr(virtual_memory, 'buffers', 0),
-                'cached': getattr(virtual_memory, 'cached', 0),
-                'shared': getattr(virtual_memory, 'shared', 0)
+            "virtual": {
+                "total": virtual_memory.total,
+                "available": virtual_memory.available,
+                "used": virtual_memory.used,
+                "free": virtual_memory.free,
+                "percent": virtual_memory.percent,
+                "active": getattr(virtual_memory, "active", 0),
+                "inactive": getattr(virtual_memory, "inactive", 0),
+                "buffers": getattr(virtual_memory, "buffers", 0),
+                "cached": getattr(virtual_memory, "cached", 0),
+                "shared": getattr(virtual_memory, "shared", 0),
             },
-            'swap': {
-                'total': swap_memory.total,
-                'used': swap_memory.used,
-                'free': swap_memory.free,
-                'percent': swap_memory.percent,
-                'sin': swap_memory.sin,
-                'sout': swap_memory.sout
-            }
+            "swap": {
+                "total": swap_memory.total,
+                "used": swap_memory.used,
+                "free": swap_memory.free,
+                "percent": swap_memory.percent,
+                "sin": swap_memory.sin,
+                "sout": swap_memory.sout,
+            },
         }
 
         return memory_metrics
@@ -241,22 +243,19 @@ class HostMetricsCollector:
         Returns:
             A dictionary of disk metrics
         """
-        disk_metrics = {
-            'usage': {},
-            'io': {}
-        }
+        disk_metrics = {"usage": {}, "io": {}}
 
         # Collect disk usage for all mounted partitions
         for partition in psutil.disk_partitions():
             try:
                 usage = psutil.disk_usage(partition.mountpoint)
-                disk_metrics['usage'][partition.mountpoint] = {
-                    'total': usage.total,
-                    'used': usage.used,
-                    'free': usage.free,
-                    'percent': usage.percent,
-                    'device': partition.device,
-                    'fstype': partition.fstype
+                disk_metrics["usage"][partition.mountpoint] = {
+                    "total": usage.total,
+                    "used": usage.used,
+                    "free": usage.free,
+                    "percent": usage.percent,
+                    "device": partition.device,
+                    "fstype": partition.fstype,
                 }
             except (PermissionError, OSError):
                 # Skip partitions that can't be accessed
@@ -269,23 +268,31 @@ class HostMetricsCollector:
             time_diff = current_time - self.prev_disk_time
 
             if time_diff > 0 and self.prev_disk_io:
-                read_bytes_rate = (current_disk_io.read_bytes - self.prev_disk_io.read_bytes) / time_diff
-                write_bytes_rate = (current_disk_io.write_bytes - self.prev_disk_io.write_bytes) / time_diff
-                read_count_rate = (current_disk_io.read_count - self.prev_disk_io.read_count) / time_diff
-                write_count_rate = (current_disk_io.write_count - self.prev_disk_io.write_count) / time_diff
+                read_bytes_rate = (
+                    current_disk_io.read_bytes - self.prev_disk_io.read_bytes
+                ) / time_diff
+                write_bytes_rate = (
+                    current_disk_io.write_bytes - self.prev_disk_io.write_bytes
+                ) / time_diff
+                read_count_rate = (
+                    current_disk_io.read_count - self.prev_disk_io.read_count
+                ) / time_diff
+                write_count_rate = (
+                    current_disk_io.write_count - self.prev_disk_io.write_count
+                ) / time_diff
 
-                disk_metrics['io'] = {
-                    'read_bytes': current_disk_io.read_bytes,
-                    'write_bytes': current_disk_io.write_bytes,
-                    'read_count': current_disk_io.read_count,
-                    'write_count': current_disk_io.write_count,
-                    'read_bytes_rate': read_bytes_rate,
-                    'write_bytes_rate': write_bytes_rate,
-                    'read_count_rate': read_count_rate,
-                    'write_count_rate': write_count_rate,
-                    'read_time': getattr(current_disk_io, 'read_time', 0),
-                    'write_time': getattr(current_disk_io, 'write_time', 0),
-                    'busy_time': getattr(current_disk_io, 'busy_time', 0)
+                disk_metrics["io"] = {
+                    "read_bytes": current_disk_io.read_bytes,
+                    "write_bytes": current_disk_io.write_bytes,
+                    "read_count": current_disk_io.read_count,
+                    "write_count": current_disk_io.write_count,
+                    "read_bytes_rate": read_bytes_rate,
+                    "write_bytes_rate": write_bytes_rate,
+                    "read_count_rate": read_count_rate,
+                    "write_count_rate": write_count_rate,
+                    "read_time": getattr(current_disk_io, "read_time", 0),
+                    "write_time": getattr(current_disk_io, "write_time", 0),
+                    "busy_time": getattr(current_disk_io, "busy_time", 0),
                 }
 
             self.prev_disk_io = current_disk_io
@@ -302,10 +309,7 @@ class HostMetricsCollector:
         Returns:
             A dictionary of network metrics
         """
-        network_metrics = {
-            'io': {},
-            'connections': {}
-        }
+        network_metrics = {"io": {}, "connections": {}}
 
         # Collect network I/O statistics
         try:
@@ -314,24 +318,32 @@ class HostMetricsCollector:
             time_diff = current_time - self.prev_net_time
 
             if time_diff > 0 and self.prev_net_io:
-                bytes_sent_rate = (current_net_io.bytes_sent - self.prev_net_io.bytes_sent) / time_diff
-                bytes_recv_rate = (current_net_io.bytes_recv - self.prev_net_io.bytes_recv) / time_diff
-                packets_sent_rate = (current_net_io.packets_sent - self.prev_net_io.packets_sent) / time_diff
-                packets_recv_rate = (current_net_io.packets_recv - self.prev_net_io.packets_recv) / time_diff
+                bytes_sent_rate = (
+                    current_net_io.bytes_sent - self.prev_net_io.bytes_sent
+                ) / time_diff
+                bytes_recv_rate = (
+                    current_net_io.bytes_recv - self.prev_net_io.bytes_recv
+                ) / time_diff
+                packets_sent_rate = (
+                    current_net_io.packets_sent - self.prev_net_io.packets_sent
+                ) / time_diff
+                packets_recv_rate = (
+                    current_net_io.packets_recv - self.prev_net_io.packets_recv
+                ) / time_diff
 
-                network_metrics['io'] = {
-                    'bytes_sent': current_net_io.bytes_sent,
-                    'bytes_recv': current_net_io.bytes_recv,
-                    'packets_sent': current_net_io.packets_sent,
-                    'packets_recv': current_net_io.packets_recv,
-                    'errin': current_net_io.errin,
-                    'errout': current_net_io.errout,
-                    'dropin': current_net_io.dropin,
-                    'dropout': current_net_io.dropout,
-                    'bytes_sent_rate': bytes_sent_rate,
-                    'bytes_recv_rate': bytes_recv_rate,
-                    'packets_sent_rate': packets_sent_rate,
-                    'packets_recv_rate': packets_recv_rate
+                network_metrics["io"] = {
+                    "bytes_sent": current_net_io.bytes_sent,
+                    "bytes_recv": current_net_io.bytes_recv,
+                    "packets_sent": current_net_io.packets_sent,
+                    "packets_recv": current_net_io.packets_recv,
+                    "errin": current_net_io.errin,
+                    "errout": current_net_io.errout,
+                    "dropin": current_net_io.dropin,
+                    "dropout": current_net_io.dropout,
+                    "bytes_sent_rate": bytes_sent_rate,
+                    "bytes_recv_rate": bytes_recv_rate,
+                    "packets_sent_rate": packets_sent_rate,
+                    "packets_recv_rate": packets_recv_rate,
                 }
 
             self.prev_net_io = current_net_io
@@ -341,52 +353,54 @@ class HostMetricsCollector:
 
         # Collect network interfaces
         try:
-            network_metrics['interfaces'] = {}
+            network_metrics["interfaces"] = {}
             for interface, stats in psutil.net_if_stats().items():
-                network_metrics['interfaces'][interface] = {
-                    'isup': stats.isup,
-                    'duplex': stats.duplex,
-                    'speed': stats.speed,
-                    'mtu': stats.mtu
+                network_metrics["interfaces"][interface] = {
+                    "isup": stats.isup,
+                    "duplex": stats.duplex,
+                    "speed": stats.speed,
+                    "mtu": stats.mtu,
                 }
 
                 # Add address information
                 addresses = psutil.net_if_addrs().get(interface, [])
-                network_metrics['interfaces'][interface]['addresses'] = []
+                network_metrics["interfaces"][interface]["addresses"] = []
                 for addr in addresses:
-                    network_metrics['interfaces'][interface]['addresses'].append({
-                        'family': addr.family,
-                        'address': addr.address,
-                        'netmask': addr.netmask,
-                        'broadcast': addr.broadcast,
-                        'ptp': addr.ptp
-                    })
+                    network_metrics["interfaces"][interface]["addresses"].append(
+                        {
+                            "family": addr.family,
+                            "address": addr.address,
+                            "netmask": addr.netmask,
+                            "broadcast": addr.broadcast,
+                            "ptp": addr.ptp,
+                        }
+                    )
         except Exception as e:
             logger.warning("Error collecting network interface metrics: %s", e)
 
         # Collect network connection statistics
         try:
-            connections = psutil.net_connections(kind='inet')
+            connections = psutil.net_connections(kind="inet")
             connection_stats = {
-                'ESTABLISHED': 0,
-                'SYN_SENT': 0,
-                'SYN_RECV': 0,
-                'FIN_WAIT1': 0,
-                'FIN_WAIT2': 0,
-                'TIME_WAIT': 0,
-                'CLOSE': 0,
-                'CLOSE_WAIT': 0,
-                'LAST_ACK': 0,
-                'LISTEN': 0,
-                'CLOSING': 0,
-                'NONE': 0
+                "ESTABLISHED": 0,
+                "SYN_SENT": 0,
+                "SYN_RECV": 0,
+                "FIN_WAIT1": 0,
+                "FIN_WAIT2": 0,
+                "TIME_WAIT": 0,
+                "CLOSE": 0,
+                "CLOSE_WAIT": 0,
+                "LAST_ACK": 0,
+                "LISTEN": 0,
+                "CLOSING": 0,
+                "NONE": 0,
             }
 
             for conn in connections:
                 status = conn.status
                 connection_stats[status] = connection_stats.get(status, 0) + 1
 
-            network_metrics['connections'] = connection_stats
+            network_metrics["connections"] = connection_stats
         except Exception as e:
             logger.warning("Error collecting network connection metrics: %s", e)
 
@@ -399,9 +413,9 @@ class HostMetricsCollector:
         Args:
             metrics: The metrics to store
         """
-        timestamp = datetime.fromisoformat(metrics['timestamp'])
-        date_str = timestamp.strftime('%Y-%m-%d')
-        hour_str = timestamp.strftime('%H')
+        timestamp = datetime.fromisoformat(metrics["timestamp"])
+        date_str = timestamp.strftime("%Y-%m-%d")
+        hour_str = timestamp.strftime("%H")
 
         # Create directory for date if it doesn't exist
         date_dir = os.path.join(self.host_metrics_path, date_str)
@@ -409,21 +423,22 @@ class HostMetricsCollector:
 
         # Store metrics in hourly files
         file_path = os.path.join(date_dir, f"{hour_str}.jsonl")
-        with open(file_path, 'a') as f:
-            f.write(json.dumps(metrics) + '\n')
+        with open(file_path, "a") as f:
+            f.write(json.dumps(metrics) + "\n")
 
         # Update in-memory metrics history
-        for metric_type in ['cpu', 'memory', 'disk', 'network']:
+        for metric_type in ["cpu", "memory", "disk", "network"]:
             if metric_type in metrics:
-                self.metrics_history[metric_type].append({
-                    'timestamp': metrics['timestamp'],
-                    'data': metrics[metric_type]
-                })
+                self.metrics_history[metric_type].append(
+                    {"timestamp": metrics["timestamp"], "data": metrics[metric_type]}
+                )
 
                 # Limit the size of in-memory history
                 max_history_size = 1000  # Keep last 1000 samples in memory
                 if len(self.metrics_history[metric_type]) > max_history_size:
-                    self.metrics_history[metric_type] = self.metrics_history[metric_type][-max_history_size:]
+                    self.metrics_history[metric_type] = self.metrics_history[
+                        metric_type
+                    ][-max_history_size:]
 
     def _cleanup_old_metrics(self) -> None:
         """
@@ -432,7 +447,7 @@ class HostMetricsCollector:
         try:
             # Calculate cutoff date
             cutoff_date = datetime.now() - timedelta(days=self.retention_period)
-            cutoff_date_str = cutoff_date.strftime('%Y-%m-%d')
+            cutoff_date_str = cutoff_date.strftime("%Y-%m-%d")
 
             # List all date directories
             for date_dir in os.listdir(self.host_metrics_path):
@@ -447,7 +462,9 @@ class HostMetricsCollector:
         except Exception as e:
             logger.error("Error cleaning up old metrics: %s", e)
 
-    def get_metrics_history(self, metric_type: str, start_time: datetime, end_time: datetime) -> List[Dict[str, Any]]:
+    def get_metrics_history(
+        self, metric_type: str, start_time: datetime, end_time: datetime
+    ) -> List[Dict[str, Any]]:
         """
         Get metrics history for a specific metric type.
 
@@ -465,7 +482,7 @@ class HostMetricsCollector:
         # Filter metrics by time range
         filtered_metrics = []
         for metric in self.metrics_history[metric_type]:
-            timestamp = datetime.fromisoformat(metric['timestamp'])
+            timestamp = datetime.fromisoformat(metric["timestamp"])
             if start_time <= timestamp <= end_time:
                 filtered_metrics.append(metric)
 
@@ -488,47 +505,47 @@ class HostMetricsCollector:
             A dictionary of system information
         """
         system_info = {
-            'platform': platform.platform(),
-            'system': platform.system(),
-            'release': platform.release(),
-            'version': platform.version(),
-            'architecture': platform.machine(),
-            'processor': platform.processor(),
-            'hostname': platform.node(),
-            'python_version': platform.python_version(),
-            'cpu_count': psutil.cpu_count(),
-            'physical_cpu_count': psutil.cpu_count(logical=False),
-            'memory_total': psutil.virtual_memory().total,
-            'boot_time': datetime.fromtimestamp(psutil.boot_time()).isoformat()
+            "platform": platform.platform(),
+            "system": platform.system(),
+            "release": platform.release(),
+            "version": platform.version(),
+            "architecture": platform.machine(),
+            "processor": platform.processor(),
+            "hostname": platform.node(),
+            "python_version": platform.python_version(),
+            "cpu_count": psutil.cpu_count(),
+            "physical_cpu_count": psutil.cpu_count(logical=False),
+            "memory_total": psutil.virtual_memory().total,
+            "boot_time": datetime.fromtimestamp(psutil.boot_time()).isoformat(),
         }
 
         # Add Docker information
         try:
             docker_info = self.client.info()
-            system_info['docker'] = {
-                'version': docker_info.get('ServerVersion', ''),
-                'containers': docker_info.get('Containers', 0),
-                'running': docker_info.get('ContainersRunning', 0),
-                'paused': docker_info.get('ContainersPaused', 0),
-                'stopped': docker_info.get('ContainersStopped', 0),
-                'images': docker_info.get('Images', 0),
-                'driver': docker_info.get('Driver', ''),
-                'storage_driver': docker_info.get('Driver', ''),
-                'logging_driver': docker_info.get('LoggingDriver', ''),
-                'cgroup_driver': docker_info.get('CgroupDriver', ''),
-                'kernel_version': docker_info.get('KernelVersion', ''),
-                'operating_system': docker_info.get('OperatingSystem', ''),
-                'os_type': docker_info.get('OSType', ''),
-                'architecture': docker_info.get('Architecture', ''),
-                'cpus': docker_info.get('NCPU', 0),
-                'memory': docker_info.get('MemTotal', 0),
-                'docker_root_dir': docker_info.get('DockerRootDir', ''),
-                'index_server_address': docker_info.get('IndexServerAddress', ''),
-                'registry_config': docker_info.get('RegistryConfig', {})
+            system_info["docker"] = {
+                "version": docker_info.get("ServerVersion", ""),
+                "containers": docker_info.get("Containers", 0),
+                "running": docker_info.get("ContainersRunning", 0),
+                "paused": docker_info.get("ContainersPaused", 0),
+                "stopped": docker_info.get("ContainersStopped", 0),
+                "images": docker_info.get("Images", 0),
+                "driver": docker_info.get("Driver", ""),
+                "storage_driver": docker_info.get("Driver", ""),
+                "logging_driver": docker_info.get("LoggingDriver", ""),
+                "cgroup_driver": docker_info.get("CgroupDriver", ""),
+                "kernel_version": docker_info.get("KernelVersion", ""),
+                "operating_system": docker_info.get("OperatingSystem", ""),
+                "os_type": docker_info.get("OSType", ""),
+                "architecture": docker_info.get("Architecture", ""),
+                "cpus": docker_info.get("NCPU", 0),
+                "memory": docker_info.get("MemTotal", 0),
+                "docker_root_dir": docker_info.get("DockerRootDir", ""),
+                "index_server_address": docker_info.get("IndexServerAddress", ""),
+                "registry_config": docker_info.get("RegistryConfig", {}),
             }
         except Exception as e:
             logger.warning("Error getting Docker information: %s", e)
-            system_info['docker'] = {'error': str(e)}
+            system_info["docker"] = {"error": str(e)}
 
         return system_info
 

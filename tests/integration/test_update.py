@@ -2,21 +2,22 @@
 DockerForge Integration Tests - Update Functionality
 """
 
-import pytest
-import os
-import sys
 import json
+import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
+
+import pytest
 
 # Add the src directory to the path so we can import the modules
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Import the necessary modules
 try:
-    from update.version_checker import VersionChecker
     from update.update_manager import UpdateManager
+    from update.version_checker import VersionChecker
 except ImportError as e:
     print(f"Import error: {e}")
     print("These tests may be running in a limited environment.")
@@ -39,6 +40,7 @@ class TestUpdateFunctionality:
         # Clean up temporary directory
         try:
             import shutil
+
             shutil.rmtree(self.temp_dir, ignore_errors=True)
         except Exception as e:
             print(f"Failed to clean up temporary directory: {e}")
@@ -140,7 +142,7 @@ class TestUpdateFunctionality:
             # Create a backup
             backup_id = update_manager.create_backup_before_update()
             assert backup_id is not None
-            
+
             # Simulate a rollback without actually applying it
             simulation_result = update_manager.simulate_rollback(backup_id)
             assert simulation_result is not None
@@ -160,7 +162,7 @@ class TestUpdateFunctionality:
             ["python", "-m", "dockerforge", "update", "--help"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
         # Check that the command executed successfully
         assert result.returncode == 0
@@ -174,7 +176,7 @@ class TestUpdateFunctionality:
             ["python", "-m", "dockerforge", "update", "check"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
         # Check that the command executed successfully
         assert result.returncode == 0
@@ -188,12 +190,14 @@ class TestUpdateFunctionality:
             ["python", "-m", "dockerforge", "update", "list-backups"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
         # Check that the command executed successfully
         assert result.returncode == 0
         # Check that the output contains backup information
-        assert "backup" in result.stdout.lower() or "no backups" in result.stdout.lower()
+        assert (
+            "backup" in result.stdout.lower() or "no backups" in result.stdout.lower()
+        )
 
     def test_update_installation_detection(self):
         """Test detection of installation method"""

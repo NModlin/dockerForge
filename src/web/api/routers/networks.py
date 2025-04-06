@@ -3,19 +3,25 @@ Networks router for the DockerForge Web UI.
 
 This module provides the API endpoints for network management.
 """
-from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query, status
+
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from src.web.api.db.session import get_db
 from src.web.api.auth.dependencies import get_current_active_user
 from src.web.api.auth.permissions import check_permission
+from src.web.api.db.session import get_db
 from src.web.api.models.user import User
 from src.web.api.schemas.networks import Network, NetworkCreate, NetworkUpdate
 from src.web.api.services.networks import (
-    get_networks, get_network, create_network, delete_network,
-    connect_container_to_network, disconnect_container_from_network,
-    get_connected_containers
+    connect_container_to_network,
+    create_network,
+    delete_network,
+    disconnect_container_from_network,
+    get_connected_containers,
+    get_network,
+    get_networks,
 )
 
 router = APIRouter()
@@ -27,7 +33,7 @@ async def list_networks(
     db: Session = Depends(get_db),
     name: Optional[str] = Query(None, description="Filter by network name"),
     driver: Optional[str] = Query(None, description="Filter by network driver"),
-    scope: Optional[str] = Query(None, description="Filter by network scope")
+    scope: Optional[str] = Query(None, description="Filter by network scope"),
 ):
     """
     Get all networks.
@@ -35,22 +41,16 @@ async def list_networks(
     # Check permission
     if not check_permission(current_user, "networks:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
-        networks = await get_networks(
-            name=name,
-            driver=driver,
-            scope=scope,
-            db=db
-        )
+        networks = await get_networks(name=name, driver=driver, scope=scope, db=db)
         return networks
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get networks: {str(e)}"
+            detail=f"Failed to get networks: {str(e)}",
         )
 
 
@@ -58,7 +58,7 @@ async def list_networks(
 async def get_network_by_id(
     network_id: str = Path(..., description="Network ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get a network by ID.
@@ -66,8 +66,7 @@ async def get_network_by_id(
     # Check permission
     if not check_permission(current_user, "networks:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -75,7 +74,7 @@ async def get_network_by_id(
         if not network:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Network with ID {network_id} not found"
+                detail=f"Network with ID {network_id} not found",
             )
         return network
     except HTTPException:
@@ -83,7 +82,7 @@ async def get_network_by_id(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get network: {str(e)}"
+            detail=f"Failed to get network: {str(e)}",
         )
 
 
@@ -91,7 +90,7 @@ async def get_network_by_id(
 async def create_new_network(
     network_data: NetworkCreate = Body(..., description="Network data"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Create a new network.
@@ -99,8 +98,7 @@ async def create_new_network(
     # Check permission
     if not check_permission(current_user, "networks:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -112,13 +110,13 @@ async def create_new_network(
             internal=network_data.internal,
             labels=network_data.labels,
             options=network_data.options,
-            db=db
+            db=db,
         )
         return network
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to create network: {str(e)}"
+            detail=f"Failed to create network: {str(e)}",
         )
 
 
@@ -126,7 +124,7 @@ async def create_new_network(
 async def delete_network_by_id(
     network_id: str = Path(..., description="Network ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Delete a network.
@@ -134,8 +132,7 @@ async def delete_network_by_id(
     # Check permission
     if not check_permission(current_user, "networks:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -143,7 +140,7 @@ async def delete_network_by_id(
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Network with ID {network_id} not found"
+                detail=f"Network with ID {network_id} not found",
             )
         return None
     except HTTPException:
@@ -151,7 +148,7 @@ async def delete_network_by_id(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to delete network: {str(e)}"
+            detail=f"Failed to delete network: {str(e)}",
         )
 
 
@@ -159,7 +156,7 @@ async def delete_network_by_id(
 async def get_containers_in_network(
     network_id: str = Path(..., description="Network ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get containers connected to a network.
@@ -167,8 +164,7 @@ async def get_containers_in_network(
     # Check permission
     if not check_permission(current_user, "networks:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -177,7 +173,7 @@ async def get_containers_in_network(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to get connected containers: {str(e)}"
+            detail=f"Failed to get connected containers: {str(e)}",
         )
 
 
@@ -186,7 +182,7 @@ async def connect_container(
     network_id: str = Path(..., description="Network ID"),
     connection_data: Dict[str, Any] = Body(..., description="Connection data"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Connect a container to a network.
@@ -194,43 +190,39 @@ async def connect_container(
     # Check permission
     if not check_permission(current_user, "networks:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
         container_id = connection_data.get("container_id")
         aliases = connection_data.get("aliases", [])
-        
+
         if not container_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Container ID is required"
+                detail="Container ID is required",
             )
-        
+
         success = await connect_container_to_network(
-            network_id=network_id,
-            container_id=container_id,
-            aliases=aliases,
-            db=db
+            network_id=network_id, container_id=container_id, aliases=aliases, db=db
         )
-        
+
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to connect container to network"
+                detail="Failed to connect container to network",
             )
-        
+
         return {
             "success": True,
-            "message": f"Container {container_id} connected to network {network_id}"
+            "message": f"Container {container_id} connected to network {network_id}",
         }
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to connect container to network: {str(e)}"
+            detail=f"Failed to connect container to network: {str(e)}",
         )
 
 
@@ -239,7 +231,7 @@ async def disconnect_container(
     network_id: str = Path(..., description="Network ID"),
     connection_data: Dict[str, Any] = Body(..., description="Connection data"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Disconnect a container from a network.
@@ -247,39 +239,36 @@ async def disconnect_container(
     # Check permission
     if not check_permission(current_user, "networks:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
         container_id = connection_data.get("container_id")
-        
+
         if not container_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Container ID is required"
+                detail="Container ID is required",
             )
-        
+
         success = await disconnect_container_from_network(
-            network_id=network_id,
-            container_id=container_id,
-            db=db
+            network_id=network_id, container_id=container_id, db=db
         )
-        
+
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to disconnect container from network"
+                detail="Failed to disconnect container from network",
             )
-        
+
         return {
             "success": True,
-            "message": f"Container {container_id} disconnected from network {network_id}"
+            "message": f"Container {container_id} disconnected from network {network_id}",
         }
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to disconnect container from network: {str(e)}"
+            detail=f"Failed to disconnect container from network: {str(e)}",
         )

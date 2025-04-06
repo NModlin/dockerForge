@@ -6,25 +6,26 @@ including starting, stopping, and configuring the various components of the
 resource monitoring system.
 """
 
+import atexit
+import json
 import logging
-import time
 import os
 import signal
 import sys
-import json
-from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple, Union
 import threading
-import atexit
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from src.config.config_manager import ConfigManager
 from src.docker.connection_manager_adapter import ConnectionManager
-from src.resource_monitoring.metrics_collector import MetricsCollector
-from src.resource_monitoring.anomaly_detector import AnomalyDetector
-from src.resource_monitoring.optimization_engine import OptimizationEngine
 from src.notifications.notification_manager import NotificationManager
+from src.resource_monitoring.anomaly_detector import AnomalyDetector
+from src.resource_monitoring.metrics_collector import MetricsCollector
+from src.resource_monitoring.optimization_engine import OptimizationEngine
 
 logger = logging.getLogger(__name__)
+
 
 class DaemonManager:
     """
@@ -37,8 +38,12 @@ class DaemonManager:
     - Handling signals and graceful shutdown
     """
 
-    def __init__(self, config_manager: ConfigManager, connection_manager: ConnectionManager,
-                notification_manager: Optional[NotificationManager] = None):
+    def __init__(
+        self,
+        config_manager: ConfigManager,
+        connection_manager: ConnectionManager,
+        notification_manager: Optional[NotificationManager] = None,
+    ):
         """
         Initialize the daemon manager.
 
@@ -48,17 +53,21 @@ class DaemonManager:
             notification_manager: Optional notification manager for sending alerts
         """
         self.config_manager = config_manager
-        self.config = config_manager.config if hasattr(config_manager, 'config') else {}
+        self.config = config_manager.config if hasattr(config_manager, "config") else {}
         self.connection_manager = connection_manager
         self.notification_manager = notification_manager
 
         # Daemon configuration
-        self.daemon_config = self.config.get('resource_monitoring', {}).get('daemon', {})
-        self.pid_file = self.daemon_config.get('pid_file', '~/.dockerforge/daemon.pid')
+        self.daemon_config = self.config.get("resource_monitoring", {}).get(
+            "daemon", {}
+        )
+        self.pid_file = self.daemon_config.get("pid_file", "~/.dockerforge/daemon.pid")
         self.pid_file = os.path.expanduser(self.pid_file)
-        self.log_file = self.daemon_config.get('log_file', '~/.dockerforge/daemon.log')
+        self.log_file = self.daemon_config.get("log_file", "~/.dockerforge/daemon.log")
         self.log_file = os.path.expanduser(self.log_file)
-        self.status_file = self.daemon_config.get('status_file', '~/.dockerforge/daemon_status.json')
+        self.status_file = self.daemon_config.get(
+            "status_file", "~/.dockerforge/daemon_status.json"
+        )
         self.status_file = os.path.expanduser(self.status_file)
 
         # Components
@@ -69,7 +78,7 @@ class DaemonManager:
         # Status
         self.running = False
         self.status_thread = None
-        self.status_interval = self.daemon_config.get('status_interval', 60)  # seconds
+        self.status_interval = self.daemon_config.get("status_interval", 60)  # seconds
 
         # Create directories if they don't exist
         os.makedirs(os.path.dirname(self.pid_file), exist_ok=True)
@@ -91,7 +100,7 @@ class DaemonManager:
             self._daemonize()
 
         # Write PID file
-        with open(self.pid_file, 'w') as f:
+        with open(self.pid_file, "w") as f:
             f.write(str(os.getpid()))
 
         # Register cleanup handler
@@ -165,7 +174,7 @@ class DaemonManager:
             return False
 
         try:
-            with open(self.pid_file, 'r') as f:
+            with open(self.pid_file, "r") as f:
                 pid = int(f.read().strip())
 
             # Check if process exists
@@ -185,53 +194,64 @@ class DaemonManager:
             A dictionary containing status information
         """
         status = {
-            'running': self.running,
-            'pid': os.getpid() if self.running else None,
-            'uptime': None,
-            'components': {
-                'metrics_collector': {
-                    'running': self.metrics_collector is not None and self.metrics_collector.running,
-                    'containers_monitored': 0,
-                    'metrics_collected': 0,
+            "running": self.running,
+            "pid": os.getpid() if self.running else None,
+            "uptime": None,
+            "components": {
+                "metrics_collector": {
+                    "running": self.metrics_collector is not None
+                    and self.metrics_collector.running,
+                    "containers_monitored": 0,
+                    "metrics_collected": 0,
                 },
-                'anomaly_detector': {
-                    'running': self.anomaly_detector is not None and self.anomaly_detector.running,
-                    'anomalies_detected': 0,
+                "anomaly_detector": {
+                    "running": self.anomaly_detector is not None
+                    and self.anomaly_detector.running,
+                    "anomalies_detected": 0,
                 },
-                'optimization_engine': {
-                    'running': self.optimization_engine is not None and self.optimization_engine.running,
-                    'recommendations_generated': 0,
+                "optimization_engine": {
+                    "running": self.optimization_engine is not None
+                    and self.optimization_engine.running,
+                    "recommendations_generated": 0,
                 },
             },
-            'last_updated': time.time(),
+            "last_updated": time.time(),
         }
 
         # Get component-specific status
         if self.metrics_collector:
             # Count containers being monitored
             containers_monitored = len(self.metrics_collector.get_metrics())
-            status['components']['metrics_collector']['containers_monitored'] = containers_monitored
+            status["components"]["metrics_collector"][
+                "containers_monitored"
+            ] = containers_monitored
 
             # Count total metrics collected
             metrics_collected = 0
             for container_metrics in self.metrics_collector.get_metrics().values():
                 for metric_type, metrics in container_metrics.items():
                     metrics_collected += len(metrics)
-            status['components']['metrics_collector']['metrics_collected'] = metrics_collected
+            status["components"]["metrics_collector"][
+                "metrics_collected"
+            ] = metrics_collected
 
         if self.anomaly_detector:
             # Count anomalies detected
             anomalies_detected = 0
             for container_anomalies in self.anomaly_detector.anomaly_history.values():
                 anomalies_detected += len(container_anomalies)
-            status['components']['anomaly_detector']['anomalies_detected'] = anomalies_detected
+            status["components"]["anomaly_detector"][
+                "anomalies_detected"
+            ] = anomalies_detected
 
         if self.optimization_engine:
             # Count recommendations generated
             recommendations_generated = 0
             for container_recs in self.optimization_engine.recommendations.values():
                 recommendations_generated += len(container_recs)
-            status['components']['optimization_engine']['recommendations_generated'] = recommendations_generated
+            status["components"]["optimization_engine"][
+                "recommendations_generated"
+            ] = recommendations_generated
 
         return status
 
@@ -250,7 +270,7 @@ class DaemonManager:
             sys.exit(1)
 
         # Decouple from parent environment
-        os.chdir('/')
+        os.chdir("/")
         os.setsid()
         os.umask(0)
 
@@ -269,7 +289,7 @@ class DaemonManager:
         sys.stderr.flush()
 
         # Open log file
-        log_fd = open(self.log_file, 'a+')
+        log_fd = open(self.log_file, "a+")
 
         # Duplicate file descriptors
         os.dup2(log_fd.fileno(), sys.stdin.fileno())
@@ -281,19 +301,18 @@ class DaemonManager:
         Initialize the monitoring components.
         """
         # Initialize metrics collector
-        self.metrics_collector = MetricsCollector(self.config_manager, self.connection_manager)
+        self.metrics_collector = MetricsCollector(
+            self.config_manager, self.connection_manager
+        )
 
         # Initialize anomaly detector
         self.anomaly_detector = AnomalyDetector(
-            self.config_manager,
-            self.metrics_collector,
-            self.notification_manager
+            self.config_manager, self.metrics_collector, self.notification_manager
         )
 
         # Initialize optimization engine
         self.optimization_engine = OptimizationEngine(
-            self.config_manager,
-            self.metrics_collector
+            self.config_manager, self.metrics_collector
         )
 
     def _start_components(self) -> None:
@@ -338,7 +357,7 @@ class DaemonManager:
                 status = self.get_status()
 
                 # Write status to file
-                with open(self.status_file, 'w') as f:
+                with open(self.status_file, "w") as f:
                     json.dump(status, f, indent=2)
 
                 time.sleep(self.status_interval)
@@ -368,10 +387,13 @@ class DaemonManager:
         if os.path.exists(self.pid_file):
             os.remove(self.pid_file)
 
-    def get_metrics(self, container_id: Optional[str] = None,
-                   metric_type: Optional[str] = None,
-                   start_time: Optional[str] = None,
-                   end_time: Optional[str] = None) -> Dict[str, Any]:
+    def get_metrics(
+        self,
+        container_id: Optional[str] = None,
+        metric_type: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Get metrics from the metrics collector.
 
@@ -407,14 +429,17 @@ class DaemonManager:
             container_id=container_id,
             metric_type=metric_type,
             start_time=start_datetime,
-            end_time=end_datetime
+            end_time=end_datetime,
         )
 
-    def get_anomalies(self, container_id: Optional[str] = None,
-                     metric_type: Optional[str] = None,
-                     start_time: Optional[str] = None,
-                     end_time: Optional[str] = None,
-                     severity: Optional[int] = None) -> Dict[str, Any]:
+    def get_anomalies(
+        self,
+        container_id: Optional[str] = None,
+        metric_type: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        severity: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
         Get anomalies from the anomaly detector.
 
@@ -452,14 +477,17 @@ class DaemonManager:
             metric_type=metric_type,
             start_time=start_datetime,
             end_time=end_datetime,
-            severity=severity
+            severity=severity,
         )
 
-    def get_recommendations(self, container_id: Optional[str] = None,
-                           recommendation_type: Optional[str] = None,
-                           resource: Optional[str] = None,
-                           start_time: Optional[str] = None,
-                           end_time: Optional[str] = None) -> Dict[str, Any]:
+    def get_recommendations(
+        self,
+        container_id: Optional[str] = None,
+        recommendation_type: Optional[str] = None,
+        resource: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """
         Get recommendations from the optimization engine.
 
@@ -497,11 +525,12 @@ class DaemonManager:
             recommendation_type=recommendation_type,
             resource=resource,
             start_time=start_datetime,
-            end_time=end_datetime
+            end_time=end_datetime,
         )
 
-    def generate_optimization_report(self, container_id: Optional[str] = None,
-                                    format: str = 'text') -> str:
+    def generate_optimization_report(
+        self, container_id: Optional[str] = None, format: str = "text"
+    ) -> str:
         """
         Generate an optimization report.
 
@@ -516,6 +545,5 @@ class DaemonManager:
             return "Optimization engine not available."
 
         return self.optimization_engine.generate_optimization_report(
-            container_id=container_id,
-            format=format
+            container_id=container_id, format=format
         )

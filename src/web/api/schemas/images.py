@@ -3,15 +3,18 @@ Image schemas for the DockerForge Web UI.
 
 This module provides the Pydantic schemas for image management.
 """
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class ImageBase(BaseModel):
     """
     Base image schema.
     """
+
     name: str
     tag: Optional[str] = "latest"
 
@@ -20,6 +23,7 @@ class ImageCreate(ImageBase):
     """
     Image creation schema.
     """
+
     pull: bool = True
 
 
@@ -27,6 +31,7 @@ class ImageUpdate(BaseModel):
     """
     Image update schema.
     """
+
     tag: Optional[str] = None
 
 
@@ -34,6 +39,7 @@ class ImagePort(BaseModel):
     """
     Image port schema.
     """
+
     container_port: int
     protocol: str = "tcp"
 
@@ -42,6 +48,7 @@ class ImageVolume(BaseModel):
     """
     Image volume schema.
     """
+
     container_path: str
     mode: Optional[str] = None
 
@@ -50,6 +57,7 @@ class ImageEnv(BaseModel):
     """
     Image environment variable schema.
     """
+
     key: str
     value: str
 
@@ -58,6 +66,7 @@ class Image(ImageBase):
     """
     Image schema for responses.
     """
+
     id: str
     docker_id: Optional[str] = None
     short_id: Optional[str] = None
@@ -82,6 +91,7 @@ class ImageScan(BaseModel):
     """
     Image scan schema.
     """
+
     id: int
     image_id: int
     scan_type: str
@@ -102,6 +112,7 @@ class ImageVulnerability(BaseModel):
     """
     Image vulnerability schema.
     """
+
     id: int
     scan_id: int
     name: str
@@ -121,6 +132,7 @@ class ImageScanCreate(BaseModel):
     """
     Image scan creation schema.
     """
+
     scan_type: str = "vulnerability"
 
 
@@ -128,6 +140,7 @@ class ImageScanResult(BaseModel):
     """
     Image scan result schema.
     """
+
     scan: ImageScan
     vulnerabilities: List[ImageVulnerability]
 
@@ -136,6 +149,7 @@ class DockerfileValidation(BaseModel):
     """
     Dockerfile validation result schema.
     """
+
     is_valid: bool
     errors: List[str] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
@@ -149,6 +163,7 @@ class DockerfileBuild(BaseModel):
     """
     Dockerfile build request schema.
     """
+
     dockerfile: str
     name: str
     tag: str = "latest"

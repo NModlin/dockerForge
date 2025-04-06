@@ -3,17 +3,26 @@ DockerForge Web UI - FastAPI Backend
 
 This module provides the main FastAPI application for the DockerForge Web UI.
 """
+
 import os
-from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, WebSocketDisconnect
+from typing import Any, Dict, List
+
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
 
 from src.web.api.middleware.api_key_usage import ApiKeyUsageMiddleware
 
-from .database import get_db, init_db, create_initial_data
+from .database import create_initial_data, get_db, init_db
 
 # Create FastAPI app
 app = FastAPI(
@@ -21,6 +30,7 @@ app = FastAPI(
     description="API for DockerForge Web UI",
     version="0.1.0",
 )
+
 
 # Initialize database and services on startup
 @app.on_event("startup")
@@ -33,7 +43,9 @@ async def startup_event():
 
     # Initialize default security policies
     from src.web.api.services import policy as policy_service
+
     await policy_service.initialize_default_policies()
+
 
 # Configure CORS
 # Get environment
@@ -58,8 +70,14 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"] if env == "development" else ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allow_headers=["*"] if env == "development" else ["Authorization", "Content-Type", "X-API-Key"],
+    allow_methods=(
+        ["*"] if env == "development" else ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    ),
+    allow_headers=(
+        ["*"]
+        if env == "development"
+        else ["Authorization", "Content-Type", "X-API-Key"]
+    ),
 )
 
 # Add API key usage middleware
@@ -67,12 +85,16 @@ app.add_middleware(ApiKeyUsageMiddleware)
 
 # Mount static files
 # Get static directory from environment variable or use default
-static_dir = os.getenv("STATIC_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../static")))
+static_dir = os.getenv(
+    "STATIC_DIR",
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../static")),
+)
 print(f"Using static directory: {static_dir}")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir, exist_ok=True)
     print(f"Created static directory at {static_dir}")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 
 # Health check endpoint
 @app.get("/api/health", tags=["Health"])
@@ -81,6 +103,7 @@ async def health_check():
     Health check endpoint to verify the API is running.
     """
     return {"status": "ok", "version": "0.1.0"}
+
 
 # Root endpoint
 @app.get("/api", tags=["Root"])
@@ -94,10 +117,36 @@ async def root():
         "redoc_url": "/redoc",
     }
 
-# Import and include routers
-from src.web.api.routers import auth, containers, images, backup, monitoring, chat, websocket, terminal, stats, networks, volumes, compose, compose_templates, security, policy, alerts, logs, daemon_config, api_key, api_key_usage, user_preferences
+
 # Import additional routers as they are implemented
-from src.web.api.models import __all__ as models  # Import all models to ensure they are registered
+from src.web.api.models import (
+    __all__ as models,  # Import all models to ensure they are registered
+)
+
+# Import and include routers
+from src.web.api.routers import (
+    alerts,
+    api_key,
+    api_key_usage,
+    auth,
+    backup,
+    chat,
+    compose,
+    compose_templates,
+    containers,
+    daemon_config,
+    images,
+    logs,
+    monitoring,
+    networks,
+    policy,
+    security,
+    stats,
+    terminal,
+    user_preferences,
+    volumes,
+    websocket,
+)
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(containers.router, prefix="/api/containers", tags=["Containers"])
@@ -109,17 +158,30 @@ app.include_router(networks.router, prefix="/api/networks", tags=["Networks"])
 app.include_router(compose.router, prefix="/api/compose", tags=["Compose"])
 app.include_router(compose_templates.router, tags=["Compose Templates"])
 app.include_router(security.router, prefix="/api/security", tags=["Security"])
-app.include_router(policy.router, prefix="/api/security/policy", tags=["Security Policy"])
+app.include_router(
+    policy.router, prefix="/api/security/policy", tags=["Security Policy"]
+)
 app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
 app.include_router(alerts.router, prefix="/api/monitoring/alerts", tags=["Alerts"])
 app.include_router(logs.router, prefix="/api/monitoring/logs", tags=["Logs"])
-app.include_router(daemon_config.router, prefix="/api/settings/daemon", tags=["Docker Daemon Configuration"])
+app.include_router(
+    daemon_config.router,
+    prefix="/api/settings/daemon",
+    tags=["Docker Daemon Configuration"],
+)
 app.include_router(api_key.router, prefix="/api/settings/api-keys", tags=["API Keys"])
-app.include_router(api_key_usage.router, prefix="/api/settings/api-keys", tags=["API Key Usage"])
-app.include_router(user_preferences.router, prefix="/api/settings/user-preferences", tags=["User Preferences"])
+app.include_router(
+    api_key_usage.router, prefix="/api/settings/api-keys", tags=["API Key Usage"]
+)
+app.include_router(
+    user_preferences.router,
+    prefix="/api/settings/user-preferences",
+    tags=["User Preferences"],
+)
 app.include_router(websocket.router, tags=["WebSocket"])
 app.include_router(terminal.router, prefix="/api/terminal", tags=["Terminal"])
 app.include_router(stats.router, prefix="/api/stats", tags=["Stats"])
+
 
 # Serve index.html for the root URL
 @app.get("/", include_in_schema=False)
@@ -128,6 +190,7 @@ async def serve_index():
     Serve the index.html file for the root URL.
     """
     return FileResponse(os.path.join(static_dir, "index.html"))
+
 
 # Catch-all route for client-side routing
 @app.get("/{path:path}", include_in_schema=False)
@@ -150,6 +213,7 @@ async def catch_all(path: str):
     # For any other path, serve the index.html file
     return FileResponse(os.path.join(static_dir, "index.html"))
 
+
 # Error handlers
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
@@ -161,6 +225,7 @@ async def http_exception_handler(request, exc):
         content={"detail": exc.detail},
     )
 
+
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc):
     """
@@ -170,6 +235,7 @@ async def general_exception_handler(request, exc):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal server error"},
     )
+
 
 if __name__ == "__main__":
     import uvicorn

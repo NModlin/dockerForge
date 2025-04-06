@@ -3,20 +3,40 @@ Images router for the DockerForge Web UI.
 
 This module provides the API endpoints for image management.
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Body
-from typing import List, Optional, Dict, Any
+
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageScanResult, ImageScanCreate, DockerfileValidation, DockerfileBuild
-from src.web.api.services.images import (
-    get_images, get_image, create_image, delete_image,
-    scan_image, get_image_scans, get_image_scan,
-    search_docker_hub, get_image_tags, validate_dockerfile, build_image_from_dockerfile,
-    add_tag_to_image, remove_tag_from_image
-)
-from src.web.api.services.auth import get_current_active_user, check_permission
 from src.web.api.database import get_db
 from src.web.api.models.user import User
+from src.web.api.schemas.images import (
+    DockerfileBuild,
+    DockerfileValidation,
+    Image,
+    ImageCreate,
+    ImageScan,
+    ImageScanCreate,
+    ImageScanResult,
+    ImageUpdate,
+)
+from src.web.api.services.auth import check_permission, get_current_active_user
+from src.web.api.services.images import (
+    add_tag_to_image,
+    build_image_from_dockerfile,
+    create_image,
+    delete_image,
+    get_image,
+    get_image_scan,
+    get_image_scans,
+    get_image_tags,
+    get_images,
+    remove_tag_from_image,
+    scan_image,
+    search_docker_hub,
+    validate_dockerfile,
+)
 
 # Create router
 router = APIRouter()
@@ -117,7 +137,9 @@ async def delete_image_by_id(
 @router.post("/{image_id}/scan", response_model=ImageScanResult)
 async def scan_image_by_id(
     image_id: str = Path(..., description="The ID of the image to scan"),
-    scan_data: ImageScanCreate = Body(ImageScanCreate(), description="Scan configuration"),
+    scan_data: ImageScanCreate = Body(
+        ImageScanCreate(), description="Scan configuration"
+    ),
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
@@ -234,7 +256,9 @@ async def validate_dockerfile_endpoint(
         )
 
 
-@router.post("/build", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/build", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED
+)
 async def build_dockerfile(
     build_data: DockerfileBuild,
     current_user: User = Depends(get_current_active_user),
@@ -256,7 +280,7 @@ async def build_dockerfile(
             name=build_data.name,
             tag=build_data.tag,
             options=build_data.options,
-            db=db
+            db=db,
         )
         return result
     except Exception as e:
@@ -288,7 +312,7 @@ async def add_image_tag(
             image_id=image_id,
             tag=tag_data.get("tag"),
             is_latest=tag_data.get("is_latest", False),
-            db=db
+            db=db,
         )
         return result
     except Exception as e:
@@ -316,11 +340,7 @@ async def delete_image_tag(
         )
 
     try:
-        result = await remove_tag_from_image(
-            image_id=image_id,
-            tag=tag_name,
-            db=db
-        )
+        result = await remove_tag_from_image(image_id=image_id, tag=tag_name, db=db)
         return result
     except Exception as e:
         raise HTTPException(

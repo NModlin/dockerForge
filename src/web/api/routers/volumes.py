@@ -3,18 +3,24 @@ Volumes router for the DockerForge Web UI.
 
 This module provides the API endpoints for volume management.
 """
-from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Path, Body, Query, status
+
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
-from src.web.api.db.session import get_db
 from src.web.api.auth.dependencies import get_current_active_user
 from src.web.api.auth.permissions import check_permission
+from src.web.api.db.session import get_db
 from src.web.api.models.user import User
 from src.web.api.schemas.volumes import Volume, VolumeCreate, VolumeUpdate
 from src.web.api.services.volumes import (
-    get_volumes, get_volume, create_volume, delete_volume,
-    get_volume_containers, prune_volumes
+    create_volume,
+    delete_volume,
+    get_volume,
+    get_volume_containers,
+    get_volumes,
+    prune_volumes,
 )
 
 router = APIRouter()
@@ -25,7 +31,7 @@ async def list_volumes(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
     name: Optional[str] = Query(None, description="Filter by volume name"),
-    driver: Optional[str] = Query(None, description="Filter by volume driver")
+    driver: Optional[str] = Query(None, description="Filter by volume driver"),
 ):
     """
     Get all volumes.
@@ -33,21 +39,16 @@ async def list_volumes(
     # Check permission
     if not check_permission(current_user, "volumes:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
-        volumes = await get_volumes(
-            name=name,
-            driver=driver,
-            db=db
-        )
+        volumes = await get_volumes(name=name, driver=driver, db=db)
         return volumes
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get volumes: {str(e)}"
+            detail=f"Failed to get volumes: {str(e)}",
         )
 
 
@@ -55,7 +56,7 @@ async def list_volumes(
 async def get_volume_by_id(
     volume_id: str = Path(..., description="Volume ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get a volume by ID.
@@ -63,8 +64,7 @@ async def get_volume_by_id(
     # Check permission
     if not check_permission(current_user, "volumes:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -72,7 +72,7 @@ async def get_volume_by_id(
         if not volume:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Volume with ID {volume_id} not found"
+                detail=f"Volume with ID {volume_id} not found",
             )
         return volume
     except HTTPException:
@@ -80,7 +80,7 @@ async def get_volume_by_id(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get volume: {str(e)}"
+            detail=f"Failed to get volume: {str(e)}",
         )
 
 
@@ -88,7 +88,7 @@ async def get_volume_by_id(
 async def create_new_volume(
     volume_data: VolumeCreate = Body(..., description="Volume data"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Create a new volume.
@@ -96,8 +96,7 @@ async def create_new_volume(
     # Check permission
     if not check_permission(current_user, "volumes:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -106,13 +105,13 @@ async def create_new_volume(
             driver=volume_data.driver,
             driver_opts=volume_data.driver_opts,
             labels=volume_data.labels,
-            db=db
+            db=db,
         )
         return volume
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to create volume: {str(e)}"
+            detail=f"Failed to create volume: {str(e)}",
         )
 
 
@@ -120,7 +119,7 @@ async def create_new_volume(
 async def delete_volume_by_id(
     volume_id: str = Path(..., description="Volume ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Delete a volume.
@@ -128,8 +127,7 @@ async def delete_volume_by_id(
     # Check permission
     if not check_permission(current_user, "volumes:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -137,7 +135,7 @@ async def delete_volume_by_id(
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Volume with ID {volume_id} not found"
+                detail=f"Volume with ID {volume_id} not found",
             )
         return None
     except HTTPException:
@@ -145,7 +143,7 @@ async def delete_volume_by_id(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to delete volume: {str(e)}"
+            detail=f"Failed to delete volume: {str(e)}",
         )
 
 
@@ -153,7 +151,7 @@ async def delete_volume_by_id(
 async def get_containers_using_volume(
     volume_id: str = Path(..., description="Volume ID"),
     current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get containers using a volume.
@@ -161,8 +159,7 @@ async def get_containers_using_volume(
     # Check permission
     if not check_permission(current_user, "volumes:read"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -171,14 +168,13 @@ async def get_containers_using_volume(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to get containers using volume: {str(e)}"
+            detail=f"Failed to get containers using volume: {str(e)}",
         )
 
 
 @router.post("/prune", response_model=Dict[str, Any])
 async def prune_unused_volumes(
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(get_current_active_user), db: Session = Depends(get_db)
 ):
     """
     Prune unused volumes.
@@ -186,8 +182,7 @@ async def prune_unused_volumes(
     # Check permission
     if not check_permission(current_user, "volumes:write"):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
         )
 
     try:
@@ -196,5 +191,5 @@ async def prune_unused_volumes(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to prune volumes: {str(e)}"
+            detail=f"Failed to prune volumes: {str(e)}",
         )

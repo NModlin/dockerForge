@@ -3,12 +3,14 @@ API key service for the DockerForge Web UI.
 
 This module provides the API key services for the DockerForge Web UI.
 """
-from datetime import datetime, timedelta, date
-from typing import List, Optional, Tuple, Dict, Any
-from sqlalchemy.orm import Session
-from sqlalchemy import func, and_, desc
-from fastapi import HTTPException, status
+
 import json
+from datetime import date, datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+from fastapi import HTTPException, status
+from sqlalchemy import and_, desc, func
+from sqlalchemy.orm import Session
 
 from src.web.api.models.api_key import ApiKey
 from src.web.api.models.api_key_usage import ApiKeyUsage, ApiKeyUsageSummary
@@ -17,7 +19,9 @@ from src.web.api.schemas.api_key import ApiKeyCreate, ApiKeyUpdate
 from src.web.api.schemas.api_key_usage import ApiKeyUsageCreate, ApiKeyUsageQuery
 
 
-def get_api_keys(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> List[ApiKey]:
+def get_api_keys(
+    db: Session, user_id: int, skip: int = 0, limit: int = 100
+) -> List[ApiKey]:
     """
     Get all API keys for a user.
 
@@ -30,7 +34,13 @@ def get_api_keys(db: Session, user_id: int, skip: int = 0, limit: int = 100) -> 
     Returns:
         List of API keys
     """
-    return db.query(ApiKey).filter(ApiKey.user_id == user_id).offset(skip).limit(limit).all()
+    return (
+        db.query(ApiKey)
+        .filter(ApiKey.user_id == user_id)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def get_api_key(db: Session, key_id: int, user_id: int) -> Optional[ApiKey]:
@@ -45,10 +55,14 @@ def get_api_key(db: Session, key_id: int, user_id: int) -> Optional[ApiKey]:
     Returns:
         API key if found, None otherwise
     """
-    return db.query(ApiKey).filter(ApiKey.id == key_id, ApiKey.user_id == user_id).first()
+    return (
+        db.query(ApiKey).filter(ApiKey.id == key_id, ApiKey.user_id == user_id).first()
+    )
 
 
-def create_api_key(db: Session, key_data: ApiKeyCreate, user_id: int) -> Tuple[ApiKey, str]:
+def create_api_key(
+    db: Session, key_data: ApiKeyCreate, user_id: int
+) -> Tuple[ApiKey, str]:
     """
     Create a new API key.
 
@@ -65,11 +79,11 @@ def create_api_key(db: Session, key_data: ApiKeyCreate, user_id: int) -> Tuple[A
 
     # Calculate expiration date if provided
     expires_at = None
-    if key_data.expiration and key_data.expiration != 'never':
-        if key_data.expiration.endswith('d'):
+    if key_data.expiration and key_data.expiration != "never":
+        if key_data.expiration.endswith("d"):
             days = int(key_data.expiration[:-1])
             expires_at = datetime.utcnow() + timedelta(days=days)
-        elif key_data.expiration.endswith('y'):
+        elif key_data.expiration.endswith("y"):
             years = int(key_data.expiration[:-1])
             expires_at = datetime.utcnow() + timedelta(days=365 * years)
 
@@ -81,7 +95,7 @@ def create_api_key(db: Session, key_data: ApiKeyCreate, user_id: int) -> Tuple[A
         user_id=user_id,
         expires_at=expires_at,
         is_read_only=key_data.is_read_only,
-        scopes=key_data.scopes
+        scopes=key_data.scopes,
     )
 
     db.add(api_key)
@@ -91,7 +105,9 @@ def create_api_key(db: Session, key_data: ApiKeyCreate, user_id: int) -> Tuple[A
     return api_key, full_key
 
 
-def update_api_key(db: Session, key_id: int, key_data: ApiKeyUpdate, user_id: int) -> ApiKey:
+def update_api_key(
+    db: Session, key_id: int, key_data: ApiKeyUpdate, user_id: int
+) -> ApiKey:
     """
     Update an API key.
 
@@ -107,8 +123,7 @@ def update_api_key(db: Session, key_id: int, key_data: ApiKeyUpdate, user_id: in
     api_key = get_api_key(db, key_id, user_id)
     if not api_key:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="API key not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
         )
 
     # Update fields if provided
@@ -142,8 +157,7 @@ def delete_api_key(db: Session, key_id: int, user_id: int) -> bool:
     api_key = get_api_key(db, key_id, user_id)
     if not api_key:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="API key not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
         )
 
     db.delete(api_key)
@@ -170,10 +184,11 @@ def verify_api_key(db: Session, api_key: str) -> Optional[ApiKey]:
     key_prefix = api_key[:8]
 
     # Find API keys with matching prefix
-    api_keys = db.query(ApiKey).filter(
-        ApiKey.key_prefix == key_prefix,
-        ApiKey.is_active == True
-    ).all()
+    api_keys = (
+        db.query(ApiKey)
+        .filter(ApiKey.key_prefix == key_prefix, ApiKey.is_active == True)
+        .all()
+    )
 
     # Check each key
     for key in api_keys:
@@ -205,7 +220,7 @@ def has_permission(api_key: ApiKey, required_scope: str) -> bool:
         True if the API key has the required permission, False otherwise
     """
     # Read-only keys can only perform read operations
-    if api_key.is_read_only and required_scope.endswith(':write'):
+    if api_key.is_read_only and required_scope.endswith(":write"):
         return False
 
     # If no scopes are defined, the key has full access
@@ -216,10 +231,18 @@ def has_permission(api_key: ApiKey, required_scope: str) -> bool:
     return required_scope in api_key.scopes
 
 
-def record_api_key_usage(db: Session, api_key_id: int, endpoint: str, method: str, status_code: int,
-                        response_time: float, request_size: Optional[int] = None,
-                        response_size: Optional[int] = None, ip_address: Optional[str] = None,
-                        user_agent: Optional[str] = None) -> ApiKeyUsage:
+def record_api_key_usage(
+    db: Session,
+    api_key_id: int,
+    endpoint: str,
+    method: str,
+    status_code: int,
+    response_time: float,
+    request_size: Optional[int] = None,
+    response_size: Optional[int] = None,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None,
+) -> ApiKeyUsage:
     """
     Record API key usage.
 
@@ -248,17 +271,21 @@ def record_api_key_usage(db: Session, api_key_id: int, endpoint: str, method: st
         request_size=request_size,
         response_size=response_size,
         ip_address=ip_address,
-        user_agent=user_agent
+        user_agent=user_agent,
     )
 
     db.add(usage)
 
     # Update or create daily summary
     today = datetime.now().date()
-    summary = db.query(ApiKeyUsageSummary).filter(
-        ApiKeyUsageSummary.api_key_id == api_key_id,
-        func.date(ApiKeyUsageSummary.date) == today
-    ).first()
+    summary = (
+        db.query(ApiKeyUsageSummary)
+        .filter(
+            ApiKeyUsageSummary.api_key_id == api_key_id,
+            func.date(ApiKeyUsageSummary.date) == today,
+        )
+        .first()
+    )
 
     if not summary:
         # Create new summary
@@ -272,7 +299,7 @@ def record_api_key_usage(db: Session, api_key_id: int, endpoint: str, method: st
             avg_response_time=response_time,
             total_request_size=request_size or 0,
             total_response_size=response_size or 0,
-            endpoints=endpoints
+            endpoints=endpoints,
         )
         db.add(summary)
     else:
@@ -285,7 +312,9 @@ def record_api_key_usage(db: Session, api_key_id: int, endpoint: str, method: st
 
         # Update average response time
         total_time = summary.avg_response_time * (summary.total_requests - 1)
-        summary.avg_response_time = (total_time + response_time) / summary.total_requests
+        summary.avg_response_time = (
+            total_time + response_time
+        ) / summary.total_requests
 
         # Update request and response sizes
         if request_size:
@@ -304,7 +333,9 @@ def record_api_key_usage(db: Session, api_key_id: int, endpoint: str, method: st
     return usage
 
 
-def get_api_key_usage(db: Session, api_key_id: int, query: ApiKeyUsageQuery) -> List[ApiKeyUsage]:
+def get_api_key_usage(
+    db: Session, api_key_id: int, query: ApiKeyUsageQuery
+) -> List[ApiKeyUsage]:
     """
     Get API key usage records.
 
@@ -321,7 +352,9 @@ def get_api_key_usage(db: Session, api_key_id: int, query: ApiKeyUsageQuery) -> 
 
     # Apply filters
     if query.start_date:
-        db_query = db_query.filter(func.date(ApiKeyUsage.created_at) >= query.start_date)
+        db_query = db_query.filter(
+            func.date(ApiKeyUsage.created_at) >= query.start_date
+        )
     if query.end_date:
         db_query = db_query.filter(func.date(ApiKeyUsage.created_at) <= query.end_date)
     if query.endpoint:
@@ -332,7 +365,11 @@ def get_api_key_usage(db: Session, api_key_id: int, query: ApiKeyUsageQuery) -> 
         db_query = db_query.filter(ApiKeyUsage.status_code == query.status_code)
 
     # Apply pagination
-    db_query = db_query.order_by(desc(ApiKeyUsage.created_at)).offset(query.offset).limit(query.limit)
+    db_query = (
+        db_query.order_by(desc(ApiKeyUsage.created_at))
+        .offset(query.offset)
+        .limit(query.limit)
+    )
 
     return db_query.all()
 
@@ -349,84 +386,111 @@ def get_api_key_usage_stats(db: Session, api_key_id: int) -> Dict[str, Any]:
         Dictionary of usage statistics
     """
     # Get total requests
-    total_requests = db.query(func.count(ApiKeyUsage.id)).filter(ApiKeyUsage.api_key_id == api_key_id).scalar() or 0
+    total_requests = (
+        db.query(func.count(ApiKeyUsage.id))
+        .filter(ApiKeyUsage.api_key_id == api_key_id)
+        .scalar()
+        or 0
+    )
 
     # Get today's requests
     today = datetime.now().date()
-    requests_today = db.query(func.count(ApiKeyUsage.id)).filter(
-        ApiKeyUsage.api_key_id == api_key_id,
-        func.date(ApiKeyUsage.created_at) == today
-    ).scalar() or 0
+    requests_today = (
+        db.query(func.count(ApiKeyUsage.id))
+        .filter(
+            ApiKeyUsage.api_key_id == api_key_id,
+            func.date(ApiKeyUsage.created_at) == today,
+        )
+        .scalar()
+        or 0
+    )
 
     # Get this week's requests
     week_start = today - timedelta(days=today.weekday())
-    requests_this_week = db.query(func.count(ApiKeyUsage.id)).filter(
-        ApiKeyUsage.api_key_id == api_key_id,
-        func.date(ApiKeyUsage.created_at) >= week_start
-    ).scalar() or 0
+    requests_this_week = (
+        db.query(func.count(ApiKeyUsage.id))
+        .filter(
+            ApiKeyUsage.api_key_id == api_key_id,
+            func.date(ApiKeyUsage.created_at) >= week_start,
+        )
+        .scalar()
+        or 0
+    )
 
     # Get this month's requests
     month_start = date(today.year, today.month, 1)
-    requests_this_month = db.query(func.count(ApiKeyUsage.id)).filter(
-        ApiKeyUsage.api_key_id == api_key_id,
-        func.date(ApiKeyUsage.created_at) >= month_start
-    ).scalar() or 0
+    requests_this_month = (
+        db.query(func.count(ApiKeyUsage.id))
+        .filter(
+            ApiKeyUsage.api_key_id == api_key_id,
+            func.date(ApiKeyUsage.created_at) >= month_start,
+        )
+        .scalar()
+        or 0
+    )
 
     # Get average response time
-    avg_response_time = db.query(func.avg(ApiKeyUsage.response_time)).filter(
-        ApiKeyUsage.api_key_id == api_key_id
-    ).scalar() or 0
+    avg_response_time = (
+        db.query(func.avg(ApiKeyUsage.response_time))
+        .filter(ApiKeyUsage.api_key_id == api_key_id)
+        .scalar()
+        or 0
+    )
 
     # Get success rate
-    successful_requests = db.query(func.count(ApiKeyUsage.id)).filter(
-        ApiKeyUsage.api_key_id == api_key_id,
-        ApiKeyUsage.status_code >= 200,
-        ApiKeyUsage.status_code < 400
-    ).scalar() or 0
+    successful_requests = (
+        db.query(func.count(ApiKeyUsage.id))
+        .filter(
+            ApiKeyUsage.api_key_id == api_key_id,
+            ApiKeyUsage.status_code >= 200,
+            ApiKeyUsage.status_code < 400,
+        )
+        .scalar()
+        or 0
+    )
 
-    success_rate = (successful_requests / total_requests * 100) if total_requests > 0 else 0
+    success_rate = (
+        (successful_requests / total_requests * 100) if total_requests > 0 else 0
+    )
 
     # Get top endpoints
-    top_endpoints_query = db.query(
-        ApiKeyUsage.endpoint,
-        func.count(ApiKeyUsage.id).label('count')
-    ).filter(
-        ApiKeyUsage.api_key_id == api_key_id
-    ).group_by(
-        ApiKeyUsage.endpoint
-    ).order_by(
-        desc('count')
-    ).limit(5)
+    top_endpoints_query = (
+        db.query(ApiKeyUsage.endpoint, func.count(ApiKeyUsage.id).label("count"))
+        .filter(ApiKeyUsage.api_key_id == api_key_id)
+        .group_by(ApiKeyUsage.endpoint)
+        .order_by(desc("count"))
+        .limit(5)
+    )
 
     top_endpoints = [
-        {'endpoint': endpoint, 'count': count}
+        {"endpoint": endpoint, "count": count}
         for endpoint, count in top_endpoints_query
     ]
 
     # Get usage over time (daily)
-    usage_over_time_query = db.query(
-        func.date(ApiKeyUsage.created_at).label('date'),
-        func.count(ApiKeyUsage.id).label('count')
-    ).filter(
-        ApiKeyUsage.api_key_id == api_key_id
-    ).group_by(
-        'date'
-    ).order_by(
-        'date'
-    ).limit(30)
+    usage_over_time_query = (
+        db.query(
+            func.date(ApiKeyUsage.created_at).label("date"),
+            func.count(ApiKeyUsage.id).label("count"),
+        )
+        .filter(ApiKeyUsage.api_key_id == api_key_id)
+        .group_by("date")
+        .order_by("date")
+        .limit(30)
+    )
 
     usage_over_time = [
-        {'date': date.isoformat(), 'count': count}
+        {"date": date.isoformat(), "count": count}
         for date, count in usage_over_time_query
     ]
 
     return {
-        'total_requests': total_requests,
-        'requests_today': requests_today,
-        'requests_this_week': requests_this_week,
-        'requests_this_month': requests_this_month,
-        'avg_response_time': round(avg_response_time, 2),
-        'success_rate': round(success_rate, 2),
-        'top_endpoints': top_endpoints,
-        'usage_over_time': usage_over_time
+        "total_requests": total_requests,
+        "requests_today": requests_today,
+        "requests_this_week": requests_this_week,
+        "requests_this_month": requests_this_month,
+        "avg_response_time": round(avg_response_time, 2),
+        "success_rate": round(success_rate, 2),
+        "top_endpoints": top_endpoints,
+        "usage_over_time": usage_over_time,
     }

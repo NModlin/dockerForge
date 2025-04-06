@@ -4,174 +4,229 @@ Command-line interface module for DockerForge.
 This module provides the command-line interface for the application.
 """
 
+import logging
 import os
 import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
 import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
+import click
+
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
 from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
+
 """
 Command-line interface module for DockerForge.
 
 This module provides the command-line interface for the application.
 """
 
+import logging
 import os
 import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
 import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
-from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
-from src.cli_notifications import notify
-from src.cli_compose import compose
-from src.cli_security import main as security_main
+import click
+
 from src.cli_backup import main as backup_main
-from src.cli_update import update_cli
-"""
-Command-line interface module for DockerForge.
-
-This module provides the command-line interface for the application.
-"""
-
-import os
-import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
-import time
-
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
-from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
-"""
-Command-line interface module for DockerForge.
-
-This module provides the command-line interface for the application.
-"""
-
-import os
-import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
-import time
-
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
-from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
-from src.cli_notifications import notify
 from src.cli_compose import compose
+from src.cli_notifications import notify
 from src.cli_security import main as security_main
-from src.cli_backup import main as backup_main
 from src.cli_update import update_cli
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
+from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
+
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import click
+
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
+from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
+
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import click
+
+from src.cli_backup import main as backup_main
 from src.cli_checkpoint import setup_checkpoint_parser
-"""
-Command-line interface module for DockerForge.
-
-This module provides the command-line interface for the application.
-"""
-
-import os
-import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
-import time
-
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
-from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
-"""
-Command-line interface module for DockerForge.
-
-This module provides the command-line interface for the application.
-"""
-
-import os
-import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
-import time
-
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
-from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
-from src.cli_notifications import notify
 from src.cli_compose import compose
+from src.cli_notifications import notify
 from src.cli_security import main as security_main
-from src.cli_backup import main as backup_main
 from src.cli_update import update_cli
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
+from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
+
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import click
+
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
+from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
+
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import click
+
+from src.cli_backup import main as backup_main
 from src.cli_checkpoint import setup_checkpoint_parser
-"""
-Command-line interface module for DockerForge.
-
-This module provides the command-line interface for the application.
-"""
-
-import os
-import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
-import time
-
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
-from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
-"""
-Command-line interface module for DockerForge.
-
-This module provides the command-line interface for the application.
-"""
-
-import os
-import sys
-import logging
-import click
-from typing import Optional, Dict, Any, List
-from datetime import datetime
-import time
-
-from src.config.config_manager import get_config_manager, get_config, set_config, save_config
-from src.utils.logging_manager import setup_logging, get_logger
-from src.platforms.platform_detector import get_platform_info
-from src.platforms.platform_adapter import get_platform_adapter
-from src.docker.connection_manager import get_docker_client, DockerConnectionError
-from src.cli_notifications import notify
 from src.cli_compose import compose
+from src.cli_notifications import notify
 from src.cli_security import main as security_main
-from src.cli_backup import main as backup_main
 from src.cli_update import update_cli
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
+from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
+
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import click
+
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
+from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
+
+"""
+Command-line interface module for DockerForge.
+
+This module provides the command-line interface for the application.
+"""
+
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import click
+
+from src.cli_backup import main as backup_main
+from src.cli_compose import compose
+from src.cli_notifications import notify
+from src.cli_security import main as security_main
+from src.cli_update import update_cli
+from src.config.config_manager import (
+    get_config,
+    get_config_manager,
+    save_config,
+    set_config,
+)
+from src.docker.connection_manager import DockerConnectionError, get_docker_client
+from src.platforms.platform_adapter import get_platform_adapter
+from src.platforms.platform_detector import get_platform_info
+from src.utils.logging_manager import get_logger, setup_logging
 
 # Set up logging
 setup_logging()
@@ -204,19 +259,22 @@ def init_context(ctx, param, value):
 def common_options(f):
     """Common command-line options."""
     f = click.option(
-        "--config", "-c",
+        "--config",
+        "-c",
         help="Path to configuration file",
         callback=init_context,
         expose_value=False,
     )(f)
     f = click.option(
-        "--env-file", "-e",
+        "--env-file",
+        "-e",
         help="Path to .env file",
         callback=init_context,
         expose_value=False,
     )(f)
     f = click.option(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         is_flag=True,
         help="Enable verbose output",
         callback=init_context,
@@ -262,7 +320,9 @@ def check(obj):
     # Check platform
     platform_info = obj.platform_info
     logger.info(f"Platform: {platform_info.platform_type.value}")
-    logger.info(f"Distribution: {platform_info.distribution} {platform_info.distribution_version}")
+    logger.info(
+        f"Distribution: {platform_info.distribution} {platform_info.distribution_version}"
+    )
     logger.info(f"Init system: {platform_info.init_system.value}")
 
     # Check Docker connection
@@ -303,7 +363,9 @@ def info(obj):
 
     click.secho("System Information", fg="blue", bold=True)
     click.echo(f"Platform: {platform_info.platform_type.value}")
-    click.echo(f"Distribution: {platform_info.distribution} {platform_info.distribution_version}")
+    click.echo(
+        f"Distribution: {platform_info.distribution} {platform_info.distribution_version}"
+    )
     click.echo(f"Init system: {platform_info.init_system.value}")
     click.echo(f"Docker socket: {platform_info.docker_socket_path}")
     click.echo(f"Docker config: {platform_info.docker_config_path}")
@@ -325,7 +387,9 @@ def info(obj):
         click.echo(f"Go version: {version.get('GoVersion', 'unknown')}")
         click.echo(f"Git commit: {version.get('GitCommit', 'unknown')}")
         click.echo(f"Built: {version.get('BuildTime', 'unknown')}")
-        click.echo(f"OS/Arch: {version.get('Os', 'unknown')}/{version.get('Arch', 'unknown')}")
+        click.echo(
+            f"OS/Arch: {version.get('Os', 'unknown')}/{version.get('Arch', 'unknown')}"
+        )
 
         # Get Docker info
         info = client.info()
@@ -380,7 +444,9 @@ def info(obj):
 # List command
 @cli.command()
 @common_options
-@click.option("--all", "-a", is_flag=True, help="Show all containers (default shows just running)")
+@click.option(
+    "--all", "-a", is_flag=True, help="Show all containers (default shows just running)"
+)
 @click.option("--quiet", "-q", is_flag=True, help="Only display container IDs")
 @click.pass_obj
 def list(obj, all, quiet):
@@ -404,14 +470,30 @@ def list(obj, all, quiet):
                 click.echo(container.id)
         else:
             # Show container details
-            headers = ["CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"]
+            headers = [
+                "CONTAINER ID",
+                "IMAGE",
+                "COMMAND",
+                "CREATED",
+                "STATUS",
+                "PORTS",
+                "NAMES",
+            ]
             rows = []
 
             for container in containers:
                 # Get container details
                 container_id = container.id[:12]
-                image = container.image.tags[0] if container.image.tags else container.image.id[:12]
-                command = container.attrs["Config"]["Cmd"][0] if container.attrs["Config"]["Cmd"] else ""
+                image = (
+                    container.image.tags[0]
+                    if container.image.tags
+                    else container.image.id[:12]
+                )
+                command = (
+                    container.attrs["Config"]["Cmd"][0]
+                    if container.attrs["Config"]["Cmd"]
+                    else ""
+                )
                 created = container.attrs["Created"].split(".")[0].replace("T", " ")
                 status = container.status
 
@@ -431,18 +513,27 @@ def list(obj, all, quiet):
                 # Get container name
                 name = container.name
 
-                rows.append([container_id, image, command, created, status, ports_str, name])
+                rows.append(
+                    [container_id, image, command, created, status, ports_str, name]
+                )
 
             # Calculate column widths
-            widths = [max(len(str(row[i])) for row in rows + [headers]) for i in range(len(headers))]
+            widths = [
+                max(len(str(row[i])) for row in rows + [headers])
+                for i in range(len(headers))
+            ]
 
             # Print headers
-            header_row = " ".join(f"{headers[i]:<{widths[i]}}" for i in range(len(headers)))
+            header_row = " ".join(
+                f"{headers[i]:<{widths[i]}}" for i in range(len(headers))
+            )
             click.secho(header_row, fg="blue", bold=True)
 
             # Print rows
             for row in rows:
-                row_str = " ".join(f"{str(row[i]):<{widths[i]}}" for i in range(len(headers)))
+                row_str = " ".join(
+                    f"{str(row[i]):<{widths[i]}}" for i in range(len(headers))
+                )
                 click.echo(row_str)
 
     except DockerConnectionError as e:
@@ -455,7 +546,9 @@ def list(obj, all, quiet):
 @cli.command()
 @common_options
 @click.argument("container")
-@click.option("--tail", "-n", default=100, help="Number of lines to show from the end of the logs")
+@click.option(
+    "--tail", "-n", default=100, help="Number of lines to show from the end of the logs"
+)
 @click.option("--follow", "-f", is_flag=True, help="Follow log output")
 @click.pass_obj
 def logs(obj, container, tail, follow):
@@ -639,6 +732,7 @@ def inspect(obj, container, format):
 
         # Print details
         import json
+
         click.echo(json.dumps(details, indent=2))
 
     except DockerConnectionError as e:
@@ -652,7 +746,9 @@ def inspect(obj, container, format):
 @common_options
 @click.argument("container")
 @click.argument("command", nargs=-1)
-@click.option("--interactive", "-i", is_flag=True, help="Keep STDIN open even if not attached")
+@click.option(
+    "--interactive", "-i", is_flag=True, help="Keep STDIN open even if not attached"
+)
 @click.option("--tty", "-t", is_flag=True, help="Allocate a pseudo-TTY")
 @click.pass_obj
 def exec(obj, container, command, interactive, tty):
@@ -681,7 +777,10 @@ def exec(obj, container, command, interactive, tty):
         # Execute command
         if not command:
             # Default to shell if no command specified
-            if container.exec_run("which bash", stdout=False, stderr=False).exit_code == 0:
+            if (
+                container.exec_run("which bash", stdout=False, stderr=False).exit_code
+                == 0
+            ):
                 command = ["bash"]
             else:
                 command = ["sh"]
@@ -691,6 +790,7 @@ def exec(obj, container, command, interactive, tty):
         if interactive and tty:
             # Interactive mode with TTY
             import subprocess
+
             cmd = ["docker", "exec", "-it", container.id] + list(command)
             subprocess.run(cmd)
         else:
@@ -738,7 +838,10 @@ def networks(obj):
             rows.append([network_id, name, driver, scope])
 
         # Calculate column widths
-        widths = [max(len(str(row[i])) for row in rows + [headers]) for i in range(len(headers))]
+        widths = [
+            max(len(str(row[i])) for row in rows + [headers])
+            for i in range(len(headers))
+        ]
 
         # Print headers
         header_row = " ".join(f"{headers[i]:<{widths[i]}}" for i in range(len(headers)))
@@ -746,7 +849,9 @@ def networks(obj):
 
         # Print rows
         for row in rows:
-            row_str = " ".join(f"{str(row[i]):<{widths[i]}}" for i in range(len(headers)))
+            row_str = " ".join(
+                f"{str(row[i]):<{widths[i]}}" for i in range(len(headers))
+            )
             click.echo(row_str)
 
     except DockerConnectionError as e:
@@ -787,7 +892,10 @@ def volumes(obj):
             rows.append([name, driver, mountpoint])
 
         # Calculate column widths
-        widths = [max(len(str(row[i])) for row in rows + [headers]) for i in range(len(headers))]
+        widths = [
+            max(len(str(row[i])) for row in rows + [headers])
+            for i in range(len(headers))
+        ]
 
         # Print headers
         header_row = " ".join(f"{headers[i]:<{widths[i]}}" for i in range(len(headers)))
@@ -795,7 +903,9 @@ def volumes(obj):
 
         # Print rows
         for row in rows:
-            row_str = " ".join(f"{str(row[i]):<{widths[i]}}" for i in range(len(headers)))
+            row_str = " ".join(
+                f"{str(row[i]):<{widths[i]}}" for i in range(len(headers))
+            )
             click.echo(row_str)
 
     except DockerConnectionError as e:
@@ -873,7 +983,10 @@ def images(obj):
                 rows.append([image_id, "<none>", "<none>", size_str, created])
 
         # Calculate column widths
-        widths = [max(len(str(row[i])) for row in rows + [headers]) for i in range(len(headers))]
+        widths = [
+            max(len(str(row[i])) for row in rows + [headers])
+            for i in range(len(headers))
+        ]
 
         # Print headers
         header_row = " ".join(f"{headers[i]:<{widths[i]}}" for i in range(len(headers)))
@@ -881,7 +994,9 @@ def images(obj):
 
         # Print rows
         for row in rows:
-            row_str = " ".join(f"{str(row[i]):<{widths[i]}}" for i in range(len(headers)))
+            row_str = " ".join(
+                f"{str(row[i]):<{widths[i]}}" for i in range(len(headers))
+            )
             click.echo(row_str)
 
     except DockerConnectionError as e:
@@ -902,16 +1017,26 @@ def monitor(ctx):
 # Monitor logs command
 @monitor.command("logs")
 @click.argument("container", required=False)
-@click.option("--tail", "-n", default=100, help="Number of lines to show from the end of the logs")
+@click.option(
+    "--tail", "-n", default=100, help="Number of lines to show from the end of the logs"
+)
 @click.option("--follow", "-f", is_flag=True, help="Follow log output")
 @click.option("--since", help="Show logs since timestamp (e.g. 2021-01-01T12:00:00)")
 @click.option("--until", help="Show logs until timestamp (e.g. 2021-01-01T12:00:00)")
 @click.option("--search", "-s", help="Search logs for a string")
 @click.option("--regex", "-r", help="Search logs using a regular expression")
 @click.option("--export", "-e", help="Export logs to a file")
-@click.option("--format", "-f", type=click.Choice(["text", "json", "csv"]), default="text", help="Export format")
+@click.option(
+    "--format",
+    "-f",
+    type=click.Choice(["text", "json", "csv"]),
+    default="text",
+    help="Export format",
+)
 @click.pass_obj
-def monitor_logs(obj, container, tail, follow, since, until, search, regex, export, format):
+def monitor_logs(
+    obj, container, tail, follow, since, until, search, regex, export, format
+):
     """Monitor and search container logs."""
     logger.info(f"Monitoring logs for container {container}")
 
@@ -980,7 +1105,9 @@ def monitor_logs(obj, container, tail, follow, since, until, search, regex, expo
                 limit=tail,
             )
             logs = search_result.logs
-            click.secho(f"Found {search_result.total_matches} matches for '{search}'", fg="blue")
+            click.secho(
+                f"Found {search_result.total_matches} matches for '{search}'", fg="blue"
+            )
 
         if regex:
             search_result = log_explorer.search_logs(
@@ -992,7 +1119,10 @@ def monitor_logs(obj, container, tail, follow, since, until, search, regex, expo
                 regex=True,
             )
             logs = search_result.logs
-            click.secho(f"Found {search_result.total_matches} matches for regex '{regex}'", fg="blue")
+            click.secho(
+                f"Found {search_result.total_matches} matches for regex '{regex}'",
+                fg="blue",
+            )
 
         # Export logs if requested
         if export:
@@ -1019,6 +1149,7 @@ def monitor_logs(obj, container, tail, follow, since, until, search, regex, expo
 
                 if regex:
                     import re
+
                     if not re.search(regex, log_entry.message, re.IGNORECASE):
                         return
 
@@ -1047,7 +1178,12 @@ def monitor_logs(obj, container, tail, follow, since, until, search, regex, expo
 @click.argument("container", required=False)
 @click.option("--since", help="Show stats since timestamp (e.g. 2021-01-01T12:00:00)")
 @click.option("--until", help="Show stats until timestamp (e.g. 2021-01-01T12:00:00)")
-@click.option("--interval", type=click.Choice(["minute", "hour", "day"]), default="hour", help="Time interval for stats")
+@click.option(
+    "--interval",
+    type=click.Choice(["minute", "hour", "day"]),
+    default="hour",
+    help="Time interval for stats",
+)
 @click.option("--export", "-e", help="Export stats to a file")
 @click.pass_obj
 def monitor_stats(obj, container, since, until, interval, export):
@@ -1106,19 +1242,32 @@ def monitor_stats(obj, container, since, until, interval, export):
                 # Export if requested
                 if export:
                     import json
+
                     with open(export, "w") as f:
-                        json.dump({
-                            "statistics": stats.to_dict(),
-                            "timeline": timeline,
-                        }, f, indent=2)
+                        json.dump(
+                            {
+                                "statistics": stats.to_dict(),
+                                "timeline": timeline,
+                            },
+                            f,
+                            indent=2,
+                        )
                     click.secho(f"Exported statistics to {export}", fg="green")
                     return
 
                 # Print statistics
-                click.secho(f"Log Statistics for {stats.container_name} ({stats.container_id[:12]})", fg="blue", bold=True)
+                click.secho(
+                    f"Log Statistics for {stats.container_name} ({stats.container_id[:12]})",
+                    fg="blue",
+                    bold=True,
+                )
                 click.echo(f"Log count: {stats.log_count}")
-                click.echo(f"Time range: {stats.time_range[0].isoformat()} to {stats.time_range[1].isoformat()}")
-                click.echo(f"Message length: avg={stats.message_length_avg:.1f}, min={stats.message_length_min}, max={stats.message_length_max}")
+                click.echo(
+                    f"Time range: {stats.time_range[0].isoformat()} to {stats.time_range[1].isoformat()}"
+                )
+                click.echo(
+                    f"Message length: avg={stats.message_length_avg:.1f}, min={stats.message_length_min}, max={stats.message_length_max}"
+                )
                 click.echo(f"Error count: {stats.error_count}")
                 click.echo(f"Warning count: {stats.warning_count}")
 
@@ -1208,13 +1357,18 @@ def monitor_analyze(obj, container, since, until, template, provider, export):
             # Export if requested
             if export:
                 import json
+
                 with open(export, "w") as f:
                     json.dump(analysis.to_dict(), f, indent=2)
                 click.secho(f"Exported analysis to {export}", fg="green")
                 return
 
             # Print analysis
-            click.secho(f"Log Analysis for {analysis.container_name} ({analysis.container_id[:12]})", fg="blue", bold=True)
+            click.secho(
+                f"Log Analysis for {analysis.container_name} ({analysis.container_id[:12]})",
+                fg="blue",
+                bold=True,
+            )
             click.echo(f"AI Provider: {analysis.ai_provider} ({analysis.ai_model})")
             click.echo(f"Log count: {analysis.log_count}")
             click.echo(f"Analysis time: {analysis.analysis_duration:.2f} seconds")
@@ -1225,7 +1379,9 @@ def monitor_analyze(obj, container, since, until, template, provider, export):
             if analysis.issues:
                 click.secho("\nIssues:", fg="blue", bold=True)
                 for i, issue in enumerate(analysis.issues, 1):
-                    click.secho(f"{i}. {issue.get('title', 'Untitled Issue')}", fg="yellow")
+                    click.secho(
+                        f"{i}. {issue.get('title', 'Untitled Issue')}", fg="yellow"
+                    )
                     click.echo(f"   Severity: {issue.get('severity', 'unknown')}")
                     click.echo(f"   {issue.get('description', '')}")
                     if "evidence" in issue:
@@ -1234,7 +1390,10 @@ def monitor_analyze(obj, container, since, until, template, provider, export):
             if analysis.recommendations:
                 click.secho("\nRecommendations:", fg="blue", bold=True)
                 for i, rec in enumerate(analysis.recommendations, 1):
-                    click.secho(f"{i}. {rec.get('title', 'Untitled Recommendation')}", fg="green")
+                    click.secho(
+                        f"{i}. {rec.get('title', 'Untitled Recommendation')}",
+                        fg="green",
+                    )
                     click.echo(f"   {rec.get('description', '')}")
                     if "steps" in rec:
                         click.echo("   Steps:")
@@ -1253,8 +1412,16 @@ def monitor_analyze(obj, container, since, until, template, provider, export):
 # Monitor issues command
 @monitor.command("issues")
 @click.option("--container", help="Filter issues by container")
-@click.option("--status", type=click.Choice(["open", "acknowledged", "in_progress", "resolved", "closed"]), help="Filter issues by status")
-@click.option("--severity", type=click.Choice(["info", "warning", "error", "critical"]), help="Filter issues by severity")
+@click.option(
+    "--status",
+    type=click.Choice(["open", "acknowledged", "in_progress", "resolved", "closed"]),
+    help="Filter issues by status",
+)
+@click.option(
+    "--severity",
+    type=click.Choice(["info", "warning", "error", "critical"]),
+    help="Filter issues by severity",
+)
 @click.option("--limit", type=int, default=10, help="Maximum number of issues to show")
 @click.option("--export", "-e", help="Export issues to a file")
 @click.pass_obj
@@ -1290,6 +1457,7 @@ def monitor_issues(obj, container, status, severity, limit, export):
         # Export if requested
         if export:
             import json
+
             with open(export, "w") as f:
                 json.dump([issue.to_dict() for issue in issues], f, indent=2)
             click.secho(f"Exported {len(issues)} issues to {export}", fg="green")
@@ -1348,8 +1516,8 @@ def monitor_recommendations(obj, issue, container, export):
 
     try:
         # Import monitoring modules
-        from src.monitoring.recommendation_engine import get_recommendation_engine
         from src.monitoring.issue_detector import get_issue_detector
+        from src.monitoring.recommendation_engine import get_recommendation_engine
 
         recommendation_engine = get_recommendation_engine()
         issue_detector = get_issue_detector()
@@ -1383,6 +1551,7 @@ def monitor_recommendations(obj, issue, container, export):
             # Export if requested
             if export:
                 import json
+
                 with open(export, "w") as f:
                     json.dump(recommendation.to_dict(), f, indent=2)
                 click.secho(f"Exported recommendation to {export}", fg="green")
@@ -1430,14 +1599,20 @@ def monitor_recommendations(obj, issue, container, export):
                 container_issue_ids = [issue.id for issue in container_issues]
 
                 # Filter recommendations
-                recommendations = [r for r in recommendations if r.issue_id in container_issue_ids]
+                recommendations = [
+                    r for r in recommendations if r.issue_id in container_issue_ids
+                ]
 
             # Export if requested
             if export:
                 import json
+
                 with open(export, "w") as f:
                     json.dump([r.to_dict() for r in recommendations], f, indent=2)
-                click.secho(f"Exported {len(recommendations)} recommendations to {export}", fg="green")
+                click.secho(
+                    f"Exported {len(recommendations)} recommendations to {export}",
+                    fg="green",
+                )
                 return
 
             # Print recommendations
@@ -1445,7 +1620,9 @@ def monitor_recommendations(obj, issue, container, export):
                 click.echo("No recommendations found")
                 return
 
-            click.secho(f"Found {len(recommendations)} recommendations", fg="blue", bold=True)
+            click.secho(
+                f"Found {len(recommendations)} recommendations", fg="blue", bold=True
+            )
 
             for recommendation in recommendations:
                 issue_obj = issue_detector.get_issue(recommendation.issue_id)
@@ -1458,7 +1635,9 @@ def monitor_recommendations(obj, issue, container, export):
                 click.echo(f"Created: {recommendation.created_at.isoformat()}")
 
                 if recommendation.applied_at:
-                    click.secho(f"Applied: {recommendation.applied_at.isoformat()}", fg="green")
+                    click.secho(
+                        f"Applied: {recommendation.applied_at.isoformat()}", fg="green"
+                    )
 
     except Exception as e:
         logger.error(f"Error showing recommendations: {str(e)}")
@@ -1486,7 +1665,7 @@ def troubleshoot_container(obj, container, provider):
 
     try:
         # Import here to avoid circular imports
-        from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
+        from src.core.troubleshooter import TroubleshooterError, get_troubleshooter
 
         troubleshooter = get_troubleshooter(provider)
 
@@ -1494,7 +1673,9 @@ def troubleshoot_container(obj, container, provider):
         result = troubleshooter.analyze_container(container)
 
         click.secho("\nAnalysis Result", fg="blue", bold=True)
-        click.echo(f"Container: {result['container_name']} ({result['container_id'][:12]})")
+        click.echo(
+            f"Container: {result['container_name']} ({result['container_id'][:12]})"
+        )
         click.echo(f"Status: {result['container_status']}")
         click.echo(f"AI Provider: {result['provider']} ({result['model']})")
 
@@ -1518,7 +1699,7 @@ def troubleshoot_logs(obj, file, provider):
 
     try:
         # Import here to avoid circular imports
-        from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
+        from src.core.troubleshooter import TroubleshooterError, get_troubleshooter
 
         # Read log file
         with open(file, "r") as f:
@@ -1553,7 +1734,7 @@ def troubleshoot_compose(obj, file, provider):
 
     try:
         # Import here to avoid circular imports
-        from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
+        from src.core.troubleshooter import TroubleshooterError, get_troubleshooter
 
         troubleshooter = get_troubleshooter(provider)
 
@@ -1584,7 +1765,7 @@ def troubleshoot_dockerfile(obj, file, provider):
 
     try:
         # Import here to avoid circular imports
-        from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
+        from src.core.troubleshooter import TroubleshooterError, get_troubleshooter
 
         troubleshooter = get_troubleshooter(provider)
 
@@ -1613,7 +1794,7 @@ def troubleshoot_connection(obj):
 
     try:
         # Import here to avoid circular imports
-        from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
+        from src.core.troubleshooter import TroubleshooterError, get_troubleshooter
 
         troubleshooter = get_troubleshooter()
 
@@ -1726,9 +1907,9 @@ def resource_start(obj, foreground):
 
     try:
         # Import resource monitoring modules
-        from src.resource_monitoring.daemon_manager import DaemonManager
-        from src.notifications.notification_manager import NotificationManager
         from src.docker.connection_manager_adapter import ConnectionManager
+        from src.notifications.notification_manager import NotificationManager
+        from src.resource_monitoring.daemon_manager import DaemonManager
 
         # Initialize notification manager
         notification_manager = NotificationManager(get_config_manager())
@@ -1737,7 +1918,7 @@ def resource_start(obj, foreground):
         daemon_manager = DaemonManager(
             get_config_manager(),
             ConnectionManager(get_config_manager()),
-            notification_manager
+            notification_manager,
         )
 
         # Check if daemon is already running
@@ -1746,7 +1927,9 @@ def resource_start(obj, foreground):
             return
 
         # Start daemon
-        click.echo(f"Starting resource monitoring daemon{' in foreground' if foreground else ''}...")
+        click.echo(
+            f"Starting resource monitoring daemon{' in foreground' if foreground else ''}..."
+        )
         daemon_manager.start(foreground)
 
         if not foreground:
@@ -1754,7 +1937,9 @@ def resource_start(obj, foreground):
             time.sleep(1)
 
             if daemon_manager.is_running():
-                click.secho("Resource monitoring daemon started successfully", fg="green")
+                click.secho(
+                    "Resource monitoring daemon started successfully", fg="green"
+                )
             else:
                 click.secho("Failed to start resource monitoring daemon", fg="red")
                 sys.exit(1)
@@ -1774,13 +1959,12 @@ def resource_stop(obj):
 
     try:
         # Import resource monitoring modules
-        from src.resource_monitoring.daemon_manager import DaemonManager
         from src.docker.connection_manager_adapter import ConnectionManager
+        from src.resource_monitoring.daemon_manager import DaemonManager
 
         # Initialize daemon manager
         daemon_manager = DaemonManager(
-            get_config_manager(),
-            ConnectionManager(get_config_manager())
+            get_config_manager(), ConnectionManager(get_config_manager())
         )
 
         # Check if daemon is running
@@ -1817,20 +2001,20 @@ def resource_status(obj, json):
 
     try:
         # Import resource monitoring modules
-        from src.resource_monitoring.daemon_manager import DaemonManager
         from src.docker.connection_manager_adapter import ConnectionManager
+        from src.resource_monitoring.daemon_manager import DaemonManager
 
         # Initialize daemon manager
         daemon_manager = DaemonManager(
-            get_config_manager(),
-            ConnectionManager(get_config_manager())
+            get_config_manager(), ConnectionManager(get_config_manager())
         )
 
         # Check if daemon is running
         if not daemon_manager.is_running():
             if json:
                 import json as json_module
-                click.echo(json_module.dumps({'running': False}, indent=2))
+
+                click.echo(json_module.dumps({"running": False}, indent=2))
             else:
                 click.secho("Resource monitoring daemon is not running", fg="yellow")
             return
@@ -1840,15 +2024,18 @@ def resource_status(obj, json):
 
         if json:
             import json as json_module
+
             click.echo(json_module.dumps(status, indent=2))
         else:
             click.secho("Resource Monitoring Daemon Status", fg="blue", bold=True)
             click.echo(f"Running: {status['running']}")
             click.echo(f"PID: {status['pid']}")
-            click.echo(f"Last Updated: {datetime.fromtimestamp(status['last_updated']).strftime('%Y-%m-%d %H:%M:%S')}")
+            click.echo(
+                f"Last Updated: {datetime.fromtimestamp(status['last_updated']).strftime('%Y-%m-%d %H:%M:%S')}"
+            )
 
             click.secho("\nComponents:", fg="blue")
-            for component, component_status in status['components'].items():
+            for component, component_status in status["components"].items():
                 click.echo(f"  {component.replace('_', ' ').title()}:")
                 for key, value in component_status.items():
                     click.echo(f"    {key.replace('_', ' ').title()}: {value}")
@@ -1862,7 +2049,12 @@ def resource_status(obj, json):
 # Resource monitoring metrics command
 @resource.command("metrics")
 @click.option("--container", help="Container ID or name to filter by")
-@click.option("--type", "metric_type", type=click.Choice(["cpu", "memory", "disk", "network"]), help="Metric type to filter by")
+@click.option(
+    "--type",
+    "metric_type",
+    type=click.Choice(["cpu", "memory", "disk", "network"]),
+    help="Metric type to filter by",
+)
 @click.option("--since", help="Show metrics since timestamp (e.g. 2021-01-01T12:00:00)")
 @click.option("--until", help="Show metrics until timestamp (e.g. 2021-01-01T12:00:00)")
 @click.option("--json", is_flag=True, help="Output in JSON format")
@@ -1877,8 +2069,7 @@ def resource_metrics(obj, container, metric_type, since, until, json):
 
         # Initialize daemon manager
         daemon_manager = DaemonManager(
-            get_config_manager(),
-            obj.docker_client or get_docker_client()
+            get_config_manager(), obj.docker_client or get_docker_client()
         )
 
         # Check if daemon is running
@@ -1891,7 +2082,7 @@ def resource_metrics(obj, container, metric_type, since, until, json):
             container_id=container,
             metric_type=metric_type,
             start_time=since,
-            end_time=until
+            end_time=until,
         )
 
         if not metrics:
@@ -1900,6 +2091,7 @@ def resource_metrics(obj, container, metric_type, since, until, json):
 
         if json:
             import json as json_module
+
             click.echo(json_module.dumps(metrics, indent=2))
         else:
             click.secho("Container Resource Metrics", fg="blue", bold=True)
@@ -1910,10 +2102,14 @@ def resource_metrics(obj, container, metric_type, since, until, json):
                 for metric_type, metric_data in container_metrics.items():
                     click.echo(f"  {metric_type.capitalize()} Metrics:")
 
-                    for i, entry in enumerate(metric_data[:5]):  # Show only the first 5 entries
+                    for i, entry in enumerate(
+                        metric_data[:5]
+                    ):  # Show only the first 5 entries
                         click.echo(f"    Entry {i+1}:")
                         click.echo(f"      Timestamp: {entry['timestamp']}")
-                        click.echo(f"      Data: {json_module.dumps(entry['data'], indent=8)[:100]}...")
+                        click.echo(
+                            f"      Data: {json_module.dumps(entry['data'], indent=8)[:100]}..."
+                        )
 
                     if len(metric_data) > 5:
                         click.echo(f"    ... and {len(metric_data) - 5} more entries")
@@ -1927,9 +2123,18 @@ def resource_metrics(obj, container, metric_type, since, until, json):
 # Resource monitoring anomalies command
 @resource.command("anomalies")
 @click.option("--container", help="Container ID or name to filter by")
-@click.option("--type", "metric_type", type=click.Choice(["cpu", "memory", "disk", "network"]), help="Metric type to filter by")
-@click.option("--since", help="Show anomalies since timestamp (e.g. 2021-01-01T12:00:00)")
-@click.option("--until", help="Show anomalies until timestamp (e.g. 2021-01-01T12:00:00)")
+@click.option(
+    "--type",
+    "metric_type",
+    type=click.Choice(["cpu", "memory", "disk", "network"]),
+    help="Metric type to filter by",
+)
+@click.option(
+    "--since", help="Show anomalies since timestamp (e.g. 2021-01-01T12:00:00)"
+)
+@click.option(
+    "--until", help="Show anomalies until timestamp (e.g. 2021-01-01T12:00:00)"
+)
 @click.option("--severity", type=int, help="Severity level to filter by")
 @click.option("--json", is_flag=True, help="Output in JSON format")
 @click.pass_obj
@@ -1943,8 +2148,7 @@ def resource_anomalies(obj, container, metric_type, since, until, severity, json
 
         # Initialize daemon manager
         daemon_manager = DaemonManager(
-            get_config_manager(),
-            obj.docker_client or get_docker_client()
+            get_config_manager(), obj.docker_client or get_docker_client()
         )
 
         # Check if daemon is running
@@ -1958,7 +2162,7 @@ def resource_anomalies(obj, container, metric_type, since, until, severity, json
             metric_type=metric_type,
             start_time=since,
             end_time=until,
-            severity=severity
+            severity=severity,
         )
 
         if not anomalies:
@@ -1967,6 +2171,7 @@ def resource_anomalies(obj, container, metric_type, since, until, severity, json
 
         if json:
             import json as json_module
+
             click.echo(json_module.dumps(anomalies, indent=2))
         else:
             click.secho("Detected Resource Anomalies", fg="blue", bold=True)
@@ -1978,22 +2183,36 @@ def resource_anomalies(obj, container, metric_type, since, until, severity, json
                 # Group anomalies by type
                 anomalies_by_type = {}
                 for anomaly in container_anomalies:
-                    anomaly_type = anomaly.get('type', 'unknown')
+                    anomaly_type = anomaly.get("type", "unknown")
                     if anomaly_type not in anomalies_by_type:
                         anomalies_by_type[anomaly_type] = []
                     anomalies_by_type[anomaly_type].append(anomaly)
 
                 for anomaly_type, type_anomalies in anomalies_by_type.items():
-                    click.echo(f"  {anomaly_type.capitalize()} Anomalies: {len(type_anomalies)}")
+                    click.echo(
+                        f"  {anomaly_type.capitalize()} Anomalies: {len(type_anomalies)}"
+                    )
 
-                    for i, anomaly in enumerate(type_anomalies[:3]):  # Show only the first 3 anomalies of each type
-                        click.echo(f"    {i+1}. {anomaly.get('description', 'No description')}")
-                        click.echo(f"       Timestamp: {anomaly.get('timestamp', 'Unknown')}")
-                        click.echo(f"       Severity: {anomaly.get('severity', 'Unknown')}")
-                        click.echo(f"       Metric Type: {anomaly.get('metric_type', 'Unknown')}")
+                    for i, anomaly in enumerate(
+                        type_anomalies[:3]
+                    ):  # Show only the first 3 anomalies of each type
+                        click.echo(
+                            f"    {i+1}. {anomaly.get('description', 'No description')}"
+                        )
+                        click.echo(
+                            f"       Timestamp: {anomaly.get('timestamp', 'Unknown')}"
+                        )
+                        click.echo(
+                            f"       Severity: {anomaly.get('severity', 'Unknown')}"
+                        )
+                        click.echo(
+                            f"       Metric Type: {anomaly.get('metric_type', 'Unknown')}"
+                        )
 
                     if len(type_anomalies) > 3:
-                        click.echo(f"    ... and {len(type_anomalies) - 3} more {anomaly_type} anomalies")
+                        click.echo(
+                            f"    ... and {len(type_anomalies) - 3} more {anomaly_type} anomalies"
+                        )
 
     except Exception as e:
         logger.error(f"Error showing resource anomalies: {str(e)}")
@@ -2004,15 +2223,32 @@ def resource_anomalies(obj, container, metric_type, since, until, severity, json
 # Resource monitoring recommendations command
 @resource.command("recommendations")
 @click.option("--container", help="Container ID or name to filter by")
-@click.option("--type", "recommendation_type", type=click.Choice(["sizing", "performance", "cost"]), help="Recommendation type to filter by")
-@click.option("--resource", type=click.Choice(["cpu", "memory", "disk", "network", "general"]), help="Resource type to filter by")
-@click.option("--since", help="Show recommendations since timestamp (e.g. 2021-01-01T12:00:00)")
-@click.option("--until", help="Show recommendations until timestamp (e.g. 2021-01-01T12:00:00)")
+@click.option(
+    "--type",
+    "recommendation_type",
+    type=click.Choice(["sizing", "performance", "cost"]),
+    help="Recommendation type to filter by",
+)
+@click.option(
+    "--resource",
+    type=click.Choice(["cpu", "memory", "disk", "network", "general"]),
+    help="Resource type to filter by",
+)
+@click.option(
+    "--since", help="Show recommendations since timestamp (e.g. 2021-01-01T12:00:00)"
+)
+@click.option(
+    "--until", help="Show recommendations until timestamp (e.g. 2021-01-01T12:00:00)"
+)
 @click.option("--json", is_flag=True, help="Output in JSON format")
 @click.pass_obj
-def resource_recommendations(obj, container, recommendation_type, resource, since, until, json):
+def resource_recommendations(
+    obj, container, recommendation_type, resource, since, until, json
+):
     """Show resource optimization recommendations."""
-    logger.info(f"Showing resource optimization recommendations for container {container}")
+    logger.info(
+        f"Showing resource optimization recommendations for container {container}"
+    )
 
     try:
         # Import resource monitoring modules
@@ -2020,8 +2256,7 @@ def resource_recommendations(obj, container, recommendation_type, resource, sinc
 
         # Initialize daemon manager
         daemon_manager = DaemonManager(
-            get_config_manager(),
-            obj.docker_client or get_docker_client()
+            get_config_manager(), obj.docker_client or get_docker_client()
         )
 
         # Check if daemon is running
@@ -2035,7 +2270,7 @@ def resource_recommendations(obj, container, recommendation_type, resource, sinc
             recommendation_type=recommendation_type,
             resource=resource,
             start_time=since,
-            end_time=until
+            end_time=until,
         )
 
         if not recommendations:
@@ -2044,6 +2279,7 @@ def resource_recommendations(obj, container, recommendation_type, resource, sinc
 
         if json:
             import json as json_module
+
             click.echo(json_module.dumps(recommendations, indent=2))
         else:
             click.secho("Resource Optimization Recommendations", fg="blue", bold=True)
@@ -2055,31 +2291,43 @@ def resource_recommendations(obj, container, recommendation_type, resource, sinc
                 # Group recommendations by type
                 recs_by_type = {}
                 for rec in container_recs:
-                    rec_type = rec.get('type', 'unknown')
+                    rec_type = rec.get("type", "unknown")
                     if rec_type not in recs_by_type:
                         recs_by_type[rec_type] = []
                     recs_by_type[rec_type].append(rec)
 
                 for rec_type, type_recs in recs_by_type.items():
-                    click.echo(f"  {rec_type.capitalize()} Recommendations: {len(type_recs)}")
+                    click.echo(
+                        f"  {rec_type.capitalize()} Recommendations: {len(type_recs)}"
+                    )
 
-                    for i, rec in enumerate(type_recs[:3]):  # Show only the first 3 recommendations of each type
-                        click.echo(f"    {i+1}. {rec.get('description', 'No description')}")
+                    for i, rec in enumerate(
+                        type_recs[:3]
+                    ):  # Show only the first 3 recommendations of each type
+                        click.echo(
+                            f"    {i+1}. {rec.get('description', 'No description')}"
+                        )
                         click.echo(f"       Impact: {rec.get('impact', 'Unknown')}")
                         click.echo(f"       Resource: {rec.get('resource', 'Unknown')}")
 
-                        if 'command' in rec:
+                        if "command" in rec:
                             click.echo(f"       Command: {rec['command']}")
 
-                        if 'suggestions' in rec:
+                        if "suggestions" in rec:
                             click.echo("       Suggestions:")
-                            for suggestion in rec['suggestions'][:2]:  # Show only the first 2 suggestions
+                            for suggestion in rec["suggestions"][
+                                :2
+                            ]:  # Show only the first 2 suggestions
                                 click.echo(f"         - {suggestion}")
-                            if len(rec['suggestions']) > 2:
-                                click.echo(f"         ... and {len(rec['suggestions']) - 2} more suggestions")
+                            if len(rec["suggestions"]) > 2:
+                                click.echo(
+                                    f"         ... and {len(rec['suggestions']) - 2} more suggestions"
+                                )
 
                     if len(type_recs) > 3:
-                        click.echo(f"    ... and {len(type_recs) - 3} more {rec_type} recommendations")
+                        click.echo(
+                            f"    ... and {len(type_recs) - 3} more {rec_type} recommendations"
+                        )
 
     except Exception as e:
         logger.error(f"Error showing resource recommendations: {str(e)}")
@@ -2090,7 +2338,12 @@ def resource_recommendations(obj, container, recommendation_type, resource, sinc
 # Resource monitoring report command
 @resource.command("report")
 @click.option("--container", help="Container ID or name to filter by")
-@click.option("--format", type=click.Choice(["text", "json", "html"]), default="text", help="Output format")
+@click.option(
+    "--format",
+    type=click.Choice(["text", "json", "html"]),
+    default="text",
+    help="Output format",
+)
 @click.option("--output", "-o", help="Output file path")
 @click.pass_obj
 def resource_report(obj, container, format, output):
@@ -2103,8 +2356,7 @@ def resource_report(obj, container, format, output):
 
         # Initialize daemon manager
         daemon_manager = DaemonManager(
-            get_config_manager(),
-            obj.docker_client or get_docker_client()
+            get_config_manager(), obj.docker_client or get_docker_client()
         )
 
         # Check if daemon is running
@@ -2114,8 +2366,7 @@ def resource_report(obj, container, format, output):
 
         # Generate report
         report = daemon_manager.generate_optimization_report(
-            container_id=container,
-            format=format
+            container_id=container, format=format
         )
 
         if not report or report == "No optimization recommendations available.":
@@ -2124,7 +2375,7 @@ def resource_report(obj, container, format, output):
 
         if output:
             # Write report to file
-            with open(output, 'w') as f:
+            with open(output, "w") as f:
                 f.write(report)
             click.secho(f"Report written to {output}", fg="green")
         else:
@@ -2146,6 +2397,7 @@ cli.add_command(compose)
 # Register update commands
 cli.add_command(update_cli)
 
+
 # Security command group
 @cli.group()
 @common_options
@@ -2153,6 +2405,7 @@ cli.add_command(update_cli)
 def security(ctx):
     """Manage Docker security scanning, auditing, and reporting."""
     pass
+
 
 # Backup command group
 @cli.group()
@@ -2162,13 +2415,34 @@ def backup(ctx):
     """Manage Docker container, image, and volume backups."""
     pass
 
+
 # Security scan command
 @security.command("scan")
-@click.option("--image", help="Name of the Docker image to scan. If not provided, all images will be scanned.")
-@click.option("--severity", type=click.Choice(["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]), multiple=True, help="Severity levels to include in the report.")
-@click.option("--format", type=click.Choice(["json", "html", "text"]), default="text", help="Output format for the report.")
-@click.option("--output", help="Output file for the report. If not provided, the report will be printed to stdout.")
-@click.option("--ignore-unfixed", is_flag=True, help="Ignore vulnerabilities that don't have a fix.")
+@click.option(
+    "--image",
+    help="Name of the Docker image to scan. If not provided, all images will be scanned.",
+)
+@click.option(
+    "--severity",
+    type=click.Choice(["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]),
+    multiple=True,
+    help="Severity levels to include in the report.",
+)
+@click.option(
+    "--format",
+    type=click.Choice(["json", "html", "text"]),
+    default="text",
+    help="Output format for the report.",
+)
+@click.option(
+    "--output",
+    help="Output file for the report. If not provided, the report will be printed to stdout.",
+)
+@click.option(
+    "--ignore-unfixed",
+    is_flag=True,
+    help="Ignore vulnerabilities that don't have a fix.",
+)
 @click.pass_obj
 def security_scan(obj, image, severity, format, output, ignore_unfixed):
     """Scan Docker images for vulnerabilities."""
@@ -2177,6 +2451,7 @@ def security_scan(obj, image, severity, format, output, ignore_unfixed):
 
     # Call the security CLI
     import sys
+
     args = ["scan"]
     if image:
         args.extend(["--image", image])
@@ -2193,18 +2468,40 @@ def security_scan(obj, image, severity, format, output, ignore_unfixed):
     sys.argv = ["security"] + args
     security_main()
 
+
 # Security audit command
 @security.command("audit")
-@click.option("--check-type", type=click.Choice(["host", "container", "daemon", "images", "networks", "registries"]), help="Type of check to run. If not provided, all checks will be run.")
-@click.option("--format", type=click.Choice(["json", "html", "text"]), default="text", help="Output format for the report.")
-@click.option("--output", help="Output file for the report. If not provided, the report will be printed to stdout.")
-@click.option("--no-summary", is_flag=True, help="Don't include a summary in the report.")
-@click.option("--no-remediation", is_flag=True, help="Don't include remediation steps in the report.")
+@click.option(
+    "--check-type",
+    type=click.Choice(
+        ["host", "container", "daemon", "images", "networks", "registries"]
+    ),
+    help="Type of check to run. If not provided, all checks will be run.",
+)
+@click.option(
+    "--format",
+    type=click.Choice(["json", "html", "text"]),
+    default="text",
+    help="Output format for the report.",
+)
+@click.option(
+    "--output",
+    help="Output file for the report. If not provided, the report will be printed to stdout.",
+)
+@click.option(
+    "--no-summary", is_flag=True, help="Don't include a summary in the report."
+)
+@click.option(
+    "--no-remediation",
+    is_flag=True,
+    help="Don't include remediation steps in the report.",
+)
 @click.pass_obj
 def security_audit(obj, check_type, format, output, no_summary, no_remediation):
     """Audit Docker configuration for security best practices."""
     # Call the security CLI
     import sys
+
     args = ["audit"]
     if check_type:
         args.extend(["--check-type", check_type])
@@ -2220,13 +2517,36 @@ def security_audit(obj, check_type, format, output, no_summary, no_remediation):
     sys.argv = ["security"] + args
     security_main()
 
+
 # Security report command
 @security.command("report")
-@click.option("--image", help="Name of the Docker image to scan for vulnerabilities. If not provided, all images will be scanned.")
-@click.option("--check-type", type=click.Choice(["host", "container", "daemon", "images", "networks", "registries"]), help="Type of check to run for audit. If not provided, all checks will be run.")
-@click.option("--severity", type=click.Choice(["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]), multiple=True, help="Severity levels to include in the vulnerability report.")
-@click.option("--format", type=click.Choice(["json", "html", "text"]), default="text", help="Output format for the report.")
-@click.option("--output", help="Output file for the report. If not provided, the report will be printed to stdout.")
+@click.option(
+    "--image",
+    help="Name of the Docker image to scan for vulnerabilities. If not provided, all images will be scanned.",
+)
+@click.option(
+    "--check-type",
+    type=click.Choice(
+        ["host", "container", "daemon", "images", "networks", "registries"]
+    ),
+    help="Type of check to run for audit. If not provided, all checks will be run.",
+)
+@click.option(
+    "--severity",
+    type=click.Choice(["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]),
+    multiple=True,
+    help="Severity levels to include in the vulnerability report.",
+)
+@click.option(
+    "--format",
+    type=click.Choice(["json", "html", "text"]),
+    default="text",
+    help="Output format for the report.",
+)
+@click.option(
+    "--output",
+    help="Output file for the report. If not provided, the report will be printed to stdout.",
+)
 @click.pass_obj
 def security_report(obj, image, check_type, severity, format, output):
     """Generate a comprehensive security report."""
@@ -2235,6 +2555,7 @@ def security_report(obj, image, check_type, severity, format, output):
 
     # Call the security CLI
     import sys
+
     args = ["report"]
     if image:
         args.extend(["--image", image])
@@ -2251,17 +2572,23 @@ def security_report(obj, image, check_type, severity, format, output):
     sys.argv = ["security"] + args
     security_main()
 
+
 # Backup container command
 @backup.command("container")
 @click.argument("container")
-@click.option("--name", help="Name of the backup. If not provided, a name will be generated.")
+@click.option(
+    "--name", help="Name of the backup. If not provided, a name will be generated."
+)
 @click.option("--no-volumes", is_flag=True, help="Don't include volumes in the backup.")
-@click.option("--include-image", is_flag=True, help="Include the container's image in the backup.")
+@click.option(
+    "--include-image", is_flag=True, help="Include the container's image in the backup."
+)
 @click.pass_obj
 def backup_container(obj, container, name, no_volumes, include_image):
     """Backup a Docker container."""
     # Call the backup CLI
     import sys
+
     args = ["backup", "container", container]
     if name:
         args.extend(["--name", name])
@@ -2273,14 +2600,21 @@ def backup_container(obj, container, name, no_volumes, include_image):
     sys.argv = ["backup"] + args
     backup_main()
 
+
 # Backup list command
 @backup.command("list")
-@click.option("--format", type=click.Choice(["json", "table"]), default="table", help="Output format.")
+@click.option(
+    "--format",
+    type=click.Choice(["json", "table"]),
+    default="table",
+    help="Output format.",
+)
 @click.pass_obj
 def backup_list(obj, format):
     """List all backups."""
     # Call the backup CLI
     import sys
+
     args = ["backup", "list"]
     if format:
         args.extend(["--format", format])
@@ -2288,21 +2622,29 @@ def backup_list(obj, format):
     sys.argv = ["backup"] + args
     backup_main()
 
+
 # Backup show command
 @backup.command("show")
 @click.argument("backup_id")
-@click.option("--format", type=click.Choice(["json", "table"]), default="table", help="Output format.")
+@click.option(
+    "--format",
+    type=click.Choice(["json", "table"]),
+    default="table",
+    help="Output format.",
+)
 @click.pass_obj
 def backup_show(obj, backup_id, format):
     """Show backup details."""
     # Call the backup CLI
     import sys
+
     args = ["backup", "show", backup_id]
     if format:
         args.extend(["--format", format])
 
     sys.argv = ["backup"] + args
     backup_main()
+
 
 # Backup delete command
 @backup.command("delete")
@@ -2312,15 +2654,20 @@ def backup_delete(obj, backup_id):
     """Delete a backup."""
     # Call the backup CLI
     import sys
+
     args = ["backup", "delete", backup_id]
 
     sys.argv = ["backup"] + args
     backup_main()
 
+
 # Backup restore command
 @backup.command("restore")
 @click.argument("backup_id")
-@click.option("--name", help="Name for the restored container. If not provided, a name will be generated.")
+@click.option(
+    "--name",
+    help="Name for the restored container. If not provided, a name will be generated.",
+)
 @click.option("--no-volumes", is_flag=True, help="Don't restore volumes.")
 @click.option("--no-image", is_flag=True, help="Don't restore the container's image.")
 @click.pass_obj
@@ -2328,6 +2675,7 @@ def backup_restore(obj, backup_id, name, no_volumes, no_image):
     """Restore a Docker container from backup."""
     # Call the backup CLI
     import sys
+
     args = ["restore", backup_id]
     if name:
         args.extend(["--name", name])
@@ -2339,17 +2687,22 @@ def backup_restore(obj, backup_id, name, no_volumes, no_image):
     sys.argv = ["backup"] + args
     backup_main()
 
+
 # Backup export command
 @backup.command("export")
 @click.argument("type", type=click.Choice(["image", "container", "volume"]))
 @click.argument("target")
-@click.option("--output", help="Path to save the exported file. If not provided, a default path will be used.")
+@click.option(
+    "--output",
+    help="Path to save the exported file. If not provided, a default path will be used.",
+)
 @click.option("--no-compress", is_flag=True, help="Don't compress the exported file.")
 @click.pass_obj
 def backup_export(obj, type, target, output, no_compress):
     """Export Docker containers, images, and volumes to files."""
     # Call the backup CLI
     import sys
+
     args = ["export", type, target]
     if output:
         args.extend(["--output", output])
@@ -2359,11 +2712,14 @@ def backup_export(obj, type, target, output, no_compress):
     sys.argv = ["backup"] + args
     backup_main()
 
+
 # Backup import command
 @backup.command("import")
 @click.argument("type", type=click.Choice(["image", "container", "volume"]))
 @click.argument("file")
-@click.option("--repository", help="Repository name for the imported image or container.")
+@click.option(
+    "--repository", help="Repository name for the imported image or container."
+)
 @click.option("--tag", help="Tag for the imported image or container.")
 @click.option("--name", help="Name for the imported container or volume.")
 @click.pass_obj
@@ -2371,6 +2727,7 @@ def backup_import(obj, type, file, repository, tag, name):
     """Import Docker containers, images, and volumes from files."""
     # Call the backup CLI
     import sys
+
     args = ["import", type, file]
     if repository:
         args.extend(["--repository", repository])

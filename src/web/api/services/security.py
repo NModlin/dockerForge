@@ -3,26 +3,35 @@ Security services for the DockerForge Web UI.
 
 This module provides services for security-related functionality.
 """
-import os
+
+import asyncio
 import json
 import logging
+import os
 import uuid
-from typing import Dict, List, Optional, Any, Union
 from datetime import datetime
-import asyncio
-import docker
+from typing import Any, Dict, List, Optional, Union
+
 from sqlalchemy.orm import Session
 
-from src.web.api.schemas.security import (
-    ScanType, ScanStatus, SeverityLevel, 
-    ImageScanRequest, ContainerScanRequest,
-    ScanResult, ScanResultSummary, Vulnerability,
-    RemediationPlan, RemediationStep, RemediationAction,
-    SecurityDashboardStats
-)
-from src.security.vulnerability_scanner import get_vulnerability_scanner
+import docker
 from src.security.config_auditor import get_config_auditor
 from src.security.security_reporter import get_security_reporter
+from src.security.vulnerability_scanner import get_vulnerability_scanner
+from src.web.api.schemas.security import (
+    ContainerScanRequest,
+    ImageScanRequest,
+    RemediationAction,
+    RemediationPlan,
+    RemediationStep,
+    ScanResult,
+    ScanResultSummary,
+    ScanStatus,
+    ScanType,
+    SecurityDashboardStats,
+    SeverityLevel,
+    Vulnerability,
+)
 
 # Set up logging
 logger = logging.getLogger("api.services.security")
@@ -40,15 +49,15 @@ active_scans = {}
 async def scan_image(request: ImageScanRequest) -> str:
     """
     Start an asynchronous image vulnerability scan.
-    
+
     Args:
         request: Image scan request
-        
+
     Returns:
         Scan ID
     """
     scan_id = str(uuid.uuid4())
-    
+
     # Create scan result entry
     scan_result = ScanResult(
         scan_id=scan_id,
@@ -61,33 +70,33 @@ async def scan_image(request: ImageScanRequest) -> str:
             SeverityLevel.HIGH: 0,
             SeverityLevel.MEDIUM: 0,
             SeverityLevel.LOW: 0,
-            SeverityLevel.UNKNOWN: 0
+            SeverityLevel.UNKNOWN: 0,
         },
         total_vulnerabilities=0,
-        vulnerabilities=[]
+        vulnerabilities=[],
     )
-    
+
     # Store scan result
     active_scans[scan_id] = scan_result
-    
+
     # Start scan in background
     asyncio.create_task(_run_image_scan(scan_id, request))
-    
+
     return scan_id
 
 
 async def scan_container(request: ContainerScanRequest) -> str:
     """
     Start an asynchronous container vulnerability scan.
-    
+
     Args:
         request: Container scan request
-        
+
     Returns:
         Scan ID
     """
     scan_id = str(uuid.uuid4())
-    
+
     # Create scan result entry
     scan_result = ScanResult(
         scan_id=scan_id,
@@ -100,52 +109,52 @@ async def scan_container(request: ContainerScanRequest) -> str:
             SeverityLevel.HIGH: 0,
             SeverityLevel.MEDIUM: 0,
             SeverityLevel.LOW: 0,
-            SeverityLevel.UNKNOWN: 0
+            SeverityLevel.UNKNOWN: 0,
         },
         total_vulnerabilities=0,
-        vulnerabilities=[]
+        vulnerabilities=[],
     )
-    
+
     # Store scan result
     active_scans[scan_id] = scan_result
-    
+
     # Start scan in background
     asyncio.create_task(_run_container_scan(scan_id, request))
-    
+
     return scan_id
 
 
 async def _run_image_scan(scan_id: str, request: ImageScanRequest) -> None:
     """
     Run an image vulnerability scan.
-    
+
     Args:
         scan_id: Scan ID
         request: Image scan request
     """
     scan_result = active_scans[scan_id]
     scan_result.status = ScanStatus.IN_PROGRESS
-    
+
     try:
         # Convert severity filter to format expected by vulnerability scanner
         severity_filter = None
         if request.severity_filter:
             severity_filter = [s.value for s in request.severity_filter]
-        
+
         # Run scan
         scan_output = vulnerability_scanner.scan_image(
             image_name=request.image_name,
             severity=severity_filter,
             output_format="json",
-            ignore_unfixed=request.ignore_unfixed
+            ignore_unfixed=request.ignore_unfixed,
         )
-        
+
         # Process scan results
         if scan_output.get("success", False) == False:
             scan_result.status = ScanStatus.FAILED
             scan_result.error_message = scan_output.get("error", "Unknown error")
             return
-        
+
         # Extract vulnerabilities
         vulnerabilities = []
         vulnerability_counts = {
@@ -153,9 +162,9 @@ async def _run_image_scan(scan_id: str, request: ImageScanRequest) -> None:
             SeverityLevel.HIGH: 0,
             SeverityLevel.MEDIUM: 0,
             SeverityLevel.LOW: 0,
-            SeverityLevel.UNKNOWN: 0
+            SeverityLevel.UNKNOWN: 0,
         }
-        
+
         # Process Trivy results
         results = scan_output.get("Results", [])
         for result in results:
@@ -163,7 +172,7 @@ async def _run_image_scan(scan_id: str, request: ImageScanRequest) -> None:
                 severity = vuln.get("Severity", "UNKNOWN").upper()
                 if severity not in [e.value for e in SeverityLevel]:
                     severity = "UNKNOWN"
-                
+
                 vulnerability = Vulnerability(
                     vulnerability_id=vuln.get("VulnerabilityID", ""),
                     package_name=vuln.get("PkgName", ""),
@@ -178,21 +187,23 @@ async def _run_image_scan(scan_id: str, request: ImageScanRequest) -> None:
                     cvss_vector=vuln.get("CVSS", {}).get("Vector"),
                     published_date=vuln.get("PublishedDate"),
                     last_modified_date=vuln.get("LastModifiedDate"),
-                    is_fixed=bool(vuln.get("FixedVersion"))
+                    is_fixed=bool(vuln.get("FixedVersion")),
                 )
-                
+
                 vulnerabilities.append(vulnerability)
                 vulnerability_counts[SeverityLevel(severity)] += 1
-        
+
         # Update scan result
         scan_result.vulnerabilities = vulnerabilities
         scan_result.vulnerability_counts = vulnerability_counts
         scan_result.total_vulnerabilities = sum(vulnerability_counts.values())
         scan_result.status = ScanStatus.COMPLETED
         scan_result.completed_at = datetime.now()
-        scan_result.duration_seconds = (scan_result.completed_at - scan_result.started_at).seconds
+        scan_result.duration_seconds = (
+            scan_result.completed_at - scan_result.started_at
+        ).seconds
         scan_result.raw_output = scan_output
-        
+
     except Exception as e:
         logger.exception(f"Error scanning image {request.image_name}: {str(e)}")
         scan_result.status = ScanStatus.FAILED
@@ -202,41 +213,41 @@ async def _run_image_scan(scan_id: str, request: ImageScanRequest) -> None:
 async def _run_container_scan(scan_id: str, request: ContainerScanRequest) -> None:
     """
     Run a container vulnerability scan.
-    
+
     Args:
         scan_id: Scan ID
         request: Container scan request
     """
     scan_result = active_scans[scan_id]
     scan_result.status = ScanStatus.IN_PROGRESS
-    
+
     try:
         # Get container
         container = docker_client.containers.get(request.container_id)
-        
+
         # Get container image
         image_id = container.image.id
         image_name = container.image.tags[0] if container.image.tags else image_id
-        
+
         # Convert severity filter to format expected by vulnerability scanner
         severity_filter = None
         if request.severity_filter:
             severity_filter = [s.value for s in request.severity_filter]
-        
+
         # Run scan
         scan_output = vulnerability_scanner.scan_image(
             image_name=image_name,
             severity=severity_filter,
             output_format="json",
-            ignore_unfixed=request.ignore_unfixed
+            ignore_unfixed=request.ignore_unfixed,
         )
-        
+
         # Process scan results
         if scan_output.get("success", False) == False:
             scan_result.status = ScanStatus.FAILED
             scan_result.error_message = scan_output.get("error", "Unknown error")
             return
-        
+
         # Extract vulnerabilities
         vulnerabilities = []
         vulnerability_counts = {
@@ -244,9 +255,9 @@ async def _run_container_scan(scan_id: str, request: ContainerScanRequest) -> No
             SeverityLevel.HIGH: 0,
             SeverityLevel.MEDIUM: 0,
             SeverityLevel.LOW: 0,
-            SeverityLevel.UNKNOWN: 0
+            SeverityLevel.UNKNOWN: 0,
         }
-        
+
         # Process Trivy results
         results = scan_output.get("Results", [])
         for result in results:
@@ -254,7 +265,7 @@ async def _run_container_scan(scan_id: str, request: ContainerScanRequest) -> No
                 severity = vuln.get("Severity", "UNKNOWN").upper()
                 if severity not in [e.value for e in SeverityLevel]:
                     severity = "UNKNOWN"
-                
+
                 vulnerability = Vulnerability(
                     vulnerability_id=vuln.get("VulnerabilityID", ""),
                     package_name=vuln.get("PkgName", ""),
@@ -269,21 +280,23 @@ async def _run_container_scan(scan_id: str, request: ContainerScanRequest) -> No
                     cvss_vector=vuln.get("CVSS", {}).get("Vector"),
                     published_date=vuln.get("PublishedDate"),
                     last_modified_date=vuln.get("LastModifiedDate"),
-                    is_fixed=bool(vuln.get("FixedVersion"))
+                    is_fixed=bool(vuln.get("FixedVersion")),
                 )
-                
+
                 vulnerabilities.append(vulnerability)
                 vulnerability_counts[SeverityLevel(severity)] += 1
-        
+
         # Update scan result
         scan_result.vulnerabilities = vulnerabilities
         scan_result.vulnerability_counts = vulnerability_counts
         scan_result.total_vulnerabilities = sum(vulnerability_counts.values())
         scan_result.status = ScanStatus.COMPLETED
         scan_result.completed_at = datetime.now()
-        scan_result.duration_seconds = (scan_result.completed_at - scan_result.started_at).seconds
+        scan_result.duration_seconds = (
+            scan_result.completed_at - scan_result.started_at
+        ).seconds
         scan_result.raw_output = scan_output
-        
+
     except Exception as e:
         logger.exception(f"Error scanning container {request.container_id}: {str(e)}")
         scan_result.status = ScanStatus.FAILED
@@ -293,10 +306,10 @@ async def _run_container_scan(scan_id: str, request: ContainerScanRequest) -> No
 async def get_scan_result(scan_id: str) -> Optional[ScanResult]:
     """
     Get scan result by ID.
-    
+
     Args:
         scan_id: Scan ID
-        
+
     Returns:
         Scan result or None if not found
     """
@@ -306,7 +319,7 @@ async def get_scan_result(scan_id: str) -> Optional[ScanResult]:
 async def get_scan_results() -> List[ScanResultSummary]:
     """
     Get all scan results.
-    
+
     Returns:
         List of scan result summaries
     """
@@ -321,54 +334,59 @@ async def get_scan_results() -> List[ScanResultSummary]:
             duration_seconds=scan.duration_seconds,
             error_message=scan.error_message,
             vulnerability_counts=scan.vulnerability_counts,
-            total_vulnerabilities=scan.total_vulnerabilities
+            total_vulnerabilities=scan.total_vulnerabilities,
         )
         for scan_id, scan in active_scans.items()
     ]
 
 
-async def generate_remediation_plan(scan_id: str, vulnerability_id: str) -> Optional[RemediationPlan]:
+async def generate_remediation_plan(
+    scan_id: str, vulnerability_id: str
+) -> Optional[RemediationPlan]:
     """
     Generate a remediation plan for a vulnerability.
-    
+
     Args:
         scan_id: Scan ID
         vulnerability_id: Vulnerability ID
-        
+
     Returns:
         Remediation plan or None if not found
     """
     scan_result = active_scans.get(scan_id)
     if not scan_result:
         return None
-    
+
     # Find vulnerability
     vulnerability = None
     for vuln in scan_result.vulnerabilities:
         if vuln.vulnerability_id == vulnerability_id:
             vulnerability = vuln
             break
-    
+
     if not vulnerability:
         return None
-    
+
     # Generate remediation steps
     steps = []
-    
+
     # If there's a fixed version, recommend updating
     if vulnerability.fixed_version:
         steps.append(
             RemediationStep(
                 action=RemediationAction.UPDATE_PACKAGE,
                 description=f"Update {vulnerability.package_name} to version {vulnerability.fixed_version}",
-                command=f"apt-get update && apt-get install -y {vulnerability.package_name}={vulnerability.fixed_version}"
-                if scan_result.target.startswith("debian") or scan_result.target.startswith("ubuntu")
-                else None,
+                command=(
+                    f"apt-get update && apt-get install -y {vulnerability.package_name}={vulnerability.fixed_version}"
+                    if scan_result.target.startswith("debian")
+                    or scan_result.target.startswith("ubuntu")
+                    else None
+                ),
                 difficulty="EASY",
-                estimated_time="5 minutes"
+                estimated_time="5 minutes",
             )
         )
-    
+
     # If it's a base image vulnerability, recommend rebuilding with a newer base
     if vulnerability.package_name in ["base-files", "libc6", "openssl"]:
         steps.append(
@@ -377,10 +395,10 @@ async def generate_remediation_plan(scan_id: str, vulnerability_id: str) -> Opti
                 description="Use a newer base image that includes the security fix",
                 command=None,
                 difficulty="MEDIUM",
-                estimated_time="30 minutes"
+                estimated_time="30 minutes",
             )
         )
-    
+
     # If no steps, add a generic rebuild step
     if not steps:
         steps.append(
@@ -389,21 +407,21 @@ async def generate_remediation_plan(scan_id: str, vulnerability_id: str) -> Opti
                 description="Rebuild the image with updated packages",
                 command="docker build --no-cache -t your-image:latest .",
                 difficulty="MEDIUM",
-                estimated_time="15 minutes"
+                estimated_time="15 minutes",
             )
         )
-    
+
     return RemediationPlan(
         vulnerability_id=vulnerability_id,
         steps=steps,
-        notes="These are automated recommendations. Please review before implementing."
+        notes="These are automated recommendations. Please review before implementing.",
     )
 
 
 async def get_security_dashboard_stats() -> SecurityDashboardStats:
     """
     Get security dashboard statistics.
-    
+
     Returns:
         Security dashboard statistics
     """
@@ -413,24 +431,24 @@ async def get_security_dashboard_stats() -> SecurityDashboardStats:
         for scan in active_scans.values()
         if scan.status == ScanStatus.COMPLETED
     )
-    
+
     critical_vulns = sum(
         scan.vulnerability_counts.get(SeverityLevel.CRITICAL, 0)
         for scan in active_scans.values()
         if scan.status == ScanStatus.COMPLETED
     )
-    
+
     high_vulns = sum(
         scan.vulnerability_counts.get(SeverityLevel.HIGH, 0)
         for scan in active_scans.values()
         if scan.status == ScanStatus.COMPLETED
     )
-    
+
     # Calculate security score (higher is better)
     # Formula: 100 - (critical_vulns * 10) - (high_vulns * 5)
     security_score = 100 - (critical_vulns * 10) - (high_vulns * 5)
     security_score = max(0, min(100, security_score))  # Clamp between 0 and 100
-    
+
     # Aggregate vulnerability counts
     vulnerability_counts = {
         SeverityLevel.CRITICAL: critical_vulns,
@@ -449,9 +467,9 @@ async def get_security_dashboard_stats() -> SecurityDashboardStats:
             scan.vulnerability_counts.get(SeverityLevel.UNKNOWN, 0)
             for scan in active_scans.values()
             if scan.status == ScanStatus.COMPLETED
-        )
+        ),
     }
-    
+
     # Get recent scans
     recent_scans = [
         ScanResultSummary(
@@ -464,21 +482,18 @@ async def get_security_dashboard_stats() -> SecurityDashboardStats:
             duration_seconds=scan.duration_seconds,
             error_message=scan.error_message,
             vulnerability_counts=scan.vulnerability_counts,
-            total_vulnerabilities=scan.total_vulnerabilities
+            total_vulnerabilities=scan.total_vulnerabilities,
         )
         for scan_id, scan in sorted(
-            active_scans.items(),
-            key=lambda x: x[1].started_at,
-            reverse=True
-        )[:5]  # Get 5 most recent scans
+            active_scans.items(), key=lambda x: x[1].started_at, reverse=True
+        )[
+            :5
+        ]  # Get 5 most recent scans
     ]
-    
+
     # Mock compliance stats for now
-    compliance_stats = {
-        "passed": 42,
-        "failed": 8
-    }
-    
+    compliance_stats = {"passed": 42, "failed": 8}
+
     # Mock recommendations for now
     recommendations = [
         {
@@ -486,28 +501,28 @@ async def get_security_dashboard_stats() -> SecurityDashboardStats:
             "title": "Update base images to latest versions",
             "description": "Several images are using outdated base images with known vulnerabilities.",
             "severity": "HIGH",
-            "effort": "MEDIUM"
+            "effort": "MEDIUM",
         },
         {
             "id": "rec2",
             "title": "Enable image signing",
             "description": "Enable Docker Content Trust to ensure image integrity.",
             "severity": "MEDIUM",
-            "effort": "LOW"
+            "effort": "LOW",
         },
         {
             "id": "rec3",
             "title": "Implement least privilege principle",
             "description": "Run containers with minimal required privileges.",
             "severity": "HIGH",
-            "effort": "MEDIUM"
-        }
+            "effort": "MEDIUM",
+        },
     ]
-    
+
     return SecurityDashboardStats(
         security_score=security_score,
         vulnerability_counts=vulnerability_counts,
         compliance_stats=compliance_stats,
         recent_scans=recent_scans,
-        recommendations=recommendations
+        recommendations=recommendations,
     )

@@ -3,14 +3,20 @@ API key usage router for the DockerForge Web UI.
 
 This module provides the API endpoints for API key usage tracking.
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
 
 from src.web.api.database import get_db
-from src.web.api.schemas.api_key_usage import ApiKeyUsageResponse, ApiKeyUsageQuery, ApiKeyUsageStats
+from src.web.api.schemas.api_key_usage import (
+    ApiKeyUsageQuery,
+    ApiKeyUsageResponse,
+    ApiKeyUsageStats,
+)
 from src.web.api.services import api_key as api_key_service
-from src.web.api.services.auth import get_current_active_user, check_permission
+from src.web.api.services.auth import check_permission, get_current_active_user
 
 router = APIRouter()
 
@@ -26,11 +32,11 @@ async def get_api_key_usage(
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
 ):
     """
     Get API key usage records.
-    
+
     Args:
         key_id: API key ID
         start_date: Start date for filtering (YYYY-MM-DD)
@@ -42,7 +48,7 @@ async def get_api_key_usage(
         offset: Number of records to skip
         db: Database session
         current_user: Current authenticated user
-        
+
     Returns:
         List of API key usage records
     """
@@ -50,10 +56,9 @@ async def get_api_key_usage(
     api_key = api_key_service.get_api_key(db, key_id, current_user.id)
     if not api_key:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="API key not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
         )
-    
+
     # Create query object
     query = ApiKeyUsageQuery(
         start_date=start_date,
@@ -62,12 +67,12 @@ async def get_api_key_usage(
         method=method,
         status_code=status_code,
         limit=limit,
-        offset=offset
+        offset=offset,
     )
-    
+
     # Get usage records
     usage_records = api_key_service.get_api_key_usage(db, key_id, query)
-    
+
     return usage_records
 
 
@@ -75,16 +80,16 @@ async def get_api_key_usage(
 async def get_api_key_usage_stats(
     key_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_active_user)
+    current_user=Depends(get_current_active_user),
 ):
     """
     Get API key usage statistics.
-    
+
     Args:
         key_id: API key ID
         db: Database session
         current_user: Current authenticated user
-        
+
     Returns:
         API key usage statistics
     """
@@ -92,11 +97,10 @@ async def get_api_key_usage_stats(
     api_key = api_key_service.get_api_key(db, key_id, current_user.id)
     if not api_key:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="API key not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="API key not found"
         )
-    
+
     # Get usage statistics
     stats = api_key_service.get_api_key_usage_stats(db, key_id)
-    
+
     return stats

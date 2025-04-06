@@ -5,11 +5,12 @@ This module provides functionality for discovering Docker Compose files in the f
 It includes recursive scanning, Docker context detection, and metadata indexing.
 """
 
-import os
 import glob
 import logging
+import os
 from pathlib import Path
-from typing import List, Dict, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
+
 import yaml
 
 from ..utils.logging_manager import get_logger
@@ -115,10 +116,10 @@ class ComposeDiscovery:
             logger.warning(f"Failed to discover Docker contexts: {e}")
 
     def discover_files(
-        self, 
-        paths: List[str] = None, 
-        recursive: bool = True, 
-        include_common_locations: bool = True
+        self,
+        paths: List[str] = None,
+        recursive: bool = True,
+        include_common_locations: bool = True,
     ) -> Dict[str, ComposeFileInfo]:
         """Discover Docker Compose files in the specified paths.
 
@@ -195,24 +196,26 @@ class ComposeDiscovery:
             logger.debug(f"Processing Docker Compose file: {file_path}")
 
             # Extract basic information from the file
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 try:
                     compose_data = yaml.safe_load(f)
-                    version = compose_data.get('version')
-                    services = list(compose_data.get('services', {}).keys())
+                    version = compose_data.get("version")
+                    services = list(compose_data.get("services", {}).keys())
 
                     # Create ComposeFileInfo object
                     file_info = ComposeFileInfo(
-                        path=file_path,
-                        version=version,
-                        services=services
+                        path=file_path, version=version, services=services
                     )
 
                     # Add to discovered files
                     self.discovered_files[file_path] = file_info
-                    logger.info(f"Discovered Docker Compose file: {file_path} (version: {version}, services: {len(services)})")
+                    logger.info(
+                        f"Discovered Docker Compose file: {file_path} (version: {version}, services: {len(services)})"
+                    )
                 except yaml.YAMLError as e:
-                    logger.warning(f"Failed to parse Docker Compose file {file_path}: {e}")
+                    logger.warning(
+                        f"Failed to parse Docker Compose file {file_path}: {e}"
+                    )
         except Exception as e:
             logger.warning(f"Error processing Docker Compose file {file_path}: {e}")
 
@@ -232,10 +235,10 @@ class ComposeDiscovery:
         """Refresh the list of discovered files."""
         # Clear the current list
         self.discovered_files = {}
-        
+
         # Rediscover Docker contexts
         self._discover_docker_contexts()
-        
+
         # Rediscover files using the same paths as before
         self.discover_files()
 
@@ -249,7 +252,8 @@ class ComposeDiscovery:
             List of ComposeFileInfo objects
         """
         return [
-            file_info for file_info in self.discovered_files.values()
+            file_info
+            for file_info in self.discovered_files.values()
             if service_name in file_info.services
         ]
 
@@ -264,6 +268,7 @@ class ComposeDiscovery:
         """
         abs_directory = os.path.abspath(os.path.expanduser(directory))
         return [
-            file_info for file_info in self.discovered_files.values()
+            file_info
+            for file_info in self.discovered_files.values()
             if os.path.dirname(file_info.path) == abs_directory
         ]

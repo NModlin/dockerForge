@@ -4,18 +4,23 @@ Fix proposal module for DockerForge.
 This module provides functionality for proposing fixes for Docker-related issues.
 """
 
-import os
 import json
 import logging
+import os
 import threading
 import uuid
-from typing import Dict, List, Optional, Any, Union
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 from src.config.config_manager import get_config
+from src.notifications.notification_manager import (
+    Notification,
+    NotificationSeverity,
+    NotificationType,
+    get_notification_manager,
+)
 from src.utils.logging_manager import get_logger
-from src.notifications.notification_manager import get_notification_manager, Notification, NotificationSeverity, NotificationType
 
 # Set up logging
 logger = get_logger("fix_proposal")
@@ -23,6 +28,7 @@ logger = get_logger("fix_proposal")
 
 class FixRiskLevel(Enum):
     """Fix risk levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -30,6 +36,7 @@ class FixRiskLevel(Enum):
 
 class FixStatus(Enum):
     """Fix status values."""
+
     PROPOSED = "proposed"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -40,7 +47,7 @@ class FixStatus(Enum):
 
 class FixStep:
     """A step in a fix proposal."""
-    
+
     def __init__(
         self,
         title: str,
@@ -52,7 +59,7 @@ class FixStep:
         verification: Optional[str] = None,
     ):
         """Initialize a fix step.
-        
+
         Args:
             title: The step title
             description: The step description
@@ -69,10 +76,10 @@ class FixStep:
         self.file_path = file_path
         self.manual_action = manual_action
         self.verification = verification
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the fix step to a dictionary.
-        
+
         Returns:
             A dictionary representation of the fix step
         """
@@ -85,14 +92,14 @@ class FixStep:
             "manual_action": self.manual_action,
             "verification": self.verification,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'FixStep':
+    def from_dict(cls, data: Dict[str, Any]) -> "FixStep":
         """Create a fix step from a dictionary.
-        
+
         Args:
             data: The dictionary to create the fix step from
-            
+
         Returns:
             A new FixStep instance
         """
@@ -109,7 +116,7 @@ class FixStep:
 
 class FixProposal:
     """A fix proposal for a Docker-related issue."""
-    
+
     def __init__(
         self,
         issue_id: str,
@@ -122,7 +129,7 @@ class FixProposal:
         metadata: Optional[Dict[str, Any]] = None,
     ):
         """Initialize a fix proposal.
-        
+
         Args:
             issue_id: The issue ID
             title: The fix title
@@ -151,10 +158,10 @@ class FixProposal:
         self.rejected_by = None
         self.applied_at = None
         self.result = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert the fix proposal to a dictionary.
-        
+
         Returns:
             A dictionary representation of the fix proposal
         """
@@ -178,14 +185,14 @@ class FixProposal:
             "applied_at": self.applied_at.isoformat() if self.applied_at else None,
             "result": self.result,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'FixProposal':
+    def from_dict(cls, data: Dict[str, Any]) -> "FixProposal":
         """Create a fix proposal from a dictionary.
-        
+
         Args:
             data: The dictionary to create the fix proposal from
-            
+
         Returns:
             A new FixProposal instance
         """
@@ -199,32 +206,32 @@ class FixProposal:
             container_name=data.get("container_name"),
             metadata=data.get("metadata", {}),
         )
-        
+
         fix.id = data["id"]
         fix.status = FixStatus(data["status"])
         fix.created_at = datetime.fromisoformat(data["created_at"])
         fix.updated_at = datetime.fromisoformat(data["updated_at"])
-        
+
         if data.get("approved_at"):
             fix.approved_at = datetime.fromisoformat(data["approved_at"])
-        
+
         fix.approved_by = data.get("approved_by")
-        
+
         if data.get("rejected_at"):
             fix.rejected_at = datetime.fromisoformat(data["rejected_at"])
-        
+
         fix.rejected_by = data.get("rejected_by")
-        
+
         if data.get("applied_at"):
             fix.applied_at = datetime.fromisoformat(data["applied_at"])
-        
+
         fix.result = data.get("result")
-        
+
         return fix
-    
+
     def approve(self, user: Optional[str] = None) -> None:
         """Approve the fix proposal.
-        
+
         Args:
             user: Optional user who approved the fix
         """
@@ -232,10 +239,10 @@ class FixProposal:
         self.approved_at = datetime.now()
         self.approved_by = user
         self.updated_at = datetime.now()
-    
+
     def reject(self, user: Optional[str] = None) -> None:
         """Reject the fix proposal.
-        
+
         Args:
             user: Optional user who rejected the fix
         """
@@ -243,10 +250,10 @@ class FixProposal:
         self.rejected_at = datetime.now()
         self.rejected_by = user
         self.updated_at = datetime.now()
-    
+
     def mark_as_applied(self, result: Optional[Dict[str, Any]] = None) -> None:
         """Mark the fix as applied.
-        
+
         Args:
             result: Optional result of applying the fix
         """
@@ -254,35 +261,35 @@ class FixProposal:
         self.applied_at = datetime.now()
         self.result = result
         self.updated_at = datetime.now()
-    
+
     def mark_as_failed(self, result: Optional[Dict[str, Any]] = None) -> None:
         """Mark the fix as failed.
-        
+
         Args:
             result: Optional result of the failed fix
         """
         self.status = FixStatus.FAILED
         self.result = result
         self.updated_at = datetime.now()
-    
+
     def mark_as_rolled_back(self, result: Optional[Dict[str, Any]] = None) -> None:
         """Mark the fix as rolled back.
-        
+
         Args:
             result: Optional result of rolling back the fix
         """
         self.status = FixStatus.ROLLED_BACK
         self.result = result
         self.updated_at = datetime.now()
-    
+
     def send_notification(self) -> bool:
         """Send a notification for this fix proposal.
-        
+
         Returns:
             True if the notification was sent, False otherwise
         """
         notification_manager = get_notification_manager()
-        
+
         # Create notification
         notification = Notification(
             title=f"Fix Proposal: {self.title}",
@@ -315,17 +322,17 @@ class FixProposal:
                 },
             ],
         )
-        
+
         # Send notification
         return notification_manager.send_notification(notification)
 
 
 class FixProposalManager:
     """Manager for fix proposals."""
-    
+
     _instance = None
     _lock = threading.Lock()
-    
+
     def __new__(cls):
         """Create a new FixProposalManager instance (singleton)."""
         with cls._lock:
@@ -333,38 +340,38 @@ class FixProposalManager:
                 cls._instance = super(FixProposalManager, cls).__new__(cls)
                 cls._instance._initialized = False
             return cls._instance
-    
+
     def __init__(self):
         """Initialize the fix proposal manager."""
         if self._initialized:
             return
-        
+
         self._initialized = True
         self._fixes = {}
-        
+
         # Load fixes
         self._load_fixes()
-        
+
         logger.info("Fix proposal manager initialized")
-    
+
     def _get_fixes_dir(self) -> str:
         """Get the fixes directory.
-        
+
         Returns:
             The fixes directory path
         """
         data_dir = os.path.expanduser(get_config("general.data_dir"))
         fixes_dir = os.path.join(data_dir, "fixes")
-        
+
         if not os.path.exists(fixes_dir):
             os.makedirs(fixes_dir, exist_ok=True)
-        
+
         return fixes_dir
-    
+
     def _load_fixes(self) -> None:
         """Load fixes from disk."""
         fixes_dir = self._get_fixes_dir()
-        
+
         # Load fixes from JSON files
         for filename in os.listdir(fixes_dir):
             if filename.endswith(".json"):
@@ -375,25 +382,25 @@ class FixProposalManager:
                         self._fixes[fix.id] = fix
                 except Exception as e:
                     logger.error(f"Error loading fix {filename}: {str(e)}")
-        
+
         logger.info(f"Loaded {len(self._fixes)} fixes")
-    
+
     def _save_fix(self, fix: FixProposal) -> None:
         """Save a fix to disk.
-        
+
         Args:
             fix: The fix to save
         """
         fixes_dir = self._get_fixes_dir()
-        
+
         try:
             filename = os.path.join(fixes_dir, f"{fix.id}.json")
-            
+
             with open(filename, "w") as f:
                 json.dump(fix.to_dict(), f, indent=2)
         except Exception as e:
             logger.error(f"Error saving fix {fix.id}: {str(e)}")
-    
+
     def create_fix(
         self,
         issue_id: str,
@@ -407,7 +414,7 @@ class FixProposalManager:
         send_notification: bool = True,
     ) -> FixProposal:
         """Create a new fix proposal.
-        
+
         Args:
             issue_id: The issue ID
             title: The fix title
@@ -418,14 +425,14 @@ class FixProposalManager:
             container_name: Optional container name
             metadata: Optional metadata
             send_notification: Whether to send a notification
-            
+
         Returns:
             The created fix proposal
         """
         # Convert string risk level to enum if needed
         if isinstance(risk_level, str):
             risk_level = FixRiskLevel(risk_level)
-        
+
         # Create fix
         fix = FixProposal(
             issue_id=issue_id,
@@ -437,63 +444,65 @@ class FixProposalManager:
             container_name=container_name,
             metadata=metadata,
         )
-        
+
         # Add to fixes
         self._fixes[fix.id] = fix
-        
+
         # Save to disk
         self._save_fix(fix)
-        
+
         logger.info(f"Created fix proposal: {fix.id} - {fix.title}")
-        
+
         # Send notification if requested
         if send_notification:
             if fix.send_notification():
                 logger.info(f"Sent notification for fix proposal: {fix.id}")
             else:
-                logger.warning(f"Failed to send notification for fix proposal: {fix.id}")
-        
+                logger.warning(
+                    f"Failed to send notification for fix proposal: {fix.id}"
+                )
+
         return fix
-    
+
     def get_fix(self, fix_id: str) -> Optional[FixProposal]:
         """Get a fix by ID.
-        
+
         Args:
             fix_id: The fix ID
-            
+
         Returns:
             The fix if found, None otherwise
         """
         return self._fixes.get(fix_id)
-    
+
     def get_fixes_for_issue(self, issue_id: str) -> List[FixProposal]:
         """Get fixes for an issue.
-        
+
         Args:
             issue_id: The issue ID
-            
+
         Returns:
             List of fixes for the issue
         """
         return [fix for fix in self._fixes.values() if fix.issue_id == issue_id]
-    
+
     def get_fixes_for_container(self, container_id: str) -> List[FixProposal]:
         """Get fixes for a container.
-        
+
         Args:
             container_id: The container ID
-            
+
         Returns:
             List of fixes for the container
         """
         return [fix for fix in self._fixes.values() if fix.container_id == container_id]
-    
+
     def get_all_fixes(self, status: Optional[FixStatus] = None) -> List[FixProposal]:
         """Get all fixes.
-        
+
         Args:
             status: Optional status to filter by
-            
+
         Returns:
             List of all fixes
         """
@@ -501,35 +510,35 @@ class FixProposalManager:
             return [fix for fix in self._fixes.values() if fix.status == status]
         else:
             return list(self._fixes.values())
-    
+
     def approve_fix(self, fix_id: str, user: Optional[str] = None) -> bool:
         """Approve a fix.
-        
+
         Args:
             fix_id: The fix ID
             user: Optional user who approved the fix
-            
+
         Returns:
             True if the fix was approved, False otherwise
         """
         fix = self.get_fix(fix_id)
-        
+
         if not fix:
             logger.warning(f"Fix not found: {fix_id}")
             return False
-        
+
         if fix.status != FixStatus.PROPOSED:
             logger.warning(f"Fix {fix_id} is not in PROPOSED state: {fix.status.value}")
             return False
-        
+
         # Approve fix
         fix.approve(user)
-        
+
         # Save to disk
         self._save_fix(fix)
-        
+
         logger.info(f"Approved fix: {fix_id}")
-        
+
         # Send notification
         notification_manager = get_notification_manager()
         notification = Notification(
@@ -548,44 +557,46 @@ class FixProposalManager:
                 },
             ],
         )
-        
+
         notification_manager.send_notification(notification)
-        
+
         return True
-    
-    def reject_fix(self, fix_id: str, user: Optional[str] = None, reason: Optional[str] = None) -> bool:
+
+    def reject_fix(
+        self, fix_id: str, user: Optional[str] = None, reason: Optional[str] = None
+    ) -> bool:
         """Reject a fix.
-        
+
         Args:
             fix_id: The fix ID
             user: Optional user who rejected the fix
             reason: Optional reason for rejection
-            
+
         Returns:
             True if the fix was rejected, False otherwise
         """
         fix = self.get_fix(fix_id)
-        
+
         if not fix:
             logger.warning(f"Fix not found: {fix_id}")
             return False
-        
+
         if fix.status != FixStatus.PROPOSED:
             logger.warning(f"Fix {fix_id} is not in PROPOSED state: {fix.status.value}")
             return False
-        
+
         # Reject fix
         fix.reject(user)
-        
+
         # Add reason to metadata if provided
         if reason:
             fix.metadata["rejection_reason"] = reason
-        
+
         # Save to disk
         self._save_fix(fix)
-        
+
         logger.info(f"Rejected fix: {fix_id}")
-        
+
         # Send notification
         notification_manager = get_notification_manager()
         notification = Notification(
@@ -604,28 +615,30 @@ class FixProposalManager:
                 },
             ],
         )
-        
+
         notification_manager.send_notification(notification)
-        
+
         return True
-    
-    def update_fix_status(self, fix_id: str, status: FixStatus, result: Optional[Dict[str, Any]] = None) -> bool:
+
+    def update_fix_status(
+        self, fix_id: str, status: FixStatus, result: Optional[Dict[str, Any]] = None
+    ) -> bool:
         """Update a fix status.
-        
+
         Args:
             fix_id: The fix ID
             status: The new status
             result: Optional result data
-            
+
         Returns:
             True if the fix status was updated, False otherwise
         """
         fix = self.get_fix(fix_id)
-        
+
         if not fix:
             logger.warning(f"Fix not found: {fix_id}")
             return False
-        
+
         # Update status
         if status == FixStatus.APPLIED:
             fix.mark_as_applied(result)
@@ -638,15 +651,15 @@ class FixProposalManager:
             fix.updated_at = datetime.now()
             if result:
                 fix.result = result
-        
+
         # Save to disk
         self._save_fix(fix)
-        
+
         logger.info(f"Updated fix status: {fix_id} -> {status.value}")
-        
+
         # Send notification
         notification_manager = get_notification_manager()
-        
+
         if status == FixStatus.APPLIED:
             notification = Notification(
                 title=f"Fix Applied: {fix.title}",
@@ -701,46 +714,46 @@ class FixProposalManager:
         else:
             # No notification for other status changes
             return True
-        
+
         notification_manager.send_notification(notification)
-        
+
         return True
-    
+
     def delete_fix(self, fix_id: str) -> bool:
         """Delete a fix.
-        
+
         Args:
             fix_id: The fix ID
-            
+
         Returns:
             True if the fix was deleted, False otherwise
         """
         if fix_id not in self._fixes:
             logger.warning(f"Fix not found: {fix_id}")
             return False
-        
+
         # Remove from fixes
         del self._fixes[fix_id]
-        
+
         # Remove from disk
         fixes_dir = self._get_fixes_dir()
         filename = os.path.join(fixes_dir, f"{fix_id}.json")
-        
+
         if os.path.exists(filename):
             try:
                 os.remove(filename)
             except Exception as e:
                 logger.error(f"Error deleting fix file: {str(e)}")
                 return False
-        
+
         logger.info(f"Deleted fix: {fix_id}")
-        
+
         return True
 
 
 def get_fix_proposal_manager() -> FixProposalManager:
     """Get the fix proposal manager instance.
-    
+
     Returns:
         The fix proposal manager instance
     """

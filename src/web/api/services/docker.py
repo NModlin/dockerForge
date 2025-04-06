@@ -3,13 +3,15 @@ Docker service for the DockerForge Web UI.
 
 This module provides the Docker services for the DockerForge Web UI.
 """
-import docker
-from docker.errors import DockerException, APIError, NotFound
-from typing import List, Dict, Any, Optional
+
+import json
 import logging
 import os
-import json
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import docker
+from docker.errors import APIError, DockerException, NotFound
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -66,7 +68,9 @@ def get_system_info() -> Dict[str, Any]:
         raise
 
 
-def get_containers(all: bool = True, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+def get_containers(
+    all: bool = True, filters: Optional[Dict[str, Any]] = None
+) -> List[Dict[str, Any]]:
     """
     Get all containers.
     """
@@ -80,20 +84,36 @@ def get_containers(all: bool = True, filters: Optional[Dict[str, Any]] = None) -
             container_dict = {
                 "id": container.id,
                 "name": container.name,
-                "image": container.image.tags[0] if container.image.tags else container.image.id,
+                "image": (
+                    container.image.tags[0]
+                    if container.image.tags
+                    else container.image.id
+                ),
                 "status": container.status,
-                "created_at": datetime.fromtimestamp(container.attrs["Created"]).isoformat(),
+                "created_at": datetime.fromtimestamp(
+                    container.attrs["Created"]
+                ).isoformat(),
                 "started_at": None,
                 "finished_at": None,
                 "health_status": None,
                 "ip_address": None,
                 "command": container.attrs.get("Config", {}).get("Cmd", []),
                 "entrypoint": container.attrs.get("Config", {}).get("Entrypoint", []),
-                "environment": parse_env(container.attrs.get("Config", {}).get("Env", [])),
-                "ports": parse_ports(container.attrs.get("NetworkSettings", {}).get("Ports", {})),
+                "environment": parse_env(
+                    container.attrs.get("Config", {}).get("Env", [])
+                ),
+                "ports": parse_ports(
+                    container.attrs.get("NetworkSettings", {}).get("Ports", {})
+                ),
                 "volumes": parse_volumes(container.attrs.get("Mounts", [])),
-                "network": list(container.attrs.get("NetworkSettings", {}).get("Networks", {}).keys()),
-                "restart_policy": container.attrs.get("HostConfig", {}).get("RestartPolicy", {}).get("Name", ""),
+                "network": list(
+                    container.attrs.get("NetworkSettings", {})
+                    .get("Networks", {})
+                    .keys()
+                ),
+                "restart_policy": container.attrs.get("HostConfig", {})
+                .get("RestartPolicy", {})
+                .get("Name", ""),
                 "labels": container.attrs.get("Config", {}).get("Labels", {}),
             }
 
@@ -101,7 +121,10 @@ def get_containers(all: bool = True, filters: Optional[Dict[str, Any]] = None) -
             state = container.attrs.get("State", {})
             if state.get("StartedAt"):
                 container_dict["started_at"] = state.get("StartedAt")
-            if state.get("FinishedAt") and state.get("FinishedAt") != "0001-01-01T00:00:00Z":
+            if (
+                state.get("FinishedAt")
+                and state.get("FinishedAt") != "0001-01-01T00:00:00Z"
+            ):
                 container_dict["finished_at"] = state.get("FinishedAt")
 
             # Get health status
@@ -145,9 +168,13 @@ def get_container(container_id: str) -> Dict[str, Any]:
         container_dict = {
             "id": container.id,
             "name": container.name,
-            "image": container.image.tags[0] if container.image.tags else container.image.id,
+            "image": (
+                container.image.tags[0] if container.image.tags else container.image.id
+            ),
             "status": container.status,
-            "created_at": datetime.fromtimestamp(container.attrs["Created"]).isoformat(),
+            "created_at": datetime.fromtimestamp(
+                container.attrs["Created"]
+            ).isoformat(),
             "started_at": None,
             "finished_at": None,
             "health_status": None,
@@ -155,10 +182,16 @@ def get_container(container_id: str) -> Dict[str, Any]:
             "command": container.attrs.get("Config", {}).get("Cmd", []),
             "entrypoint": container.attrs.get("Config", {}).get("Entrypoint", []),
             "environment": parse_env(container.attrs.get("Config", {}).get("Env", [])),
-            "ports": parse_ports(container.attrs.get("NetworkSettings", {}).get("Ports", {})),
+            "ports": parse_ports(
+                container.attrs.get("NetworkSettings", {}).get("Ports", {})
+            ),
             "volumes": parse_volumes(container.attrs.get("Mounts", [])),
-            "network": list(container.attrs.get("NetworkSettings", {}).get("Networks", {}).keys()),
-            "restart_policy": container.attrs.get("HostConfig", {}).get("RestartPolicy", {}).get("Name", ""),
+            "network": list(
+                container.attrs.get("NetworkSettings", {}).get("Networks", {}).keys()
+            ),
+            "restart_policy": container.attrs.get("HostConfig", {})
+            .get("RestartPolicy", {})
+            .get("Name", ""),
             "labels": container.attrs.get("Config", {}).get("Labels", {}),
         }
 
@@ -166,7 +199,10 @@ def get_container(container_id: str) -> Dict[str, Any]:
         state = container.attrs.get("State", {})
         if state.get("StartedAt"):
             container_dict["started_at"] = state.get("StartedAt")
-        if state.get("FinishedAt") and state.get("FinishedAt") != "0001-01-01T00:00:00Z":
+        if (
+            state.get("FinishedAt")
+            and state.get("FinishedAt") != "0001-01-01T00:00:00Z"
+        ):
             container_dict["finished_at"] = state.get("FinishedAt")
 
         # Get health status
@@ -265,7 +301,9 @@ def create_container(container_data: Dict[str, Any]) -> Dict[str, Any]:
         if container_data.get("cpu_limit"):
             if not params.get("host_config"):
                 params["host_config"] = {}
-            params["host_config"]["cpu_quota"] = int(container_data["cpu_limit"] * 100000)
+            params["host_config"]["cpu_quota"] = int(
+                container_data["cpu_limit"] * 100000
+            )
             params["host_config"]["cpu_period"] = 100000
 
         # Add memory limit if provided
@@ -406,7 +444,9 @@ def get_images() -> List[Dict[str, Any]]:
                 "id": image.id,
                 "tags": image.tags,
                 "short_id": image.short_id,
-                "created_at": datetime.fromtimestamp(image.attrs["Created"]).isoformat(),
+                "created_at": datetime.fromtimestamp(
+                    image.attrs["Created"]
+                ).isoformat(),
                 "size": image.attrs["Size"],
                 "labels": image.attrs.get("Config", {}).get("Labels", {}),
             }
@@ -742,7 +782,9 @@ def delete_network(network_id: str) -> bool:
         raise
 
 
-def connect_container_to_network(container_id: str, network_id: str, aliases: Optional[List[str]] = None) -> bool:
+def connect_container_to_network(
+    container_id: str, network_id: str, aliases: Optional[List[str]] = None
+) -> bool:
     """
     Connect a container to a network.
     """
@@ -789,6 +831,7 @@ def disconnect_container_from_network(container_id: str, network_id: str) -> boo
 
 # Helper functions
 
+
 def parse_env(env_list: List[str]) -> Dict[str, str]:
     """
     Parse environment variables from a list of strings.
@@ -812,12 +855,14 @@ def parse_ports(ports_dict: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         port, protocol = container_port.split("/")
         for host_port in host_ports:
-            ports_list.append({
-                "host_ip": host_port.get("HostIp", "0.0.0.0"),
-                "host_port": int(host_port.get("HostPort")),
-                "container_port": int(port),
-                "protocol": protocol,
-            })
+            ports_list.append(
+                {
+                    "host_ip": host_port.get("HostIp", "0.0.0.0"),
+                    "host_port": int(host_port.get("HostPort")),
+                    "container_port": int(port),
+                    "protocol": protocol,
+                }
+            )
 
     return ports_list
 
@@ -828,11 +873,13 @@ def parse_volumes(mounts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     volumes_list = []
     for mount in mounts:
-        volumes_list.append({
-            "host_path": mount.get("Source", ""),
-            "container_path": mount.get("Destination", ""),
-            "mode": mount.get("Mode", "rw"),
-        })
+        volumes_list.append(
+            {
+                "host_path": mount.get("Source", ""),
+                "container_path": mount.get("Destination", ""),
+                "mode": mount.get("Mode", "rw"),
+            }
+        )
 
     return volumes_list
 
@@ -856,7 +903,9 @@ def parse_stats(stats: Dict[str, Any]) -> Dict[str, Any]:
 
     cpu_percent = 0.0
     if system_delta > 0 and cpu_delta > 0:
-        cpu_percent = (cpu_delta / system_delta) * len(cpu_stats.get("cpu_usage", {}).get("percpu_usage", []))
+        cpu_percent = (cpu_delta / system_delta) * len(
+            cpu_stats.get("cpu_usage", {}).get("percpu_usage", [])
+        )
 
     # Memory usage
     memory_stats = stats.get("memory_stats", {})

@@ -5,13 +5,14 @@ This module provides functionality to interact with AI providers
 for troubleshooting and analysis.
 """
 
-import os
 import json
 import logging
-import requests
+import os
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional, Union, Tuple, Callable
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import requests
 
 from src.config.config_manager import get_config
 from src.utils.logging_manager import get_logger
@@ -21,6 +22,7 @@ logger = get_logger("ai_provider")
 
 class AIProviderError(Exception):
     """Exception raised for AI provider errors."""
+
     pass
 
 
@@ -65,7 +67,9 @@ class AIProvider(ABC):
         pass
 
     @abstractmethod
-    def estimate_cost(self, input_text: str, expected_output_length: int = 500) -> Dict[str, Any]:
+    def estimate_cost(
+        self, input_text: str, expected_output_length: int = 500
+    ) -> Dict[str, Any]:
         """
         Estimate the cost of an API call.
 
@@ -122,7 +126,9 @@ class AIProvider(ABC):
         words = len(text.split())
         return int(words * 1.3)
 
-    def streaming_analyze(self, context: Dict[str, Any], query: str, callback: Callable[[str], None]) -> Dict[str, Any]:
+    def streaming_analyze(
+        self, context: Dict[str, Any], query: str, callback: Callable[[str], None]
+    ) -> Dict[str, Any]:
         """
         Analyze a query with context using streaming response.
 
@@ -152,8 +158,12 @@ class AIProvider(ABC):
             bool: True if the cost is acceptable, False otherwise
         """
         # Get budget thresholds from config
-        require_confirmation = get_config("ai.cost_management.require_confirmation", True)
-        confirmation_threshold = get_config("ai.cost_management.confirmation_threshold_usd", 0.5)
+        require_confirmation = get_config(
+            "ai.cost_management.require_confirmation", True
+        )
+        confirmation_threshold = get_config(
+            "ai.cost_management.confirmation_threshold_usd", 0.5
+        )
         daily_budget = get_config("ai.cost_management.max_daily_cost_usd", 10.0)
 
         # If confirmation is not required, just check against the budget limit
@@ -198,6 +208,7 @@ class ClaudeProvider(AIProvider):
         """Initialize the usage tracker."""
         try:
             from src.core.ai_usage_tracker import AIUsageTracker
+
             return AIUsageTracker()
         except ImportError:
             logger.debug("AIUsageTracker not available, usage tracking disabled")
@@ -223,9 +234,7 @@ class ClaudeProvider(AIProvider):
         payload = {
             "model": self.model,
             "system": system_prompt,
-            "messages": [
-                {"role": "user", "content": user_message}
-            ],
+            "messages": [{"role": "user", "content": user_message}],
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }
@@ -264,15 +273,15 @@ class ClaudeProvider(AIProvider):
         """
 
         # Prepare user message with issue
-        user_message = f"Issue:\n{json.dumps(issue, indent=2)}\n\nGenerate a fix for this issue."
+        user_message = (
+            f"Issue:\n{json.dumps(issue, indent=2)}\n\nGenerate a fix for this issue."
+        )
 
         # Prepare request payload
         payload = {
             "model": self.model,
             "system": system_prompt,
-            "messages": [
-                {"role": "user", "content": user_message}
-            ],
+            "messages": [{"role": "user", "content": user_message}],
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
         }
@@ -313,7 +322,9 @@ class ClaudeProvider(AIProvider):
         except requests.exceptions.RequestException:
             return False
 
-    def estimate_cost(self, input_text: str, expected_output_length: int = 500) -> Dict[str, Any]:
+    def estimate_cost(
+        self, input_text: str, expected_output_length: int = 500
+    ) -> Dict[str, Any]:
         """Estimate the cost of an API call to Claude."""
         # Claude pricing (as of 2025)
         model_pricing = {
@@ -328,7 +339,7 @@ class ClaudeProvider(AIProvider):
             "claude-3-haiku": {
                 "input_per_1m_tokens": 0.25,
                 "output_per_1m_tokens": 1.25,
-            }
+            },
         }
 
         # Get pricing for selected model
@@ -339,7 +350,9 @@ class ClaudeProvider(AIProvider):
 
         # Calculate costs
         input_cost = (input_tokens / 1_000_000) * pricing["input_per_1m_tokens"]
-        output_cost = (expected_output_length / 1_000_000) * pricing["output_per_1m_tokens"]
+        output_cost = (expected_output_length / 1_000_000) * pricing[
+            "output_per_1m_tokens"
+        ]
         total_cost = input_cost + output_cost
 
         return {
@@ -358,6 +371,7 @@ class ClaudeProvider(AIProvider):
         try:
             # Try to use tiktoken or anthropic's tokenizer if available
             import tiktoken
+
             enc = tiktoken.encoding_for_model("cl100k_base")  # Claude uses cl100k
             return len(enc.encode(text))
         except ImportError:
@@ -374,7 +388,9 @@ class ClaudeProvider(AIProvider):
             "token_counting": True,
         }
 
-    def streaming_analyze(self, context: Dict[str, Any], query: str, callback: Callable[[str], None]) -> Dict[str, Any]:
+    def streaming_analyze(
+        self, context: Dict[str, Any], query: str, callback: Callable[[str], None]
+    ) -> Dict[str, Any]:
         """Analyze a query with context using streaming response."""
         if not self.api_key:
             raise AIProviderError("Claude API key not configured")
@@ -394,9 +410,7 @@ class ClaudeProvider(AIProvider):
         payload = {
             "model": self.model,
             "system": system_prompt,
-            "messages": [
-                {"role": "user", "content": user_message}
-            ],
+            "messages": [{"role": "user", "content": user_message}],
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
             "stream": True,
@@ -458,20 +472,27 @@ class GeminiProvider(AIProvider):
         # Import here to avoid dependency issues
         try:
             import google.generativeai as genai
+
             self.genai = genai
             self.genai.configure(api_key=self.api_key)
             # Check if model exists
             available_models = [model.name for model in self.genai.list_models()]
             if self.model not in available_models:
-                logger.error(f"Invalid model: {self.model}. Available models: {', '.join(available_models[:5])}...")
+                logger.error(
+                    f"Invalid model: {self.model}. Available models: {', '.join(available_models[:5])}..."
+                )
                 self.initialized = False
                 return
 
             self.model_obj = self.genai.GenerativeModel(model_name=self.model)
             self.initialized = True
-            logger.info(f"Successfully initialized Gemini provider with model {self.model}")
+            logger.info(
+                f"Successfully initialized Gemini provider with model {self.model}"
+            )
         except ImportError:
-            logger.error("Failed to import google.generativeai. Please install it with 'pip install google-generativeai'")
+            logger.error(
+                "Failed to import google.generativeai. Please install it with 'pip install google-generativeai'"
+            )
             self.initialized = False
         except Exception as e:
             logger.error(f"Failed to initialize Gemini provider: {str(e)}")
@@ -484,6 +505,7 @@ class GeminiProvider(AIProvider):
         """Initialize the usage tracker."""
         try:
             from src.core.ai_usage_tracker import AIUsageTracker
+
             return AIUsageTracker()
         except ImportError:
             logger.debug("AIUsageTracker not available, usage tracking disabled")
@@ -499,7 +521,7 @@ class GeminiProvider(AIProvider):
         Returns:
             str: Generated text
         """
-        if not hasattr(self, 'initialized') or not self.initialized:
+        if not hasattr(self, "initialized") or not self.initialized:
             return "Error: Gemini AI provider is not properly initialized. Please check your API key and network connection."
 
         try:
@@ -511,8 +533,7 @@ class GeminiProvider(AIProvider):
             }
 
             response = self.model_obj.generate_content(
-                prompt,
-                generation_config=generation_config
+                prompt, generation_config=generation_config
             )
 
             if response.text:
@@ -529,7 +550,7 @@ class GeminiProvider(AIProvider):
         if not self.api_key:
             raise AIProviderError("Gemini API key not configured")
 
-        if not hasattr(self, 'initialized') or not self.initialized:
+        if not hasattr(self, "initialized") or not self.initialized:
             raise AIProviderError("Gemini AI provider is not properly initialized")
 
         # Prepare system prompt
@@ -555,30 +576,31 @@ class GeminiProvider(AIProvider):
             }
 
             response = self.model_obj.generate_content(
-                prompt,
-                generation_config=generation_config
+                prompt, generation_config=generation_config
             )
 
             if not response.text:
-                raise AIProviderError("No response generated. The content may have been filtered.")
+                raise AIProviderError(
+                    "No response generated. The content may have been filtered."
+                )
 
             analysis_text = response.text.strip()
 
             # Track usage if available
-            if self.usage_tracker and hasattr(self.usage_tracker, 'track_usage'):
+            if self.usage_tracker and hasattr(self.usage_tracker, "track_usage"):
                 self.usage_tracker.track_usage(
                     provider="gemini",
                     model=self.model,
                     input_tokens=self.get_token_count(prompt),
                     output_tokens=self.get_token_count(analysis_text),
-                    request_type="analyze"
+                    request_type="analyze",
                 )
 
             return {
                 "provider": "gemini",
                 "model": self.model,
                 "analysis": analysis_text,
-                "raw_response": {"text": analysis_text}
+                "raw_response": {"text": analysis_text},
             }
         except Exception as e:
             logger.error(f"Gemini API request failed: {str(e)}")
@@ -598,16 +620,16 @@ class GeminiProvider(AIProvider):
         """
 
         # Prepare user message with issue
-        user_message = f"Issue:\n{json.dumps(issue, indent=2)}\n\nGenerate a fix for this issue."
+        user_message = (
+            f"Issue:\n{json.dumps(issue, indent=2)}\n\nGenerate a fix for this issue."
+        )
 
         # Prepare request payload
         payload = {
             "contents": [
                 {
                     "role": "user",
-                    "parts": [
-                        {"text": system_prompt + "\n\n" + user_message}
-                    ]
+                    "parts": [{"text": system_prompt + "\n\n" + user_message}],
                 }
             ],
             "generationConfig": {
@@ -651,7 +673,9 @@ class GeminiProvider(AIProvider):
         except requests.exceptions.RequestException:
             return False
 
-    def estimate_cost(self, input_text: str, expected_output_length: int = 500) -> Dict[str, Any]:
+    def estimate_cost(
+        self, input_text: str, expected_output_length: int = 500
+    ) -> Dict[str, Any]:
         """Estimate the cost of an API call to Gemini."""
         # Gemini pricing (as of 2025)
         model_pricing = {
@@ -673,7 +697,9 @@ class GeminiProvider(AIProvider):
 
         # Calculate costs
         input_cost = (input_tokens / 1_000_000) * pricing["input_per_1m_tokens"]
-        output_cost = (expected_output_length / 1_000_000) * pricing["output_per_1m_tokens"]
+        output_cost = (expected_output_length / 1_000_000) * pricing[
+            "output_per_1m_tokens"
+        ]
         total_cost = input_cost + output_cost
 
         return {
@@ -692,7 +718,10 @@ class GeminiProvider(AIProvider):
         try:
             # Try to use tiktoken for approximation
             import tiktoken
-            enc = tiktoken.encoding_for_model("gpt-3.5-turbo")  # Close enough approximation
+
+            enc = tiktoken.encoding_for_model(
+                "gpt-3.5-turbo"
+            )  # Close enough approximation
             return len(enc.encode(text))
         except ImportError:
             # Fall back to the approximate method
@@ -708,7 +737,9 @@ class GeminiProvider(AIProvider):
             "token_counting": False,  # No official tokenizer
         }
 
-    def streaming_analyze(self, context: Dict[str, Any], query: str, callback: Callable[[str], None]) -> Dict[str, Any]:
+    def streaming_analyze(
+        self, context: Dict[str, Any], query: str, callback: Callable[[str], None]
+    ) -> Dict[str, Any]:
         """Analyze a query with context using streaming response."""
         if not self.api_key:
             raise AIProviderError("Gemini API key not configured")
@@ -729,9 +760,7 @@ class GeminiProvider(AIProvider):
             "contents": [
                 {
                     "role": "user",
-                    "parts": [
-                        {"text": system_prompt + "\n\n" + user_message}
-                    ]
+                    "parts": [{"text": system_prompt + "\n\n" + user_message}],
                 }
             ],
             "generationConfig": {
@@ -762,7 +791,9 @@ class GeminiProvider(AIProvider):
                             if line_text.startswith("data: "):
                                 data = json.loads(line_text[6:])  # Skip "data: "
                                 if "candidates" in data and data["candidates"]:
-                                    chunk = data["candidates"][0]["content"]["parts"][0]["text"]
+                                    chunk = data["candidates"][0]["content"]["parts"][
+                                        0
+                                    ]["text"]
                                     full_text += chunk
                                     if callback and callable(callback):
                                         callback(chunk)
@@ -785,7 +816,9 @@ class OllamaProvider(AIProvider):
 
     def __init__(self):
         """Initialize the Ollama provider."""
-        self.endpoint = get_config("ai.providers.ollama.endpoint", "http://localhost:11434")
+        self.endpoint = get_config(
+            "ai.providers.ollama.endpoint", "http://localhost:11434"
+        )
         self.model = get_config("ai.providers.ollama.model", "llama3")
         self.api_url = f"{self.endpoint}/api/generate"
         self.headers = {
@@ -797,7 +830,9 @@ class OllamaProvider(AIProvider):
 
         # Check for auto-discovery
         auto_discover = get_config("ai.providers.ollama.auto_discover", True)
-        container_discovery = get_config("ai.providers.ollama.container_discovery", True)
+        container_discovery = get_config(
+            "ai.providers.ollama.container_discovery", True
+        )
 
         if auto_discover and container_discovery:
             self._discover_ollama_container()
@@ -806,6 +841,7 @@ class OllamaProvider(AIProvider):
         """Initialize the usage tracker."""
         try:
             from src.core.ai_usage_tracker import AIUsageTracker
+
             return AIUsageTracker()
         except ImportError:
             logger.debug("AIUsageTracker not available, usage tracking disabled")
@@ -830,7 +866,9 @@ class OllamaProvider(AIProvider):
                 )
 
                 # Get container name patterns from config
-                name_patterns = get_config("ai.providers.ollama.container_name_patterns", ["ollama", "llama"])
+                name_patterns = get_config(
+                    "ai.providers.ollama.container_name_patterns", ["ollama", "llama"]
+                )
 
                 for container in containers:
                     # Check image name
@@ -840,8 +878,10 @@ class OllamaProvider(AIProvider):
                     # Check if container matches patterns
                     matches = False
                     for pattern in name_patterns:
-                        if (pattern.lower() in image_name.lower() or
-                            pattern.lower() in container_name.lower()):
+                        if (
+                            pattern.lower() in image_name.lower()
+                            or pattern.lower() in container_name.lower()
+                        ):
                             matches = True
                             break
 
@@ -849,24 +889,24 @@ class OllamaProvider(AIProvider):
                         continue
 
                     # Get container IP address
-                    networks = container.attrs['NetworkSettings']['Networks']
+                    networks = container.attrs["NetworkSettings"]["Networks"]
                     ip_address = None
                     for network in networks.values():
-                        ip_address = network.get('IPAddress')
+                        ip_address = network.get("IPAddress")
                         if ip_address:
                             break
 
                     # Get port mappings
-                    port_bindings = container.attrs['NetworkSettings']['Ports']
+                    port_bindings = container.attrs["NetworkSettings"]["Ports"]
                     api_port = None
 
                     # Look for the Ollama API port (default 11434)
                     for port, bindings in port_bindings.items():
-                        if port.startswith('11434'):
+                        if port.startswith("11434"):
                             if bindings:
                                 for binding in bindings:
-                                    host_ip = binding['HostIp'] or 'localhost'
-                                    host_port = binding['HostPort']
+                                    host_ip = binding["HostIp"] or "localhost"
+                                    host_port = binding["HostPort"]
                                     api_port = f"http://{host_ip}:{host_port}"
                                     break
 
@@ -880,17 +920,23 @@ class OllamaProvider(AIProvider):
                         try:
                             response = requests.get(f"{api_port}/api/tags", timeout=2)
                             if response.status_code == 200:
-                                logger.info(f"Discovered Ollama container endpoint: {api_port}")
+                                logger.info(
+                                    f"Discovered Ollama container endpoint: {api_port}"
+                                )
                                 self.endpoint = api_port
                                 self.api_url = f"{self.endpoint}/api/generate"
 
                                 # Check available models
                                 try:
                                     models = response.json().get("models", [])
-                                    if models and self.model not in [m["name"] for m in models]:
+                                    if models and self.model not in [
+                                        m["name"] for m in models
+                                    ]:
                                         # Use first available model as fallback
                                         self.model = models[0]["name"]
-                                        logger.info(f"Using available model from container: {self.model}")
+                                        logger.info(
+                                            f"Using available model from container: {self.model}"
+                                        )
                                 except (KeyError, IndexError, json.JSONDecodeError):
                                     pass
 
@@ -901,7 +947,9 @@ class OllamaProvider(AIProvider):
             except Exception as e:
                 logger.debug(f"Error discovering Ollama container: {str(e)}")
         except ImportError:
-            logger.debug("Docker connection manager not available, container discovery disabled")
+            logger.debug(
+                "Docker connection manager not available, container discovery disabled"
+            )
 
     def analyze(self, context: Dict[str, Any], query: str) -> Dict[str, Any]:
         """Analyze a query with context using Ollama."""
@@ -954,7 +1002,9 @@ class OllamaProvider(AIProvider):
         """
 
         # Prepare user message with issue
-        user_message = f"Issue:\n{json.dumps(issue, indent=2)}\n\nGenerate a fix for this issue."
+        user_message = (
+            f"Issue:\n{json.dumps(issue, indent=2)}\n\nGenerate a fix for this issue."
+        )
 
         # Prepare request payload
         payload = {
@@ -995,7 +1045,9 @@ class OllamaProvider(AIProvider):
         except requests.exceptions.RequestException:
             return False
 
-    def estimate_cost(self, input_text: str, expected_output_length: int = 500) -> Dict[str, Any]:
+    def estimate_cost(
+        self, input_text: str, expected_output_length: int = 500
+    ) -> Dict[str, Any]:
         """Estimate the cost of an API call to Ollama."""
         # Ollama is free to use, so the cost is always 0
         return {
@@ -1009,7 +1061,7 @@ class OllamaProvider(AIProvider):
             "pricing_info": {
                 "input_per_1m_tokens": 0.0,
                 "output_per_1m_tokens": 0.0,
-                "notes": "Ollama is free to use locally or in containers"
+                "notes": "Ollama is free to use locally or in containers",
             },
         }
 
@@ -1048,7 +1100,9 @@ class OllamaProvider(AIProvider):
             "local_execution": True,
         }
 
-    def streaming_analyze(self, context: Dict[str, Any], query: str, callback: Callable[[str], None]) -> Dict[str, Any]:
+    def streaming_analyze(
+        self, context: Dict[str, Any], query: str, callback: Callable[[str], None]
+    ) -> Dict[str, Any]:
         """Analyze a query with context using streaming response."""
         # Prepare system prompt
         system_prompt = """
@@ -1123,30 +1177,34 @@ class MockAIProvider(AIProvider):
             "analysis": f"This is a mock response to: {query[:50]}...",
             "confidence": 0.95,
             "model": "mock-model",
-            "tokens": {"input": len(query.split()), "output": 20}
+            "tokens": {"input": len(query.split()), "output": 20},
         }
 
     def generate_fix(self, issue: Dict[str, Any]) -> Dict[str, Any]:
         """Mock implementation of generate_fix."""
-        self.logger.info(f"Mock generate_fix called for issue: {issue.get('id', 'unknown')}")
+        self.logger.info(
+            f"Mock generate_fix called for issue: {issue.get('id', 'unknown')}"
+        )
         return {
             "fix": f"Mock fix for issue {issue.get('id', 'unknown')}",
             "steps": ["Step 1: Mock step", "Step 2: Another mock step"],
             "confidence": 0.9,
-            "model": "mock-model"
+            "model": "mock-model",
         }
 
     def validate_credentials(self) -> bool:
         """Mock implementation of validate_credentials."""
         return True
 
-    def estimate_cost(self, input_text: str, expected_output_length: int = 500) -> Dict[str, Any]:
+    def estimate_cost(
+        self, input_text: str, expected_output_length: int = 500
+    ) -> Dict[str, Any]:
         """Mock implementation of estimate_cost."""
         return {
             "estimated_cost": 0.0,
             "input_tokens": len(input_text.split()),
             "output_tokens": expected_output_length,
-            "currency": "USD"
+            "currency": "USD",
         }
 
     def generate_text(self, prompt: str) -> str:
@@ -1225,7 +1283,7 @@ class AIProviderFactory:
                 "enabled": True,
                 "available": True,
                 "type": "built-in",
-                "description": "Mock provider for testing"
+                "description": "Mock provider for testing",
             },
             "claude": {
                 "enabled": get_config("ai.providers.claude.enabled", False),
@@ -1241,7 +1299,7 @@ class AIProviderFactory:
                 "enabled": get_config("ai.providers.ollama.enabled", False),
                 "available": True,  # Ollama is always potentially available
                 "type": "built-in",
-            }
+            },
         }
 
         # Check for plugins

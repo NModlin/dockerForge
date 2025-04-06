@@ -2,21 +2,22 @@
 DockerForge Integration Tests - Basic Functionality
 """
 
-import pytest
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
+
+import pytest
 
 # Add the src directory to the path so we can import the modules
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Import the necessary modules
 try:
-    from core.troubleshooter import Troubleshooter
-    from platforms.platform_detector import PlatformDetector
-    from docker.connection_manager import ConnectionManager
     from config.config_manager import ConfigManager
+    from core.troubleshooter import Troubleshooter
+    from docker.connection_manager import ConnectionManager
+    from platforms.platform_detector import PlatformDetector
 except ImportError as e:
     print(f"Import error: {e}")
     print("These tests may be running in a limited environment.")
@@ -45,7 +46,7 @@ class TestBasicFunctionality:
     def test_config_file(self):
         """Test that the config file exists and is valid"""
         assert self.config_path.exists()
-        
+
         # Try to load the config file
         try:
             config_manager = ConfigManager()
@@ -86,7 +87,7 @@ class TestBasicFunctionality:
             ["python", "-m", "dockerforge", "--help"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
         # Check that the command executed successfully
         assert result.returncode == 0

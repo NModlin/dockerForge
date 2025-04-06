@@ -3,26 +3,35 @@ Alert management service for the DockerForge Web UI.
 
 This module provides functionality for managing alerts, alert rules, and notification channels.
 """
+
+import asyncio
+import json
 import logging
 import uuid
-import json
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime, timedelta
-import asyncio
 from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Union
 
+from sqlalchemy import and_, desc, func, or_
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, desc, func
 
+from src.config.config_manager import get_config
+from src.resource_monitoring.metrics_collector import MetricsCollector
 from src.web.api.database import get_db
 from src.web.api.models.monitoring import Alert, AlertRule, NotificationChannel
 from src.web.api.schemas.alerts import (
-    AlertCreate, AlertUpdate, AlertRuleCreate, AlertRuleUpdate,
-    NotificationChannelCreate, AlertHistoryFilter, AlertStatistics,
-    AlertSeverity, AlertStatus, AlertSource, MetricType
+    AlertCreate,
+    AlertHistoryFilter,
+    AlertRuleCreate,
+    AlertRuleUpdate,
+    AlertSeverity,
+    AlertSource,
+    AlertStatistics,
+    AlertStatus,
+    AlertUpdate,
+    MetricType,
+    NotificationChannelCreate,
 )
-from src.resource_monitoring.metrics_collector import MetricsCollector
-from src.config.config_manager import get_config
 
 # Set up logging
 logger = logging.getLogger("api.services.alerts")
@@ -35,10 +44,7 @@ notification_channels: Dict[str, Any] = {}
 
 
 async def get_alert_rules(
-    db: Session,
-    skip: int = 0,
-    limit: int = 100,
-    enabled_only: bool = False
+    db: Session, skip: int = 0, limit: int = 100, enabled_only: bool = False
 ) -> List[AlertRule]:
     """
     Get all alert rules.
@@ -104,7 +110,7 @@ async def create_alert_rule(db: Session, rule_create: AlertRuleCreate) -> AlertR
         cooldown=rule_create.cooldown,
         actions={"notification_channels": rule_create.notification_channels},
         created_at=datetime.now(),
-        updated_at=None
+        updated_at=None,
     )
 
     # Add to database
@@ -133,9 +139,7 @@ async def create_alert_rule(db: Session, rule_create: AlertRuleCreate) -> AlertR
 
 
 async def update_alert_rule(
-    db: Session,
-    rule_id: str,
-    rule_update: AlertRuleUpdate
+    db: Session, rule_id: str, rule_update: AlertRuleUpdate
 ) -> Optional[AlertRule]:
     """
     Update an alert rule.
@@ -242,10 +246,7 @@ async def delete_alert_rule(db: Session, rule_id: str) -> bool:
 
 
 async def get_notification_channels(
-    db: Session,
-    skip: int = 0,
-    limit: int = 100,
-    enabled_only: bool = False
+    db: Session, skip: int = 0, limit: int = 100, enabled_only: bool = False
 ) -> List[NotificationChannel]:
     """
     Get all notification channels.
@@ -264,10 +265,17 @@ async def get_notification_channels(
     if enabled_only:
         query = query.filter(NotificationChannel.enabled == True)
 
-    return query.order_by(NotificationChannel.created_at.desc()).offset(skip).limit(limit).all()
+    return (
+        query.order_by(NotificationChannel.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
-async def get_notification_channel(db: Session, channel_id: str) -> Optional[NotificationChannel]:
+async def get_notification_channel(
+    db: Session, channel_id: str
+) -> Optional[NotificationChannel]:
     """
     Get a notification channel by ID.
 
@@ -278,12 +286,15 @@ async def get_notification_channel(db: Session, channel_id: str) -> Optional[Not
     Returns:
         Notification channel or None if not found
     """
-    return db.query(NotificationChannel).filter(NotificationChannel.id == channel_id).first()
+    return (
+        db.query(NotificationChannel)
+        .filter(NotificationChannel.id == channel_id)
+        .first()
+    )
 
 
 async def create_notification_channel(
-    db: Session,
-    channel_create: NotificationChannelCreate
+    db: Session, channel_create: NotificationChannelCreate
 ) -> NotificationChannel:
     """
     Create a new notification channel.
@@ -306,7 +317,7 @@ async def create_notification_channel(
         enabled=channel_create.enabled,
         config=channel_create.config,
         created_at=datetime.now(),
-        updated_at=None
+        updated_at=None,
     )
 
     # Add to database
@@ -327,9 +338,7 @@ async def create_notification_channel(
 
 
 async def update_notification_channel(
-    db: Session,
-    channel_id: str,
-    channel_update: dict
+    db: Session, channel_id: str, channel_update: dict
 ) -> Optional[NotificationChannel]:
     """
     Update a notification channel.
@@ -414,7 +423,7 @@ async def get_alerts(
     db: Session,
     filter_params: AlertHistoryFilter = None,
     skip: int = 0,
-    limit: int = 100
+    limit: int = 100,
 ) -> List[Alert]:
     """
     Get alerts with optional filtering.
@@ -508,7 +517,7 @@ async def create_alert(db: Session, alert_create: AlertCreate) -> Alert:
         created_at=datetime.now(),
         acknowledged_at=None,
         resolved_at=None,
-        acknowledged_by=None
+        acknowledged_by=None,
     )
 
     # Add to database
@@ -524,10 +533,7 @@ async def create_alert(db: Session, alert_create: AlertCreate) -> Alert:
 
 
 async def update_alert(
-    db: Session,
-    alert_id: str,
-    alert_update: AlertUpdate,
-    user_id: Optional[str] = None
+    db: Session, alert_id: str, alert_update: AlertUpdate, user_id: Optional[str] = None
 ) -> Optional[Alert]:
     """
     Update an alert.
@@ -553,7 +559,10 @@ async def update_alert(
     if "status" in update_data:
         new_status = update_data["status"]
 
-        if new_status == AlertStatus.ACKNOWLEDGED and alert.status != AlertStatus.ACKNOWLEDGED:
+        if (
+            new_status == AlertStatus.ACKNOWLEDGED
+            and alert.status != AlertStatus.ACKNOWLEDGED
+        ):
             alert.acknowledged_at = datetime.now()
             alert.acknowledged_by = user_id or alert_update.acknowledged_by
 
@@ -609,60 +618,53 @@ async def get_alert_statistics(db: Session, days: int = 7) -> AlertStatistics:
     start_date = datetime.now() - timedelta(days=days)
 
     # Get total count
-    total = db.query(func.count(Alert.id)).filter(Alert.created_at >= start_date).scalar()
+    total = (
+        db.query(func.count(Alert.id)).filter(Alert.created_at >= start_date).scalar()
+    )
 
     # Get counts by severity
-    severity_counts = db.query(
-        Alert.severity,
-        func.count(Alert.id)
-    ).filter(
-        Alert.created_at >= start_date
-    ).group_by(
-        Alert.severity
-    ).all()
+    severity_counts = (
+        db.query(Alert.severity, func.count(Alert.id))
+        .filter(Alert.created_at >= start_date)
+        .group_by(Alert.severity)
+        .all()
+    )
 
     by_severity = {severity: 0 for severity in AlertSeverity}
     for severity, count in severity_counts:
         by_severity[severity] = count
 
     # Get counts by status
-    status_counts = db.query(
-        Alert.status,
-        func.count(Alert.id)
-    ).filter(
-        Alert.created_at >= start_date
-    ).group_by(
-        Alert.status
-    ).all()
+    status_counts = (
+        db.query(Alert.status, func.count(Alert.id))
+        .filter(Alert.created_at >= start_date)
+        .group_by(Alert.status)
+        .all()
+    )
 
     by_status = {status: 0 for status in AlertStatus}
     for status, count in status_counts:
         by_status[status] = count
 
     # Get counts by source
-    source_counts = db.query(
-        Alert.source,
-        func.count(Alert.id)
-    ).filter(
-        Alert.created_at >= start_date
-    ).group_by(
-        Alert.source
-    ).all()
+    source_counts = (
+        db.query(Alert.source, func.count(Alert.id))
+        .filter(Alert.created_at >= start_date)
+        .group_by(Alert.source)
+        .all()
+    )
 
     by_source = {source: 0 for source in AlertSource}
     for source, count in source_counts:
         by_source[source] = count
 
     # Get counts by metric type
-    metric_counts = db.query(
-        Alert.metric_type,
-        func.count(Alert.id)
-    ).filter(
-        Alert.created_at >= start_date,
-        Alert.metric_type != None
-    ).group_by(
-        Alert.metric_type
-    ).all()
+    metric_counts = (
+        db.query(Alert.metric_type, func.count(Alert.id))
+        .filter(Alert.created_at >= start_date, Alert.metric_type != None)
+        .group_by(Alert.metric_type)
+        .all()
+    )
 
     by_metric_type = {metric_type: 0 for metric_type in MetricType}
     for metric_type, count in metric_counts:
@@ -670,15 +672,12 @@ async def get_alert_statistics(db: Session, days: int = 7) -> AlertStatistics:
             by_metric_type[metric_type] = count
 
     # Get active alerts by severity
-    active_severity_counts = db.query(
-        Alert.severity,
-        func.count(Alert.id)
-    ).filter(
-        Alert.created_at >= start_date,
-        Alert.status == AlertStatus.ACTIVE
-    ).group_by(
-        Alert.severity
-    ).all()
+    active_severity_counts = (
+        db.query(Alert.severity, func.count(Alert.id))
+        .filter(Alert.created_at >= start_date, Alert.status == AlertStatus.ACTIVE)
+        .group_by(Alert.severity)
+        .all()
+    )
 
     active_by_severity = {severity: 0 for severity in AlertSeverity}
     for severity, count in active_severity_counts:
@@ -691,7 +690,7 @@ async def get_alert_statistics(db: Session, days: int = 7) -> AlertStatistics:
         by_status=by_status,
         by_source=by_source,
         by_metric_type=by_metric_type,
-        active_by_severity=active_by_severity
+        active_by_severity=active_by_severity,
     )
 
 
@@ -725,7 +724,9 @@ async def _send_alert_notifications(db: Session, alert: Alert) -> None:
         try:
             await _send_notification(channel, alert)
         except Exception as e:
-            logger.error(f"Error sending notification to channel {channel.name}: {str(e)}")
+            logger.error(
+                f"Error sending notification to channel {channel.name}: {str(e)}"
+            )
 
 
 async def _send_notification(channel: NotificationChannel, alert: Alert) -> None:
@@ -770,9 +771,7 @@ async def _send_notification(channel: NotificationChannel, alert: Alert) -> None
 
 
 async def _send_email_notification(
-    channel: NotificationChannel,
-    alert: Alert,
-    message: str
+    channel: NotificationChannel, alert: Alert, message: str
 ) -> None:
     """
     Send an email notification.
@@ -783,13 +782,13 @@ async def _send_email_notification(
         message: Notification message
     """
     # TODO: Implement email notification
-    logger.info(f"Sending email notification for alert {alert.id} to {channel.config.get('recipients')}")
+    logger.info(
+        f"Sending email notification for alert {alert.id} to {channel.config.get('recipients')}"
+    )
 
 
 async def _send_webhook_notification(
-    channel: NotificationChannel,
-    alert: Alert,
-    message: str
+    channel: NotificationChannel, alert: Alert, message: str
 ) -> None:
     """
     Send a webhook notification.
@@ -800,13 +799,13 @@ async def _send_webhook_notification(
         message: Notification message
     """
     # TODO: Implement webhook notification
-    logger.info(f"Sending webhook notification for alert {alert.id} to {channel.config.get('url')}")
+    logger.info(
+        f"Sending webhook notification for alert {alert.id} to {channel.config.get('url')}"
+    )
 
 
 async def _send_slack_notification(
-    channel: NotificationChannel,
-    alert: Alert,
-    message: str
+    channel: NotificationChannel, alert: Alert, message: str
 ) -> None:
     """
     Send a Slack notification.
@@ -817,13 +816,13 @@ async def _send_slack_notification(
         message: Notification message
     """
     # TODO: Implement Slack notification
-    logger.info(f"Sending Slack notification for alert {alert.id} to {channel.config.get('webhook_url')}")
+    logger.info(
+        f"Sending Slack notification for alert {alert.id} to {channel.config.get('webhook_url')}"
+    )
 
 
 async def _send_discord_notification(
-    channel: NotificationChannel,
-    alert: Alert,
-    message: str
+    channel: NotificationChannel, alert: Alert, message: str
 ) -> None:
     """
     Send a Discord notification.
@@ -834,7 +833,9 @@ async def _send_discord_notification(
         message: Notification message
     """
     # TODO: Implement Discord notification
-    logger.info(f"Sending Discord notification for alert {alert.id} to {channel.config.get('webhook_url')}")
+    logger.info(
+        f"Sending Discord notification for alert {alert.id} to {channel.config.get('webhook_url')}"
+    )
 
 
 # Initialize alert rules cache
@@ -898,10 +899,13 @@ async def initialize_notification_channels_cache(db: Session) -> None:
             "config": channel.config,
         }
 
-    logger.info(f"Initialized notification channels cache with {len(notification_channels)} channels")
+    logger.info(
+        f"Initialized notification channels cache with {len(notification_channels)} channels"
+    )
 
 
 # Simple API for monitoring dashboard
+
 
 async def get_active_alerts() -> List[Dict[str, Any]]:
     """
@@ -915,36 +919,49 @@ async def get_active_alerts() -> List[Dict[str, Any]]:
         db = next(get_db())
 
         # Get active alerts
-        alerts_query = db.query(Alert).filter(
-            Alert.status == AlertStatus.ACTIVE
-        ).order_by(Alert.created_at.desc()).limit(100)
+        alerts_query = (
+            db.query(Alert)
+            .filter(Alert.status == AlertStatus.ACTIVE)
+            .order_by(Alert.created_at.desc())
+            .limit(100)
+        )
 
         db_alerts = alerts_query.all()
 
         # Convert to dictionary format
         result = []
         for alert in db_alerts:
-            result.append({
-                "id": alert.id,
-                "title": alert.name,
-                "description": alert.description,
-                "severity": alert.severity,
-                "timestamp": alert.created_at.isoformat(),
-                "acknowledged": alert.acknowledged_at is not None,
-                "resolved": alert.status == AlertStatus.RESOLVED,
-                "resource": {
-                    "type": alert.source,
-                    "id": alert.source_id,
-                    "name": alert.source_name,
-                },
-                "metrics": [
-                    {
-                        "name": alert.metric_type,
-                        "value": alert.value,
-                        "unit": "%" if alert.metric_type in ["CPU", "MEMORY", "DISK"] else "",
+            result.append(
+                {
+                    "id": alert.id,
+                    "title": alert.name,
+                    "description": alert.description,
+                    "severity": alert.severity,
+                    "timestamp": alert.created_at.isoformat(),
+                    "acknowledged": alert.acknowledged_at is not None,
+                    "resolved": alert.status == AlertStatus.RESOLVED,
+                    "resource": {
+                        "type": alert.source,
+                        "id": alert.source_id,
+                        "name": alert.source_name,
                     },
-                ] if alert.metric_type else [],
-            })
+                    "metrics": (
+                        [
+                            {
+                                "name": alert.metric_type,
+                                "value": alert.value,
+                                "unit": (
+                                    "%"
+                                    if alert.metric_type in ["CPU", "MEMORY", "DISK"]
+                                    else ""
+                                ),
+                            },
+                        ]
+                        if alert.metric_type
+                        else []
+                    ),
+                }
+            )
 
         return result
     except Exception as e:

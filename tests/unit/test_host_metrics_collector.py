@@ -2,12 +2,13 @@
 DockerForge Unit Tests - Host Metrics Collector
 """
 
-import pytest
-import sys
 import os
+import sys
 import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add the src directory to the path so we can import the modules
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
@@ -24,32 +25,34 @@ class TestHostMetricsCollector:
         # Create mock config manager and connection manager
         self.config_manager = MagicMock()
         self.connection_manager = MagicMock()
-        
+
         # Set up the mock config manager
         self.config_manager.get_config.return_value = {
             "collection_interval": 60,
             "retention_period": 7,
-            "metrics_db_path": ":memory:"
+            "metrics_db_path": ":memory:",
         }
-        
+
         # Set up the mock connection manager
         self.docker_client = MagicMock()
         self.connection_manager.get_client.return_value = self.docker_client
-        
+
         # Create the host metrics collector
-        self.collector = HostMetricsCollector(self.config_manager, self.connection_manager)
+        self.collector = HostMetricsCollector(
+            self.config_manager, self.connection_manager
+        )
 
     def test_initialization(self):
         """Test that the host metrics collector can be initialized"""
         assert self.collector is not None
-        assert hasattr(self.collector, 'config_manager')
-        assert hasattr(self.collector, 'connection_manager')
-        assert hasattr(self.collector, 'collection_interval')
-        assert hasattr(self.collector, 'retention_period')
-        assert hasattr(self.collector, 'metrics_db_path')
-        assert hasattr(self.collector, 'is_collecting')
-        assert hasattr(self.collector, 'collection_thread')
-        
+        assert hasattr(self.collector, "config_manager")
+        assert hasattr(self.collector, "connection_manager")
+        assert hasattr(self.collector, "collection_interval")
+        assert hasattr(self.collector, "retention_period")
+        assert hasattr(self.collector, "metrics_db_path")
+        assert hasattr(self.collector, "is_collecting")
+        assert hasattr(self.collector, "collection_thread")
+
         # Check that the configuration was loaded correctly
         assert self.collector.collection_interval == 60
         assert self.collector.retention_period == 7
@@ -57,7 +60,7 @@ class TestHostMetricsCollector:
         assert self.collector.is_collecting is False
         assert self.collector.collection_thread is None
 
-    @patch('resource_monitoring.host_metrics_collector.psutil')
+    @patch("resource_monitoring.host_metrics_collector.psutil")
     def test_get_latest_metrics(self, mock_psutil):
         """Test getting the latest metrics"""
         # Set up the mock psutil
@@ -66,8 +69,16 @@ class TestHostMetricsCollector:
         mock_psutil.cpu_count.side_effect = lambda logical=True: 8 if logical else 4
         mock_psutil.cpu_freq.return_value = MagicMock(current=2500, min=800, max=3500)
         mock_psutil.cpu_times_percent.return_value = MagicMock(
-            user=5.0, system=3.0, idle=92.0, nice=0.0, iowait=0.0,
-            irq=0.0, softirq=0.0, steal=0.0, guest=0.0, guest_nice=0.0
+            user=5.0,
+            system=3.0,
+            idle=92.0,
+            nice=0.0,
+            iowait=0.0,
+            irq=0.0,
+            softirq=0.0,
+            steal=0.0,
+            guest=0.0,
+            guest_nice=0.0,
         )
         mock_psutil.virtual_memory.return_value = MagicMock(
             total=16 * 1024 * 1024 * 1024,  # 16 GB
@@ -79,7 +90,7 @@ class TestHostMetricsCollector:
             inactive=4 * 1024 * 1024 * 1024,  # 4 GB
             buffers=1 * 1024 * 1024 * 1024,  # 1 GB
             cached=2 * 1024 * 1024 * 1024,  # 2 GB
-            shared=512 * 1024 * 1024  # 512 MB
+            shared=512 * 1024 * 1024,  # 512 MB
         )
         mock_psutil.swap_memory.return_value = MagicMock(
             total=8 * 1024 * 1024 * 1024,  # 8 GB
@@ -87,21 +98,18 @@ class TestHostMetricsCollector:
             free=7 * 1024 * 1024 * 1024,  # 7 GB
             percent=12.5,
             sin=0,
-            sout=0
+            sout=0,
         )
         mock_psutil.disk_partitions.return_value = [
             MagicMock(
-                device='/dev/sda1',
-                mountpoint='/',
-                fstype='ext4',
-                opts='rw,relatime'
+                device="/dev/sda1", mountpoint="/", fstype="ext4", opts="rw,relatime"
             )
         ]
         mock_psutil.disk_usage.return_value = MagicMock(
             total=500 * 1024 * 1024 * 1024,  # 500 GB
             used=250 * 1024 * 1024 * 1024,  # 250 GB
             free=250 * 1024 * 1024 * 1024,  # 250 GB
-            percent=50.0
+            percent=50.0,
         )
         mock_psutil.disk_io_counters.return_value = MagicMock(
             read_count=1000,
@@ -110,7 +118,7 @@ class TestHostMetricsCollector:
             write_bytes=512 * 1024 * 1024,  # 512 MB
             read_time=1000,
             write_time=500,
-            busy_time=1500
+            busy_time=1500,
         )
         mock_psutil.net_io_counters.return_value = MagicMock(
             bytes_sent=1024 * 1024 * 1024,  # 1 GB
@@ -120,37 +128,32 @@ class TestHostMetricsCollector:
             errin=10,
             errout=5,
             dropin=2,
-            dropout=1
+            dropout=1,
         )
         mock_psutil.net_if_stats.return_value = {
-            'eth0': MagicMock(
-                isup=True,
-                duplex=2,
-                speed=1000,
-                mtu=1500
-            )
+            "eth0": MagicMock(isup=True, duplex=2, speed=1000, mtu=1500)
         }
         mock_psutil.net_if_addrs.return_value = {
-            'eth0': [
+            "eth0": [
                 MagicMock(
                     family=2,
-                    address='192.168.1.100',
-                    netmask='255.255.255.0',
-                    broadcast='192.168.1.255',
-                    ptp=None
+                    address="192.168.1.100",
+                    netmask="255.255.255.0",
+                    broadcast="192.168.1.255",
+                    ptp=None,
                 )
             ]
         }
         mock_psutil.net_connections.return_value = [
-            MagicMock(status='ESTABLISHED'),
-            MagicMock(status='ESTABLISHED'),
-            MagicMock(status='LISTEN'),
-            MagicMock(status='TIME_WAIT')
+            MagicMock(status="ESTABLISHED"),
+            MagicMock(status="ESTABLISHED"),
+            MagicMock(status="LISTEN"),
+            MagicMock(status="TIME_WAIT"),
         ]
-        
+
         # Get the latest metrics
         metrics = self.collector.get_latest_metrics()
-        
+
         # Check that the metrics were collected correctly
         assert metrics is not None
         assert "timestamp" in metrics
@@ -158,7 +161,7 @@ class TestHostMetricsCollector:
         assert "memory" in metrics
         assert "disk" in metrics
         assert "network" in metrics
-        
+
         # Check CPU metrics
         assert metrics["cpu"]["percent"] == 10.5
         assert metrics["cpu"]["count"] == 8
@@ -169,7 +172,7 @@ class TestHostMetricsCollector:
         assert metrics["cpu"]["times"]["user"] == 5.0
         assert metrics["cpu"]["times"]["system"] == 3.0
         assert metrics["cpu"]["times"]["idle"] == 92.0
-        
+
         # Check memory metrics
         assert metrics["memory"]["virtual"]["total"] == 16 * 1024 * 1024 * 1024
         assert metrics["memory"]["virtual"]["available"] == 8 * 1024 * 1024 * 1024
@@ -185,7 +188,7 @@ class TestHostMetricsCollector:
         assert metrics["memory"]["swap"]["used"] == 1 * 1024 * 1024 * 1024
         assert metrics["memory"]["swap"]["free"] == 7 * 1024 * 1024 * 1024
         assert metrics["memory"]["swap"]["percent"] == 12.5
-        
+
         # Check disk metrics
         assert "/" in metrics["disk"]["usage"]
         assert metrics["disk"]["usage"]["/"]["total"] == 500 * 1024 * 1024 * 1024
@@ -201,7 +204,7 @@ class TestHostMetricsCollector:
         assert metrics["disk"]["io"]["read_time"] == 1000
         assert metrics["disk"]["io"]["write_time"] == 500
         assert metrics["disk"]["io"]["busy_time"] == 1500
-        
+
         # Check network metrics
         assert metrics["network"]["io"]["bytes_sent"] == 1024 * 1024 * 1024
         assert metrics["network"]["io"]["bytes_recv"] == 2 * 1024 * 1024 * 1024
@@ -218,36 +221,45 @@ class TestHostMetricsCollector:
         assert metrics["network"]["interfaces"]["eth0"]["mtu"] == 1500
         assert len(metrics["network"]["interfaces"]["eth0"]["addresses"]) == 1
         assert metrics["network"]["interfaces"]["eth0"]["addresses"][0]["family"] == 2
-        assert metrics["network"]["interfaces"]["eth0"]["addresses"][0]["address"] == "192.168.1.100"
-        assert metrics["network"]["interfaces"]["eth0"]["addresses"][0]["netmask"] == "255.255.255.0"
-        assert metrics["network"]["interfaces"]["eth0"]["addresses"][0]["broadcast"] == "192.168.1.255"
+        assert (
+            metrics["network"]["interfaces"]["eth0"]["addresses"][0]["address"]
+            == "192.168.1.100"
+        )
+        assert (
+            metrics["network"]["interfaces"]["eth0"]["addresses"][0]["netmask"]
+            == "255.255.255.0"
+        )
+        assert (
+            metrics["network"]["interfaces"]["eth0"]["addresses"][0]["broadcast"]
+            == "192.168.1.255"
+        )
         assert metrics["network"]["connections"]["ESTABLISHED"] == 2
         assert metrics["network"]["connections"]["LISTEN"] == 1
         assert metrics["network"]["connections"]["TIME_WAIT"] == 1
 
-    @patch('resource_monitoring.host_metrics_collector.threading.Thread')
+    @patch("resource_monitoring.host_metrics_collector.threading.Thread")
     def test_start_stop_collection(self, mock_thread):
         """Test starting and stopping metrics collection"""
         # Set up the mock thread
         mock_thread_instance = MagicMock()
         mock_thread.return_value = mock_thread_instance
-        
+
         # Start collection
         self.collector.start_collection()
-        
+
         # Check that collection was started
         assert self.collector.is_collecting is True
         assert self.collector.collection_thread is not None
         mock_thread.assert_called_once()
         mock_thread_instance.start.assert_called_once()
-        
+
         # Stop collection
         self.collector.stop_collection()
-        
+
         # Check that collection was stopped
         assert self.collector.is_collecting is False
 
-    @patch('resource_monitoring.host_metrics_collector.sqlite3')
+    @patch("resource_monitoring.host_metrics_collector.sqlite3")
     def test_get_metrics_history(self, mock_sqlite3):
         """Test getting metrics history"""
         # Set up the mock sqlite3
@@ -258,12 +270,14 @@ class TestHostMetricsCollector:
         mock_cursor.fetchall.return_value = [
             (1617235200, '{"cpu_percent": 10.5, "memory_percent": 50.0}'),
             (1617235260, '{"cpu_percent": 15.2, "memory_percent": 55.3}'),
-            (1617235320, '{"cpu_percent": 20.1, "memory_percent": 60.7}')
+            (1617235320, '{"cpu_percent": 20.1, "memory_percent": 60.7}'),
         ]
-        
+
         # Get metrics history
-        history = self.collector.get_metrics_history("cpu", "2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z")
-        
+        history = self.collector.get_metrics_history(
+            "cpu", "2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"
+        )
+
         # Check that the history was retrieved correctly
         assert history is not None
         assert len(history) == 3
@@ -274,26 +288,32 @@ class TestHostMetricsCollector:
         assert history[2]["timestamp"] == 1617235320
         assert history[2]["data"]["cpu_percent"] == 20.1
 
-    @patch('resource_monitoring.host_metrics_collector.platform')
-    @patch('resource_monitoring.host_metrics_collector.psutil')
+    @patch("resource_monitoring.host_metrics_collector.platform")
+    @patch("resource_monitoring.host_metrics_collector.psutil")
     def test_get_system_info(self, mock_psutil, mock_platform):
         """Test getting system information"""
         # Set up the mock platform
-        mock_platform.platform.return_value = "Linux-5.4.0-42-generic-x86_64-with-glibc2.29"
+        mock_platform.platform.return_value = (
+            "Linux-5.4.0-42-generic-x86_64-with-glibc2.29"
+        )
         mock_platform.system.return_value = "Linux"
         mock_platform.release.return_value = "5.4.0-42-generic"
-        mock_platform.version.return_value = "#46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020"
+        mock_platform.version.return_value = (
+            "#46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020"
+        )
         mock_platform.architecture.return_value = ("64bit", "ELF")
         mock_platform.processor.return_value = "x86_64"
         mock_platform.node.return_value = "test-host"
         mock_platform.python_version.return_value = "3.8.5"
-        
+
         # Set up the mock psutil
         mock_psutil.cpu_count.return_value = 8
         mock_psutil.cpu_count.side_effect = lambda logical=True: 8 if logical else 4
-        mock_psutil.virtual_memory.return_value = MagicMock(total=16 * 1024 * 1024 * 1024)
+        mock_psutil.virtual_memory.return_value = MagicMock(
+            total=16 * 1024 * 1024 * 1024
+        )
         mock_psutil.boot_time.return_value = 1617235200
-        
+
         # Set up the mock docker client
         self.docker_client.info.return_value = {
             "ServerVersion": "20.10.7",
@@ -323,16 +343,16 @@ class TestHostMetricsCollector:
                         "Name": "docker.io",
                         "Mirrors": [],
                         "Secure": True,
-                        "Official": True
+                        "Official": True,
                     }
                 },
-                "Mirrors": []
-            }
+                "Mirrors": [],
+            },
         }
-        
+
         # Get system information
         system_info = self.collector.get_system_info()
-        
+
         # Check that the system information was retrieved correctly
         assert system_info is not None
         assert system_info["platform"] == "Linux-5.4.0-42-generic-x86_64-with-glibc2.29"
@@ -364,7 +384,10 @@ class TestHostMetricsCollector:
         assert system_info["docker"]["cpus"] == 8
         assert system_info["docker"]["memory"] == 16 * 1024 * 1024 * 1024
         assert system_info["docker"]["docker_root_dir"] == "/var/lib/docker"
-        assert system_info["docker"]["index_server_address"] == "https://index.docker.io/v1/"
+        assert (
+            system_info["docker"]["index_server_address"]
+            == "https://index.docker.io/v1/"
+        )
         assert system_info["docker"]["registry_config"] is not None
 
 

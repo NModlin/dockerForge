@@ -3,15 +3,28 @@ Compose Templates router for the DockerForge Web UI.
 
 This module provides the API endpoints for Docker Compose template management.
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Path, Body, UploadFile, File, Form
-from typing import List, Optional, Dict, Any
-from sqlalchemy.orm import Session
+
 import os
 import tempfile
+from typing import Any, Dict, List, Optional
+
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Path,
+    Query,
+    UploadFile,
+    status,
+)
+from sqlalchemy.orm import Session
 
 from src.compose.template_manager import TemplateManager
-from src.core.ai_provider import get_ai_provider
 from src.config.config_manager import get_config
+from src.core.ai_provider import get_ai_provider
 from src.utils.logging_manager import get_logger
 
 logger = get_logger(__name__)
@@ -30,10 +43,10 @@ template_manager = TemplateManager()
 async def list_templates(category: Optional[str] = None):
     """
     List available templates.
-    
+
     Args:
         category: Optional category to filter by
-        
+
     Returns:
         List of template dictionaries with metadata
     """
@@ -44,7 +57,7 @@ async def list_templates(category: Optional[str] = None):
         logger.error(f"Failed to list templates: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list templates: {str(e)}"
+            detail=f"Failed to list templates: {str(e)}",
         )
 
 
@@ -52,7 +65,7 @@ async def list_templates(category: Optional[str] = None):
 async def get_categories():
     """
     Get all template categories.
-    
+
     Returns:
         List of category names
     """
@@ -63,7 +76,7 @@ async def get_categories():
         logger.error(f"Failed to get categories: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get categories: {str(e)}"
+            detail=f"Failed to get categories: {str(e)}",
         )
 
 
@@ -71,7 +84,7 @@ async def get_categories():
 async def get_templates_by_category():
     """
     Get templates organized by category.
-    
+
     Returns:
         Dictionary mapping category names to lists of template info dictionaries
     """
@@ -82,18 +95,20 @@ async def get_templates_by_category():
         logger.error(f"Failed to get templates by category: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get templates by category: {str(e)}"
+            detail=f"Failed to get templates by category: {str(e)}",
         )
 
 
 @router.get("/{template_name}", response_model=Dict[str, Any])
-async def get_template(template_name: str = Path(..., description="Name of the template")):
+async def get_template(
+    template_name: str = Path(..., description="Name of the template")
+):
     """
     Get a template by name.
-    
+
     Args:
         template_name: Name of the template
-        
+
     Returns:
         Template dictionary
     """
@@ -102,7 +117,7 @@ async def get_template(template_name: str = Path(..., description="Name of the t
         if not template:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Template {template_name} not found"
+                detail=f"Template {template_name} not found",
             )
         return template
     except HTTPException:
@@ -111,18 +126,20 @@ async def get_template(template_name: str = Path(..., description="Name of the t
         logger.error(f"Failed to get template {template_name}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get template {template_name}: {str(e)}"
+            detail=f"Failed to get template {template_name}: {str(e)}",
         )
 
 
 @router.get("/{template_name}/content", response_model=Dict[str, str])
-async def get_template_content(template_name: str = Path(..., description="Name of the template")):
+async def get_template_content(
+    template_name: str = Path(..., description="Name of the template")
+):
     """
     Get the content of a template.
-    
+
     Args:
         template_name: Name of the template
-        
+
     Returns:
         Dictionary with template content
     """
@@ -131,10 +148,11 @@ async def get_template_content(template_name: str = Path(..., description="Name 
         if not template:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Template {template_name} not found"
+                detail=f"Template {template_name} not found",
             )
-        
+
         import yaml
+
         content = yaml.dump(template, default_flow_style=False, sort_keys=False)
         return {"content": content}
     except HTTPException:
@@ -143,22 +161,22 @@ async def get_template_content(template_name: str = Path(..., description="Name 
         logger.error(f"Failed to get template content for {template_name}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get template content for {template_name}: {str(e)}"
+            detail=f"Failed to get template content for {template_name}: {str(e)}",
         )
 
 
 @router.post("/{template_name}/customize", response_model=Dict[str, str])
 async def customize_template(
     template_name: str = Path(..., description="Name of the template"),
-    data: Dict[str, str] = Body(..., description="Customization data")
+    data: Dict[str, str] = Body(..., description="Customization data"),
 ):
     """
     Customize a template using AI.
-    
+
     Args:
         template_name: Name of the template
         data: Dictionary with customization instructions
-        
+
     Returns:
         Dictionary with customized template content
     """
@@ -167,21 +185,24 @@ async def customize_template(
         if not instructions:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Customization instructions are required"
+                detail="Customization instructions are required",
             )
-        
+
         # Get AI provider
         ai_provider = get_ai_provider()
-        
+
         # Customize template
         customized_template = template_manager.customize_template_with_ai(
             template_name, instructions, ai_provider
         )
-        
+
         # Convert to YAML
         import yaml
-        content = yaml.dump(customized_template, default_flow_style=False, sort_keys=False)
-        
+
+        content = yaml.dump(
+            customized_template, default_flow_style=False, sort_keys=False
+        )
+
         return {"content": content}
     except HTTPException:
         raise
@@ -189,7 +210,7 @@ async def customize_template(
         logger.error(f"Failed to customize template {template_name}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to customize template {template_name}: {str(e)}"
+            detail=f"Failed to customize template {template_name}: {str(e)}",
         )
 
 
@@ -197,34 +218,38 @@ async def customize_template(
 async def import_template(
     file: UploadFile = File(..., description="Template file"),
     name: Optional[str] = Form(None, description="Template name"),
-    category: Optional[str] = Form("custom", description="Template category")
+    category: Optional[str] = Form("custom", description="Template category"),
 ):
     """
     Import a template from a file.
-    
+
     Args:
         file: Template file
         name: Optional template name
         category: Optional template category
-        
+
     Returns:
         Dictionary with import result
     """
     try:
         # Create temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
+        with tempfile.NamedTemporaryFile(
+            delete=False, suffix=os.path.splitext(file.filename)[1]
+        ) as temp_file:
             # Write uploaded file to temporary file
             content = await file.read()
             temp_file.write(content)
             temp_file_path = temp_file.name
-        
+
         try:
             # Import template
-            template_name = template_manager.import_template(temp_file_path, name, category)
-            
+            template_name = template_manager.import_template(
+                temp_file_path, name, category
+            )
+
             # Remove temporary file
             os.unlink(temp_file_path)
-            
+
             return {"message": f"Template {template_name} imported successfully"}
         finally:
             # Ensure temporary file is removed
@@ -234,58 +259,64 @@ async def import_template(
         logger.error(f"Failed to import template: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to import template: {str(e)}"
+            detail=f"Failed to import template: {str(e)}",
         )
 
 
 @router.post("/export/{template_name}", response_model=Dict[str, str])
-async def export_template(template_name: str = Path(..., description="Name of the template")):
+async def export_template(
+    template_name: str = Path(..., description="Name of the template")
+):
     """
     Export a template to a file.
-    
+
     Args:
         template_name: Name of the template
-        
+
     Returns:
         Dictionary with export result
     """
     try:
         # Export template
-        output_path = get_config("general.export_dir", os.path.expanduser("~/.dockerforge/exports"))
+        output_path = get_config(
+            "general.export_dir", os.path.expanduser("~/.dockerforge/exports")
+        )
         os.makedirs(output_path, exist_ok=True)
-        
+
         file_path = template_manager.export_template(template_name, output_path)
-        
+
         return {"message": f"Template {template_name} exported to {file_path}"}
     except Exception as e:
         logger.error(f"Failed to export template {template_name}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to export template {template_name}: {str(e)}"
+            detail=f"Failed to export template {template_name}: {str(e)}",
         )
 
 
 @router.delete("/{template_name}", response_model=Dict[str, str])
-async def delete_template(template_name: str = Path(..., description="Name of the template")):
+async def delete_template(
+    template_name: str = Path(..., description="Name of the template")
+):
     """
     Delete a template.
-    
+
     Args:
         template_name: Name of the template
-        
+
     Returns:
         Dictionary with deletion result
     """
     try:
         # Delete template
         result = template_manager.delete_template(template_name)
-        
+
         if not result:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Template {template_name} not found"
+                detail=f"Template {template_name} not found",
             )
-        
+
         return {"message": f"Template {template_name} deleted successfully"}
     except HTTPException:
         raise
@@ -293,5 +324,5 @@ async def delete_template(template_name: str = Path(..., description="Name of th
         logger.error(f"Failed to delete template {template_name}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete template {template_name}: {str(e)}"
+            detail=f"Failed to delete template {template_name}: {str(e)}",
         )

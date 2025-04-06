@@ -3,7 +3,9 @@ Reset the database for the DockerForge Web UI.
 
 This script drops all tables and recreates them with the correct schema.
 """
-from database import drop_db, init_db, create_initial_data
+
+from database import create_initial_data, drop_db, init_db
+
 
 def reset_database():
     """
@@ -11,14 +13,15 @@ def reset_database():
     """
     print("Dropping all tables...")
     drop_db()
-    
+
     print("Creating tables...")
     init_db()
-    
+
     print("Creating initial data...")
     create_initial_data()
-    
+
     print("Database reset complete.")
+
 
 if __name__ == "__main__":
     reset_database()

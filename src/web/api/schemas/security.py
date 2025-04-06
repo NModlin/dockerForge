@@ -3,14 +3,17 @@ Security schemas for the DockerForge Web UI.
 
 This module provides the Pydantic schemas for security-related functionality.
 """
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
+
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class SeverityLevel(str, Enum):
     """Severity level for vulnerabilities."""
+
     CRITICAL = "CRITICAL"
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
@@ -20,6 +23,7 @@ class SeverityLevel(str, Enum):
 
 class ScanStatus(str, Enum):
     """Status of a vulnerability scan."""
+
     PENDING = "PENDING"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
@@ -28,6 +32,7 @@ class ScanStatus(str, Enum):
 
 class ScanType(str, Enum):
     """Type of vulnerability scan."""
+
     IMAGE = "IMAGE"
     CONTAINER = "CONTAINER"
     FILESYSTEM = "FILESYSTEM"
@@ -35,6 +40,7 @@ class ScanType(str, Enum):
 
 class VulnerabilityBase(BaseModel):
     """Base schema for vulnerability information."""
+
     vulnerability_id: str
     package_name: str
     installed_version: str
@@ -47,6 +53,7 @@ class VulnerabilityBase(BaseModel):
 
 class Vulnerability(VulnerabilityBase):
     """Schema for vulnerability with additional details."""
+
     cve_id: Optional[str] = None
     cvss_score: Optional[float] = None
     cvss_vector: Optional[str] = None
@@ -58,6 +65,7 @@ class Vulnerability(VulnerabilityBase):
 
 class ScanRequestBase(BaseModel):
     """Base schema for scan requests."""
+
     scan_type: ScanType = ScanType.IMAGE
     severity_filter: Optional[List[SeverityLevel]] = None
     ignore_unfixed: bool = False
@@ -65,18 +73,23 @@ class ScanRequestBase(BaseModel):
 
 class ImageScanRequest(ScanRequestBase):
     """Schema for image scan requests."""
+
     image_name: str = Field(..., description="Name of the Docker image to scan")
     image_id: Optional[str] = Field(None, description="ID of the Docker image to scan")
 
 
 class ContainerScanRequest(ScanRequestBase):
     """Schema for container scan requests."""
+
     container_id: str = Field(..., description="ID of the Docker container to scan")
-    container_name: Optional[str] = Field(None, description="Name of the Docker container to scan")
+    container_name: Optional[str] = Field(
+        None, description="Name of the Docker container to scan"
+    )
 
 
 class ScanResultBase(BaseModel):
     """Base schema for scan results."""
+
     scan_id: str
     scan_type: ScanType
     status: ScanStatus
@@ -89,12 +102,14 @@ class ScanResultBase(BaseModel):
 
 class ScanResultSummary(ScanResultBase):
     """Schema for scan result summary."""
+
     vulnerability_counts: Dict[SeverityLevel, int]
     total_vulnerabilities: int
 
 
 class ScanResult(ScanResultSummary):
     """Schema for detailed scan results."""
+
     vulnerabilities: List[Vulnerability]
     scanner_version: Optional[str] = None
     scanner_name: str = "Trivy"
@@ -103,6 +118,7 @@ class ScanResult(ScanResultSummary):
 
 class RemediationAction(str, Enum):
     """Type of remediation action."""
+
     UPDATE_PACKAGE = "UPDATE_PACKAGE"
     REBUILD_IMAGE = "REBUILD_IMAGE"
     REPLACE_BASE_IMAGE = "REPLACE_BASE_IMAGE"
@@ -111,6 +127,7 @@ class RemediationAction(str, Enum):
 
 class RemediationStep(BaseModel):
     """Schema for remediation steps."""
+
     action: RemediationAction
     description: str
     command: Optional[str] = None
@@ -120,6 +137,7 @@ class RemediationStep(BaseModel):
 
 class RemediationPlan(BaseModel):
     """Schema for remediation plan."""
+
     vulnerability_id: str
     steps: List[RemediationStep]
     notes: Optional[str] = None
@@ -127,6 +145,7 @@ class RemediationPlan(BaseModel):
 
 class PolicyRuleType(str, Enum):
     """Type of policy rule."""
+
     SEVERITY = "SEVERITY"
     CVE = "CVE"
     PACKAGE = "PACKAGE"
@@ -141,6 +160,7 @@ class PolicyRuleType(str, Enum):
 
 class PolicyAction(str, Enum):
     """Action to take when a policy rule is triggered."""
+
     BLOCK = "BLOCK"
     WARN = "WARN"
     ALLOW = "ALLOW"
@@ -149,6 +169,7 @@ class PolicyAction(str, Enum):
 
 class PolicyRule(BaseModel):
     """Schema for a security policy rule."""
+
     id: str
     name: str
     description: Optional[str] = None
@@ -160,6 +181,7 @@ class PolicyRule(BaseModel):
 
 class PolicyCreate(BaseModel):
     """Schema for creating a security policy."""
+
     name: str
     description: Optional[str] = None
     enabled: bool = True
@@ -169,6 +191,7 @@ class PolicyCreate(BaseModel):
 
 class PolicyUpdate(BaseModel):
     """Schema for updating a security policy."""
+
     name: Optional[str] = None
     description: Optional[str] = None
     enabled: Optional[bool] = None
@@ -178,6 +201,7 @@ class PolicyUpdate(BaseModel):
 
 class SecurityPolicy(BaseModel):
     """Schema for security policy."""
+
     id: str
     name: str
     description: Optional[str] = None
@@ -190,6 +214,7 @@ class SecurityPolicy(BaseModel):
 
 class PolicyViolation(BaseModel):
     """Schema for a policy violation."""
+
     id: str
     policy_id: str
     rule_id: str
@@ -207,6 +232,7 @@ class PolicyViolation(BaseModel):
 
 class PolicyEvaluationResult(BaseModel):
     """Schema for policy evaluation result."""
+
     policy_id: str
     policy_name: str
     resource_type: str
@@ -219,6 +245,7 @@ class PolicyEvaluationResult(BaseModel):
 
 class ComplianceStatus(BaseModel):
     """Schema for compliance status."""
+
     total_policies: int
     compliant_policies: int
     non_compliant_policies: int
@@ -231,6 +258,7 @@ class ComplianceStatus(BaseModel):
 
 class SecurityDashboardStats(BaseModel):
     """Schema for security dashboard statistics."""
+
     security_score: int = Field(..., ge=0, le=100)
     vulnerability_counts: Dict[SeverityLevel, int]
     compliance_stats: Dict[str, int]

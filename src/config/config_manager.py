@@ -5,21 +5,24 @@ This module provides functionality to load, validate, and save
 configuration files.
 """
 
+import logging
 import os
 import re
-import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
-from schema import Schema, And, Or, Use, Optional as SchemaOptional
 from dotenv import load_dotenv
+from schema import And
+from schema import Optional as SchemaOptional
+from schema import Or, Schema, Use
 
 logger = logging.getLogger(__name__)
 
 
 class ConfigError(Exception):
     """Exception raised for configuration errors."""
+
     pass
 
 
@@ -37,242 +40,241 @@ class ConfigManager:
         "./dockerforge.yml",
         "./config/dockerforge.yaml",
         "./config/dockerforge.yml",
-
         # User config directory
         "~/.config/dockerforge/config.yaml",
         "~/.config/dockerforge/config.yml",
         "~/.dockerforge/config.yaml",
         "~/.dockerforge/config.yml",
-
         # System config directory
         "/etc/dockerforge/config.yaml",
         "/etc/dockerforge/config.yml",
     ]
 
     # Default configuration schema
-    DEFAULT_CONFIG_SCHEMA = Schema({
-        # General settings
-        SchemaOptional("general"): {
-            SchemaOptional("log_level"): And(str, lambda s: s in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")),
-            SchemaOptional("log_file"): str,
-            SchemaOptional("data_dir"): str,
-            SchemaOptional("backup_dir"): str,
-            SchemaOptional("check_for_updates"): bool,
-        },
-
-        # Docker settings
-        SchemaOptional("docker"): {
-            SchemaOptional("host"): str,
-            SchemaOptional("socket_path"): str,
-            SchemaOptional("ssh_host"): str,
-            SchemaOptional("tls"): {
-                SchemaOptional("enabled"): bool,
-                SchemaOptional("verify"): bool,
-                SchemaOptional("cert_path"): str,
-                SchemaOptional("key_path"): str,
-                SchemaOptional("ca_path"): str,
+    DEFAULT_CONFIG_SCHEMA = Schema(
+        {
+            # General settings
+            SchemaOptional("general"): {
+                SchemaOptional("log_level"): And(
+                    str,
+                    lambda s: s in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
+                ),
+                SchemaOptional("log_file"): str,
+                SchemaOptional("data_dir"): str,
+                SchemaOptional("backup_dir"): str,
+                SchemaOptional("check_for_updates"): bool,
             },
-            SchemaOptional("compose"): {
-                SchemaOptional("file_path"): str,
-                SchemaOptional("project_name"): str,
-                SchemaOptional("discovery"): {
+            # Docker settings
+            SchemaOptional("docker"): {
+                SchemaOptional("host"): str,
+                SchemaOptional("socket_path"): str,
+                SchemaOptional("ssh_host"): str,
+                SchemaOptional("tls"): {
                     SchemaOptional("enabled"): bool,
-                    SchemaOptional("recursive"): bool,
-                    SchemaOptional("include_common_locations"): bool,
-                    SchemaOptional("search_paths"): [str],
-                    SchemaOptional("exclude_patterns"): [str],
+                    SchemaOptional("verify"): bool,
+                    SchemaOptional("cert_path"): str,
+                    SchemaOptional("key_path"): str,
+                    SchemaOptional("ca_path"): str,
                 },
-                SchemaOptional("parser"): {
-                    SchemaOptional("schema_dir"): str,
-                    SchemaOptional("expand_env_vars"): bool,
-                    SchemaOptional("validate"): bool,
+                SchemaOptional("compose"): {
+                    SchemaOptional("file_path"): str,
+                    SchemaOptional("project_name"): str,
+                    SchemaOptional("discovery"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("recursive"): bool,
+                        SchemaOptional("include_common_locations"): bool,
+                        SchemaOptional("search_paths"): [str],
+                        SchemaOptional("exclude_patterns"): [str],
+                    },
+                    SchemaOptional("parser"): {
+                        SchemaOptional("schema_dir"): str,
+                        SchemaOptional("expand_env_vars"): bool,
+                        SchemaOptional("validate"): bool,
+                    },
+                    SchemaOptional("change_management"): {
+                        SchemaOptional("backup_dir"): str,
+                        SchemaOptional("auto_backup"): bool,
+                        SchemaOptional("max_backups"): int,
+                        SchemaOptional("atomic_updates"): bool,
+                    },
+                    SchemaOptional("templates"): {
+                        SchemaOptional("directory"): str,
+                        SchemaOptional("auto_load"): bool,
+                        SchemaOptional("variable_pattern"): str,
+                    },
+                    SchemaOptional("visualization"): {
+                        SchemaOptional("output_dir"): str,
+                        SchemaOptional("default_format"): str,
+                        SchemaOptional("include_networks"): bool,
+                        SchemaOptional("include_volumes"): bool,
+                        SchemaOptional("include_resources"): bool,
+                    },
+                    SchemaOptional("operations"): {
+                        SchemaOptional("validate_before_up"): bool,
+                        SchemaOptional("health_check_timeout"): int,
+                        SchemaOptional("controlled_restart"): bool,
+                        SchemaOptional("remove_orphans"): bool,
+                    },
                 },
-                SchemaOptional("change_management"): {
-                    SchemaOptional("backup_dir"): str,
-                    SchemaOptional("auto_backup"): bool,
-                    SchemaOptional("max_backups"): int,
-                    SchemaOptional("atomic_updates"): bool,
+            },
+            # AI provider settings
+            SchemaOptional("ai"): {
+                SchemaOptional("default_provider"): str,
+                SchemaOptional("providers"): {
+                    SchemaOptional("claude"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("api_key"): str,
+                        SchemaOptional("model"): str,
+                        SchemaOptional("max_tokens"): int,
+                        SchemaOptional("temperature"): float,
+                    },
+                    SchemaOptional("gemini"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("api_key"): str,
+                        SchemaOptional("model"): str,
+                        SchemaOptional("max_tokens"): int,
+                        SchemaOptional("temperature"): float,
+                    },
+                    SchemaOptional("ollama"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("endpoint"): str,
+                        SchemaOptional("model"): str,
+                        SchemaOptional("auto_discover"): bool,
+                        SchemaOptional("container_discovery"): bool,
+                        SchemaOptional("container_name_patterns"): [str],
+                    },
+                },
+                SchemaOptional("usage_limits"): {
+                    SchemaOptional("max_daily_requests"): int,
+                    SchemaOptional("max_monthly_cost_usd"): float,
+                },
+                SchemaOptional("cost_management"): {
+                    SchemaOptional("require_confirmation"): bool,
+                    SchemaOptional("confirmation_threshold_usd"): float,
+                    SchemaOptional("max_daily_cost_usd"): float,
+                    SchemaOptional("max_monthly_cost_usd"): float,
+                },
+                SchemaOptional("plugins"): {
+                    SchemaOptional("enabled"): bool,
+                    SchemaOptional("directory"): str,
+                    SchemaOptional("auto_discover"): bool,
                 },
                 SchemaOptional("templates"): {
                     SchemaOptional("directory"): str,
-                    SchemaOptional("auto_load"): bool,
-                    SchemaOptional("variable_pattern"): str,
-                },
-                SchemaOptional("visualization"): {
-                    SchemaOptional("output_dir"): str,
-                    SchemaOptional("default_format"): str,
-                    SchemaOptional("include_networks"): bool,
-                    SchemaOptional("include_volumes"): bool,
-                    SchemaOptional("include_resources"): bool,
-                },
-                SchemaOptional("operations"): {
-                    SchemaOptional("validate_before_up"): bool,
-                    SchemaOptional("health_check_timeout"): int,
-                    SchemaOptional("controlled_restart"): bool,
-                    SchemaOptional("remove_orphans"): bool,
+                    SchemaOptional("default_version"): str,
+                    SchemaOptional("track_performance"): bool,
                 },
             },
-        },
-
-        # AI provider settings
-        SchemaOptional("ai"): {
-            SchemaOptional("default_provider"): str,
-            SchemaOptional("providers"): {
-                SchemaOptional("claude"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("api_key"): str,
-                    SchemaOptional("model"): str,
-                    SchemaOptional("max_tokens"): int,
-                    SchemaOptional("temperature"): float,
-                },
-                SchemaOptional("gemini"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("api_key"): str,
-                    SchemaOptional("model"): str,
-                    SchemaOptional("max_tokens"): int,
-                    SchemaOptional("temperature"): float,
-                },
-                SchemaOptional("ollama"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("endpoint"): str,
-                    SchemaOptional("model"): str,
-                    SchemaOptional("auto_discover"): bool,
-                    SchemaOptional("container_discovery"): bool,
-                    SchemaOptional("container_name_patterns"): [str],
-                },
-            },
-            SchemaOptional("usage_limits"): {
-                SchemaOptional("max_daily_requests"): int,
-                SchemaOptional("max_monthly_cost_usd"): float,
-            },
-            SchemaOptional("cost_management"): {
-                SchemaOptional("require_confirmation"): bool,
-                SchemaOptional("confirmation_threshold_usd"): float,
-                SchemaOptional("max_daily_cost_usd"): float,
-                SchemaOptional("max_monthly_cost_usd"): float,
-            },
-            SchemaOptional("plugins"): {
+            # Monitoring settings
+            SchemaOptional("monitoring"): {
                 SchemaOptional("enabled"): bool,
-                SchemaOptional("directory"): str,
-                SchemaOptional("auto_discover"): bool,
+                SchemaOptional("check_interval_seconds"): int,
+                SchemaOptional("alert_on_container_exit"): bool,
+                SchemaOptional("notify_on_high_resource_usage"): bool,
+                SchemaOptional("resource_thresholds"): {
+                    SchemaOptional("cpu_percent"): int,
+                    SchemaOptional("memory_percent"): int,
+                    SchemaOptional("disk_percent"): int,
+                },
+                # Log monitoring settings
+                SchemaOptional("log_monitoring"): {
+                    SchemaOptional("enabled"): bool,
+                    SchemaOptional("log_buffer_size"): int,
+                    SchemaOptional("max_recent_matches"): int,
+                    SchemaOptional("max_analysis_history"): int,
+                    SchemaOptional("max_search_history"): int,
+                    SchemaOptional("container_filter"): dict,
+                },
+                # Pattern recognition settings
+                SchemaOptional("patterns_dir"): str,
+                # Log analysis settings
+                SchemaOptional("templates_dir"): str,
+                # Issue detection settings
+                SchemaOptional("issues_dir"): str,
+                # Recommendation settings
+                SchemaOptional("recommendations_dir"): str,
+                SchemaOptional("recommendation_templates_dir"): str,
             },
-            SchemaOptional("templates"): {
-                SchemaOptional("directory"): str,
-                SchemaOptional("default_version"): str,
-                SchemaOptional("track_performance"): bool,
-            },
-        },
-
-        # Monitoring settings
-        SchemaOptional("monitoring"): {
-            SchemaOptional("enabled"): bool,
-            SchemaOptional("check_interval_seconds"): int,
-            SchemaOptional("alert_on_container_exit"): bool,
-            SchemaOptional("notify_on_high_resource_usage"): bool,
-            SchemaOptional("resource_thresholds"): {
-                SchemaOptional("cpu_percent"): int,
-                SchemaOptional("memory_percent"): int,
-                SchemaOptional("disk_percent"): int,
-            },
-            # Log monitoring settings
-            SchemaOptional("log_monitoring"): {
+            # Notification settings
+            SchemaOptional("notifications"): {
                 SchemaOptional("enabled"): bool,
-                SchemaOptional("log_buffer_size"): int,
-                SchemaOptional("max_recent_matches"): int,
-                SchemaOptional("max_analysis_history"): int,
-                SchemaOptional("max_search_history"): int,
-                SchemaOptional("container_filter"): dict,
-            },
-            # Pattern recognition settings
-            SchemaOptional("patterns_dir"): str,
-            # Log analysis settings
-            SchemaOptional("templates_dir"): str,
-            # Issue detection settings
-            SchemaOptional("issues_dir"): str,
-            # Recommendation settings
-            SchemaOptional("recommendations_dir"): str,
-            SchemaOptional("recommendation_templates_dir"): str,
-        },
-
-        # Notification settings
-        SchemaOptional("notifications"): {
-            SchemaOptional("enabled"): bool,
-            SchemaOptional("default_channel"): str,
-            SchemaOptional("channels"): {
-                SchemaOptional("email"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("smtp_server"): str,
-                    SchemaOptional("smtp_port"): int,
-                    SchemaOptional("username"): str,
-                    SchemaOptional("password"): str,
-                    SchemaOptional("from_address"): str,
-                    SchemaOptional("recipients"): [str],
-                    SchemaOptional("use_tls"): bool,
-                    SchemaOptional("use_ssl"): bool,
-                },
-                SchemaOptional("slack"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("webhook_url"): str,
-                    SchemaOptional("channel"): str,
-                    SchemaOptional("username"): str,
-                    SchemaOptional("icon_emoji"): str,
-                    SchemaOptional("icon_url"): str,
-                },
-                SchemaOptional("discord"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("webhook_url"): str,
-                    SchemaOptional("username"): str,
-                    SchemaOptional("avatar_url"): str,
-                },
-                SchemaOptional("webhook"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("url"): str,
-                    SchemaOptional("headers"): dict,
-                },
-            },
-            SchemaOptional("preferences"): {
-                SchemaOptional("throttling"): {
-                    SchemaOptional("enabled"): bool,
-                    SchemaOptional("max_notifications_per_hour"): int,
-                    SchemaOptional("max_notifications_per_day"): int,
-                    SchemaOptional("group_similar"): bool,
-                    SchemaOptional("quiet_hours"): {
+                SchemaOptional("default_channel"): str,
+                SchemaOptional("channels"): {
+                    SchemaOptional("email"): {
                         SchemaOptional("enabled"): bool,
-                        SchemaOptional("start"): str,
-                        SchemaOptional("end"): str,
+                        SchemaOptional("smtp_server"): str,
+                        SchemaOptional("smtp_port"): int,
+                        SchemaOptional("username"): str,
+                        SchemaOptional("password"): str,
+                        SchemaOptional("from_address"): str,
+                        SchemaOptional("recipients"): [str],
+                        SchemaOptional("use_tls"): bool,
+                        SchemaOptional("use_ssl"): bool,
+                    },
+                    SchemaOptional("slack"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("webhook_url"): str,
+                        SchemaOptional("channel"): str,
+                        SchemaOptional("username"): str,
+                        SchemaOptional("icon_emoji"): str,
+                        SchemaOptional("icon_url"): str,
+                    },
+                    SchemaOptional("discord"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("webhook_url"): str,
+                        SchemaOptional("username"): str,
+                        SchemaOptional("avatar_url"): str,
+                    },
+                    SchemaOptional("webhook"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("url"): str,
+                        SchemaOptional("headers"): dict,
                     },
                 },
-                SchemaOptional("severity_thresholds"): {
-                    SchemaOptional("info"): bool,
-                    SchemaOptional("warning"): bool,
-                    SchemaOptional("error"): bool,
-                    SchemaOptional("critical"): bool,
+                SchemaOptional("preferences"): {
+                    SchemaOptional("throttling"): {
+                        SchemaOptional("enabled"): bool,
+                        SchemaOptional("max_notifications_per_hour"): int,
+                        SchemaOptional("max_notifications_per_day"): int,
+                        SchemaOptional("group_similar"): bool,
+                        SchemaOptional("quiet_hours"): {
+                            SchemaOptional("enabled"): bool,
+                            SchemaOptional("start"): str,
+                            SchemaOptional("end"): str,
+                        },
+                    },
+                    SchemaOptional("severity_thresholds"): {
+                        SchemaOptional("info"): bool,
+                        SchemaOptional("warning"): bool,
+                        SchemaOptional("error"): bool,
+                        SchemaOptional("critical"): bool,
+                    },
+                    SchemaOptional("notification_types"): {
+                        SchemaOptional("container_exit"): bool,
+                        SchemaOptional("container_oom"): bool,
+                        SchemaOptional("high_resource_usage"): bool,
+                        SchemaOptional("security_issue"): bool,
+                        SchemaOptional("update_available"): bool,
+                        SchemaOptional("fix_proposal"): bool,
+                        SchemaOptional("fix_applied"): bool,
+                        SchemaOptional("custom"): bool,
+                    },
                 },
-                SchemaOptional("notification_types"): {
-                    SchemaOptional("container_exit"): bool,
-                    SchemaOptional("container_oom"): bool,
-                    SchemaOptional("high_resource_usage"): bool,
-                    SchemaOptional("security_issue"): bool,
-                    SchemaOptional("update_available"): bool,
-                    SchemaOptional("fix_proposal"): bool,
-                    SchemaOptional("fix_applied"): bool,
-                    SchemaOptional("custom"): bool,
+                SchemaOptional("templates"): {
+                    SchemaOptional("directory"): str,
+                    SchemaOptional("default_template"): str,
+                },
+                SchemaOptional("fixes"): {
+                    SchemaOptional("require_approval"): bool,
+                    SchemaOptional("auto_approve_low_risk"): bool,
+                    SchemaOptional("dry_run_by_default"): bool,
+                    SchemaOptional("backup_before_fix"): bool,
+                    SchemaOptional("rollback_on_failure"): bool,
+                    SchemaOptional("max_fix_attempts"): int,
                 },
             },
-            SchemaOptional("templates"): {
-                SchemaOptional("directory"): str,
-                SchemaOptional("default_template"): str,
-            },
-            SchemaOptional("fixes"): {
-                SchemaOptional("require_approval"): bool,
-                SchemaOptional("auto_approve_low_risk"): bool,
-                SchemaOptional("dry_run_by_default"): bool,
-                SchemaOptional("backup_before_fix"): bool,
-                SchemaOptional("rollback_on_failure"): bool,
-                SchemaOptional("max_fix_attempts"): int,
-            },
-        },
-    })
+        }
+    )
 
     # Default configuration values
     DEFAULT_CONFIG = {
@@ -484,7 +486,9 @@ class ConfigManager:
         },
     }
 
-    def __init__(self, config_path: Optional[str] = None, env_file: Optional[str] = None):
+    def __init__(
+        self, config_path: Optional[str] = None, env_file: Optional[str] = None
+    ):
         """
         Initialize the configuration manager.
 
@@ -599,9 +603,15 @@ class ConfigManager:
             elif isinstance(value, list):
                 # Process lists
                 result[key] = [
-                    self._substitute_env_vars(item) if isinstance(item, dict) else
-                    self._substitute_env_var(item) if isinstance(item, str) else
-                    item
+                    (
+                        self._substitute_env_vars(item)
+                        if isinstance(item, dict)
+                        else (
+                            self._substitute_env_var(item)
+                            if isinstance(item, str)
+                            else item
+                        )
+                    )
                     for item in value
                 ]
             elif isinstance(value, str):
@@ -627,7 +637,7 @@ class ConfigManager:
             return value
 
         # Match ${VAR} or $VAR patterns
-        pattern = r'\${([^}]+)}|\$([a-zA-Z0-9_]+)'
+        pattern = r"\${([^}]+)}|\$([a-zA-Z0-9_]+)"
 
         def replace_var(match):
             var_name = match.group(1) or match.group(2)
@@ -788,7 +798,9 @@ class ConfigManager:
 _config_manager = None
 
 
-def get_config_manager(config_path: Optional[str] = None, env_file: Optional[str] = None) -> ConfigManager:
+def get_config_manager(
+    config_path: Optional[str] = None, env_file: Optional[str] = None
+) -> ConfigManager:
     """
     Get the configuration manager (singleton).
 

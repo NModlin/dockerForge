@@ -25,7 +25,7 @@ class ConnectionManager(DockerConnectionManager):
         # Extract config from config_manager if provided
         config = None
         if config_manager is not None:
-            if hasattr(config_manager, 'get'):
+            if hasattr(config_manager, "get"):
                 # If it's a ConfigManager instance, get the full config
                 config = config_manager.config
             else:

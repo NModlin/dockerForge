@@ -3,14 +3,17 @@ Monitoring schemas for the DockerForge Web UI.
 
 This module provides the Pydantic models for AI monitoring, resource monitoring, and troubleshooting.
 """
-from typing import List, Optional, Dict, Any, Union
+
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel, Field
 
 
 # AI Provider Status Schemas
 class AICapabilities(BaseModel):
     """Schema for AI provider capabilities."""
+
     streaming: bool = False
     vision: bool = False
     batching: bool = False
@@ -22,6 +25,7 @@ class AICapabilities(BaseModel):
 
 class AIProviderStatus(BaseModel):
     """Schema for AI provider status."""
+
     name: str
     enabled: bool
     available: bool
@@ -35,6 +39,7 @@ class AIProviderStatus(BaseModel):
 
 class AIStatusResponse(BaseModel):
     """Schema for AI status response."""
+
     providers: Dict[str, AIProviderStatus]
     default_provider: str
 
@@ -42,6 +47,7 @@ class AIStatusResponse(BaseModel):
 # AI Usage Schemas
 class AIModelUsage(BaseModel):
     """Schema for AI model usage."""
+
     input_tokens: int
     output_tokens: int
     cost_usd: float
@@ -49,12 +55,14 @@ class AIModelUsage(BaseModel):
 
 class AIProviderUsage(BaseModel):
     """Schema for AI provider usage."""
+
     models: Dict[str, AIModelUsage]
     total_cost_usd: float
 
 
 class AIUsageStats(BaseModel):
     """Schema for AI usage statistics."""
+
     date: str
     providers: Dict[str, AIProviderUsage]
     total_cost_usd: float
@@ -62,6 +70,7 @@ class AIUsageStats(BaseModel):
 
 class AIBudgetStatus(BaseModel):
     """Schema for AI budget status."""
+
     year: int
     month: int
     providers: Dict[str, Dict[str, float]]
@@ -73,6 +82,7 @@ class AIBudgetStatus(BaseModel):
 
 class AIUsageReport(BaseModel):
     """Schema for AI usage report."""
+
     date: str
     daily_usage: AIUsageStats
     monthly_usage: Dict[str, Any]
@@ -90,31 +100,37 @@ class AIUsageReport(BaseModel):
 # Troubleshooting Schemas
 class TroubleshootingRequest(BaseModel):
     """Base schema for troubleshooting requests."""
+
     confirm_cost: bool = True
 
 
 class ContainerTroubleshootingRequest(TroubleshootingRequest):
     """Schema for container troubleshooting requests."""
+
     container_id: str
 
 
 class LogsTroubleshootingRequest(TroubleshootingRequest):
     """Schema for logs troubleshooting requests."""
+
     logs: str
 
 
 class DockerComposeRequest(TroubleshootingRequest):
     """Schema for Docker Compose troubleshooting requests."""
+
     content: str
 
 
 class DockerfileRequest(TroubleshootingRequest):
     """Schema for Dockerfile troubleshooting requests."""
+
     content: str
 
 
 class TroubleshootingResult(BaseModel):
     """Schema for troubleshooting results."""
+
     analysis: str
     provider: str
     model: str
@@ -123,6 +139,7 @@ class TroubleshootingResult(BaseModel):
 
 class ContainerTroubleshootingResult(TroubleshootingResult):
     """Schema for container troubleshooting results."""
+
     container_id: str
     container_name: str
     container_status: str
@@ -130,6 +147,7 @@ class ContainerTroubleshootingResult(TroubleshootingResult):
 
 class ConnectionTroubleshootingResult(BaseModel):
     """Schema for connection troubleshooting results."""
+
     connected: bool
     issues: List[str]
     fixes: List[str]
@@ -137,9 +155,11 @@ class ConnectionTroubleshootingResult(BaseModel):
 
 # Resource Monitoring Schemas
 
+
 # CPU Metrics
 class CPUMetrics(BaseModel):
     """Schema for CPU metrics."""
+
     percent: float
     count: int
     physical_count: Optional[int] = None
@@ -152,6 +172,7 @@ class CPUMetrics(BaseModel):
 # Memory Metrics
 class MemoryDetails(BaseModel):
     """Schema for memory details."""
+
     total: int
     available: Optional[int] = None
     used: int
@@ -166,6 +187,7 @@ class MemoryDetails(BaseModel):
 
 class MemoryMetrics(BaseModel):
     """Schema for memory metrics."""
+
     virtual: MemoryDetails
     swap: MemoryDetails
 
@@ -173,6 +195,7 @@ class MemoryMetrics(BaseModel):
 # Disk Metrics
 class DiskUsage(BaseModel):
     """Schema for disk usage."""
+
     total: int
     used: int
     free: int
@@ -183,6 +206,7 @@ class DiskUsage(BaseModel):
 
 class DiskIO(BaseModel):
     """Schema for disk I/O."""
+
     read_bytes: int
     write_bytes: int
     read_count: int
@@ -198,6 +222,7 @@ class DiskIO(BaseModel):
 
 class DiskMetrics(BaseModel):
     """Schema for disk metrics."""
+
     usage: Dict[str, DiskUsage]
     io: DiskIO
 
@@ -205,6 +230,7 @@ class DiskMetrics(BaseModel):
 # Network Metrics
 class NetworkAddress(BaseModel):
     """Schema for network address."""
+
     family: int
     address: str
     netmask: Optional[str] = None
@@ -214,6 +240,7 @@ class NetworkAddress(BaseModel):
 
 class NetworkInterface(BaseModel):
     """Schema for network interface."""
+
     isup: bool
     duplex: int
     speed: int
@@ -223,6 +250,7 @@ class NetworkInterface(BaseModel):
 
 class NetworkIO(BaseModel):
     """Schema for network I/O."""
+
     bytes_sent: int
     bytes_recv: int
     packets_sent: int
@@ -239,6 +267,7 @@ class NetworkIO(BaseModel):
 
 class NetworkMetrics(BaseModel):
     """Schema for network metrics."""
+
     io: NetworkIO
     interfaces: Dict[str, NetworkInterface]
     connections: Dict[str, int]
@@ -247,6 +276,7 @@ class NetworkMetrics(BaseModel):
 # Host Metrics
 class HostMetrics(BaseModel):
     """Schema for host metrics."""
+
     timestamp: str
     cpu: CPUMetrics
     memory: MemoryMetrics
@@ -257,6 +287,7 @@ class HostMetrics(BaseModel):
 # System Information
 class DockerInfo(BaseModel):
     """Schema for Docker information."""
+
     version: str
     containers: int
     running: int
@@ -280,6 +311,7 @@ class DockerInfo(BaseModel):
 
 class SystemInfo(BaseModel):
     """Schema for system information."""
+
     platform: str
     system: str
     release: str
@@ -298,6 +330,7 @@ class SystemInfo(BaseModel):
 # Resource Stats Summary
 class ResourceStatsSummary(BaseModel):
     """Schema for resource stats summary."""
+
     cpu_usage: float
     cpu_cores: int
     memory_usage_percent: float
@@ -317,6 +350,7 @@ class ResourceStatsSummary(BaseModel):
 # Alert Schemas
 class AlertSeverity(str):
     """Alert severity levels."""
+
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -324,6 +358,7 @@ class AlertSeverity(str):
 
 class AlertMetric(BaseModel):
     """Schema for alert metric."""
+
     name: str
     value: float
     unit: str
@@ -331,6 +366,7 @@ class AlertMetric(BaseModel):
 
 class AlertResource(BaseModel):
     """Schema for alert resource."""
+
     type: str
     id: str
     name: str
@@ -338,6 +374,7 @@ class AlertResource(BaseModel):
 
 class Alert(BaseModel):
     """Schema for alert."""
+
     id: str
     title: str
     description: str

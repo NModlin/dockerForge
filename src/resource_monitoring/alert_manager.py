@@ -3,9 +3,10 @@ Alert manager for the DockerForge Web UI.
 
 This module provides a simple alert manager for handling alerts.
 """
+
 import logging
-from typing import Dict, List, Any
 from datetime import datetime
+from typing import Any, Dict, List
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -15,6 +16,7 @@ class AlertManager:
     """
     Simple alert manager for handling alerts.
     """
+
     def __init__(self):
         """
         Initialize the alert manager.

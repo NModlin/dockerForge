@@ -7,21 +7,22 @@ and optimization recommendations.
 """
 
 import argparse
-import sys
-import os
 import json
+import logging
+import os
+import sys
+import textwrap
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Union
-import logging
-import textwrap
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from src.config.config_manager import ConfigManager
 from src.docker.connection_manager_adapter import ConnectionManager
-from src.resource_monitoring.daemon_manager import DaemonManager
 from src.notifications.notification_manager import NotificationManager
+from src.resource_monitoring.daemon_manager import DaemonManager
 
 logger = logging.getLogger(__name__)
+
 
 class ResourceMonitoringCLI:
     """
@@ -36,9 +37,7 @@ class ResourceMonitoringCLI:
         self.connection_manager = ConnectionManager(self.config_manager)
         self.notification_manager = NotificationManager(self.config_manager)
         self.daemon_manager = DaemonManager(
-            self.config_manager,
-            self.connection_manager,
-            self.notification_manager
+            self.config_manager, self.connection_manager, self.notification_manager
         )
 
     def parse_args(self, args: List[str]) -> argparse.Namespace:
@@ -54,7 +53,8 @@ class ResourceMonitoringCLI:
         parser = argparse.ArgumentParser(
             description="DockerForge Resource Monitoring CLI",
             formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog=textwrap.dedent("""
+            epilog=textwrap.dedent(
+                """
                 Examples:
                   # Start the monitoring daemon
                   python -m src.cli_resource_monitoring start
@@ -85,57 +85,112 @@ class ResourceMonitoringCLI:
 
                   # Generate an HTML optimization report for a specific container
                   python -m src.cli_resource_monitoring report --container-id abc123 --format html --output report.html
-            """)
+            """
+            ),
         )
 
-        subparsers = parser.add_subparsers(dest='command', help='Command to execute')
+        subparsers = parser.add_subparsers(dest="command", help="Command to execute")
 
         # Start command
-        start_parser = subparsers.add_parser('start', help='Start the monitoring daemon')
-        start_parser.add_argument('--foreground', action='store_true', help='Run in the foreground')
+        start_parser = subparsers.add_parser(
+            "start", help="Start the monitoring daemon"
+        )
+        start_parser.add_argument(
+            "--foreground", action="store_true", help="Run in the foreground"
+        )
 
         # Stop command
-        stop_parser = subparsers.add_parser('stop', help='Stop the monitoring daemon')
+        stop_parser = subparsers.add_parser("stop", help="Stop the monitoring daemon")
 
         # Restart command
-        restart_parser = subparsers.add_parser('restart', help='Restart the monitoring daemon')
-        restart_parser.add_argument('--foreground', action='store_true', help='Run in the foreground')
+        restart_parser = subparsers.add_parser(
+            "restart", help="Restart the monitoring daemon"
+        )
+        restart_parser.add_argument(
+            "--foreground", action="store_true", help="Run in the foreground"
+        )
 
         # Status command
-        status_parser = subparsers.add_parser('status', help='Show the daemon status')
-        status_parser.add_argument('--json', action='store_true', help='Output in JSON format')
+        status_parser = subparsers.add_parser("status", help="Show the daemon status")
+        status_parser.add_argument(
+            "--json", action="store_true", help="Output in JSON format"
+        )
 
         # Metrics command
-        metrics_parser = subparsers.add_parser('metrics', help='Show container metrics')
-        metrics_parser.add_argument('--container-id', help='Container ID to filter by')
-        metrics_parser.add_argument('--metric-type', choices=['cpu', 'memory', 'disk', 'network'], help='Metric type to filter by')
-        metrics_parser.add_argument('--start-time', help='Start time (ISO format)')
-        metrics_parser.add_argument('--end-time', help='End time (ISO format)')
-        metrics_parser.add_argument('--json', action='store_true', help='Output in JSON format')
+        metrics_parser = subparsers.add_parser("metrics", help="Show container metrics")
+        metrics_parser.add_argument("--container-id", help="Container ID to filter by")
+        metrics_parser.add_argument(
+            "--metric-type",
+            choices=["cpu", "memory", "disk", "network"],
+            help="Metric type to filter by",
+        )
+        metrics_parser.add_argument("--start-time", help="Start time (ISO format)")
+        metrics_parser.add_argument("--end-time", help="End time (ISO format)")
+        metrics_parser.add_argument(
+            "--json", action="store_true", help="Output in JSON format"
+        )
 
         # Anomalies command
-        anomalies_parser = subparsers.add_parser('anomalies', help='Show detected anomalies')
-        anomalies_parser.add_argument('--container-id', help='Container ID to filter by')
-        anomalies_parser.add_argument('--metric-type', choices=['cpu', 'memory', 'disk', 'network'], help='Metric type to filter by')
-        anomalies_parser.add_argument('--start-time', help='Start time (ISO format)')
-        anomalies_parser.add_argument('--end-time', help='End time (ISO format)')
-        anomalies_parser.add_argument('--severity', type=int, choices=[1, 2, 3], help='Severity level to filter by')
-        anomalies_parser.add_argument('--json', action='store_true', help='Output in JSON format')
+        anomalies_parser = subparsers.add_parser(
+            "anomalies", help="Show detected anomalies"
+        )
+        anomalies_parser.add_argument(
+            "--container-id", help="Container ID to filter by"
+        )
+        anomalies_parser.add_argument(
+            "--metric-type",
+            choices=["cpu", "memory", "disk", "network"],
+            help="Metric type to filter by",
+        )
+        anomalies_parser.add_argument("--start-time", help="Start time (ISO format)")
+        anomalies_parser.add_argument("--end-time", help="End time (ISO format)")
+        anomalies_parser.add_argument(
+            "--severity",
+            type=int,
+            choices=[1, 2, 3],
+            help="Severity level to filter by",
+        )
+        anomalies_parser.add_argument(
+            "--json", action="store_true", help="Output in JSON format"
+        )
 
         # Recommendations command
-        recommendations_parser = subparsers.add_parser('recommendations', help='Show optimization recommendations')
-        recommendations_parser.add_argument('--container-id', help='Container ID to filter by')
-        recommendations_parser.add_argument('--type', choices=['sizing', 'performance', 'cost'], help='Recommendation type to filter by')
-        recommendations_parser.add_argument('--resource', choices=['cpu', 'memory', 'disk', 'network', 'general'], help='Resource type to filter by')
-        recommendations_parser.add_argument('--start-time', help='Start time (ISO format)')
-        recommendations_parser.add_argument('--end-time', help='End time (ISO format)')
-        recommendations_parser.add_argument('--json', action='store_true', help='Output in JSON format')
+        recommendations_parser = subparsers.add_parser(
+            "recommendations", help="Show optimization recommendations"
+        )
+        recommendations_parser.add_argument(
+            "--container-id", help="Container ID to filter by"
+        )
+        recommendations_parser.add_argument(
+            "--type",
+            choices=["sizing", "performance", "cost"],
+            help="Recommendation type to filter by",
+        )
+        recommendations_parser.add_argument(
+            "--resource",
+            choices=["cpu", "memory", "disk", "network", "general"],
+            help="Resource type to filter by",
+        )
+        recommendations_parser.add_argument(
+            "--start-time", help="Start time (ISO format)"
+        )
+        recommendations_parser.add_argument("--end-time", help="End time (ISO format)")
+        recommendations_parser.add_argument(
+            "--json", action="store_true", help="Output in JSON format"
+        )
 
         # Report command
-        report_parser = subparsers.add_parser('report', help='Generate an optimization report')
-        report_parser.add_argument('--container-id', help='Container ID to filter by')
-        report_parser.add_argument('--format', choices=['text', 'json', 'html'], default='text', help='Output format')
-        report_parser.add_argument('--output', help='Output file path')
+        report_parser = subparsers.add_parser(
+            "report", help="Generate an optimization report"
+        )
+        report_parser.add_argument("--container-id", help="Container ID to filter by")
+        report_parser.add_argument(
+            "--format",
+            choices=["text", "json", "html"],
+            default="text",
+            help="Output format",
+        )
+        report_parser.add_argument("--output", help="Output file path")
 
         return parser.parse_args(args)
 
@@ -157,45 +212,43 @@ class ResourceMonitoringCLI:
 
         try:
             # Execute the appropriate command
-            if parsed_args.command == 'start':
+            if parsed_args.command == "start":
                 return self.start_daemon(parsed_args.foreground)
-            elif parsed_args.command == 'stop':
+            elif parsed_args.command == "stop":
                 return self.stop_daemon()
-            elif parsed_args.command == 'restart':
+            elif parsed_args.command == "restart":
                 return self.restart_daemon(parsed_args.foreground)
-            elif parsed_args.command == 'status':
+            elif parsed_args.command == "status":
                 return self.show_status(parsed_args.json)
-            elif parsed_args.command == 'metrics':
+            elif parsed_args.command == "metrics":
                 return self.show_metrics(
                     parsed_args.container_id,
                     parsed_args.metric_type,
                     parsed_args.start_time,
                     parsed_args.end_time,
-                    parsed_args.json
+                    parsed_args.json,
                 )
-            elif parsed_args.command == 'anomalies':
+            elif parsed_args.command == "anomalies":
                 return self.show_anomalies(
                     parsed_args.container_id,
                     parsed_args.metric_type,
                     parsed_args.start_time,
                     parsed_args.end_time,
                     parsed_args.severity,
-                    parsed_args.json
+                    parsed_args.json,
                 )
-            elif parsed_args.command == 'recommendations':
+            elif parsed_args.command == "recommendations":
                 return self.show_recommendations(
                     parsed_args.container_id,
-                    getattr(parsed_args, 'type', None),  # 'type' is a Python keyword
+                    getattr(parsed_args, "type", None),  # 'type' is a Python keyword
                     parsed_args.resource,
                     parsed_args.start_time,
                     parsed_args.end_time,
-                    parsed_args.json
+                    parsed_args.json,
                 )
-            elif parsed_args.command == 'report':
+            elif parsed_args.command == "report":
                 return self.generate_report(
-                    parsed_args.container_id,
-                    parsed_args.format,
-                    parsed_args.output
+                    parsed_args.container_id, parsed_args.format, parsed_args.output
                 )
             else:
                 print(f"Error: Unknown command '{parsed_args.command}'")
@@ -269,7 +322,9 @@ class ResourceMonitoringCLI:
         Returns:
             Exit code
         """
-        print(f"Restarting monitoring daemon{' in foreground' if foreground else ''}...")
+        print(
+            f"Restarting monitoring daemon{' in foreground' if foreground else ''}..."
+        )
         self.daemon_manager.restart(foreground)
 
         if not foreground:
@@ -297,7 +352,7 @@ class ResourceMonitoringCLI:
         """
         if not self.daemon_manager.is_running():
             if json_output:
-                print(json.dumps({'running': False}, indent=2))
+                print(json.dumps({"running": False}, indent=2))
             else:
                 print("Daemon is not running")
             return 0
@@ -310,21 +365,26 @@ class ResourceMonitoringCLI:
             print("Daemon Status:")
             print(f"  Running: {status['running']}")
             print(f"  PID: {status['pid']}")
-            print(f"  Last Updated: {datetime.fromtimestamp(status['last_updated']).strftime('%Y-%m-%d %H:%M:%S')}")
+            print(
+                f"  Last Updated: {datetime.fromtimestamp(status['last_updated']).strftime('%Y-%m-%d %H:%M:%S')}"
+            )
             print("\nComponents:")
 
-            for component, component_status in status['components'].items():
+            for component, component_status in status["components"].items():
                 print(f"  {component.replace('_', ' ').title()}:")
                 for key, value in component_status.items():
                     print(f"    {key.replace('_', ' ').title()}: {value}")
 
         return 0
 
-    def show_metrics(self, container_id: Optional[str] = None,
-                    metric_type: Optional[str] = None,
-                    start_time: Optional[str] = None,
-                    end_time: Optional[str] = None,
-                    json_output: bool = False) -> int:
+    def show_metrics(
+        self,
+        container_id: Optional[str] = None,
+        metric_type: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        json_output: bool = False,
+    ) -> int:
         """
         Show container metrics.
 
@@ -346,7 +406,7 @@ class ResourceMonitoringCLI:
             container_id=container_id,
             metric_type=metric_type,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         if not metrics:
@@ -364,22 +424,29 @@ class ResourceMonitoringCLI:
                 for metric_type, metric_data in container_metrics.items():
                     print(f"  {metric_type.capitalize()} Metrics:")
 
-                    for i, entry in enumerate(metric_data[:5]):  # Show only the first 5 entries
+                    for i, entry in enumerate(
+                        metric_data[:5]
+                    ):  # Show only the first 5 entries
                         print(f"    Entry {i+1}:")
                         print(f"      Timestamp: {entry['timestamp']}")
-                        print(f"      Data: {json.dumps(entry['data'], indent=8)[:100]}...")
+                        print(
+                            f"      Data: {json.dumps(entry['data'], indent=8)[:100]}..."
+                        )
 
                     if len(metric_data) > 5:
                         print(f"    ... and {len(metric_data) - 5} more entries")
 
         return 0
 
-    def show_anomalies(self, container_id: Optional[str] = None,
-                      metric_type: Optional[str] = None,
-                      start_time: Optional[str] = None,
-                      end_time: Optional[str] = None,
-                      severity: Optional[int] = None,
-                      json_output: bool = False) -> int:
+    def show_anomalies(
+        self,
+        container_id: Optional[str] = None,
+        metric_type: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        severity: Optional[int] = None,
+        json_output: bool = False,
+    ) -> int:
         """
         Show detected anomalies.
 
@@ -403,7 +470,7 @@ class ResourceMonitoringCLI:
             metric_type=metric_type,
             start_time=start_time,
             end_time=end_time,
-            severity=severity
+            severity=severity,
         )
 
         if not anomalies:
@@ -422,31 +489,46 @@ class ResourceMonitoringCLI:
                 # Group anomalies by type
                 anomalies_by_type = {}
                 for anomaly in container_anomalies:
-                    anomaly_type = anomaly.get('type', 'unknown')
+                    anomaly_type = anomaly.get("type", "unknown")
                     if anomaly_type not in anomalies_by_type:
                         anomalies_by_type[anomaly_type] = []
                     anomalies_by_type[anomaly_type].append(anomaly)
 
                 for anomaly_type, type_anomalies in anomalies_by_type.items():
-                    print(f"  {anomaly_type.capitalize()} Anomalies: {len(type_anomalies)}")
+                    print(
+                        f"  {anomaly_type.capitalize()} Anomalies: {len(type_anomalies)}"
+                    )
 
-                    for i, anomaly in enumerate(type_anomalies[:3]):  # Show only the first 3 anomalies of each type
-                        print(f"    {i+1}. {anomaly.get('description', 'No description')}")
-                        print(f"       Timestamp: {anomaly.get('timestamp', 'Unknown')}")
+                    for i, anomaly in enumerate(
+                        type_anomalies[:3]
+                    ):  # Show only the first 3 anomalies of each type
+                        print(
+                            f"    {i+1}. {anomaly.get('description', 'No description')}"
+                        )
+                        print(
+                            f"       Timestamp: {anomaly.get('timestamp', 'Unknown')}"
+                        )
                         print(f"       Severity: {anomaly.get('severity', 'Unknown')}")
-                        print(f"       Metric Type: {anomaly.get('metric_type', 'Unknown')}")
+                        print(
+                            f"       Metric Type: {anomaly.get('metric_type', 'Unknown')}"
+                        )
 
                     if len(type_anomalies) > 3:
-                        print(f"    ... and {len(type_anomalies) - 3} more {anomaly_type} anomalies")
+                        print(
+                            f"    ... and {len(type_anomalies) - 3} more {anomaly_type} anomalies"
+                        )
 
         return 0
 
-    def show_recommendations(self, container_id: Optional[str] = None,
-                            recommendation_type: Optional[str] = None,
-                            resource: Optional[str] = None,
-                            start_time: Optional[str] = None,
-                            end_time: Optional[str] = None,
-                            json_output: bool = False) -> int:
+    def show_recommendations(
+        self,
+        container_id: Optional[str] = None,
+        recommendation_type: Optional[str] = None,
+        resource: Optional[str] = None,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        json_output: bool = False,
+    ) -> int:
         """
         Show optimization recommendations.
 
@@ -470,7 +552,7 @@ class ResourceMonitoringCLI:
             recommendation_type=recommendation_type,
             resource=resource,
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         if not recommendations:
@@ -489,37 +571,50 @@ class ResourceMonitoringCLI:
                 # Group recommendations by type
                 recs_by_type = {}
                 for rec in container_recs:
-                    rec_type = rec.get('type', 'unknown')
+                    rec_type = rec.get("type", "unknown")
                     if rec_type not in recs_by_type:
                         recs_by_type[rec_type] = []
                     recs_by_type[rec_type].append(rec)
 
                 for rec_type, type_recs in recs_by_type.items():
-                    print(f"  {rec_type.capitalize()} Recommendations: {len(type_recs)}")
+                    print(
+                        f"  {rec_type.capitalize()} Recommendations: {len(type_recs)}"
+                    )
 
-                    for i, rec in enumerate(type_recs[:3]):  # Show only the first 3 recommendations of each type
+                    for i, rec in enumerate(
+                        type_recs[:3]
+                    ):  # Show only the first 3 recommendations of each type
                         print(f"    {i+1}. {rec.get('description', 'No description')}")
                         print(f"       Impact: {rec.get('impact', 'Unknown')}")
                         print(f"       Resource: {rec.get('resource', 'Unknown')}")
 
-                        if 'command' in rec:
+                        if "command" in rec:
                             print(f"       Command: {rec['command']}")
 
-                        if 'suggestions' in rec:
+                        if "suggestions" in rec:
                             print("       Suggestions:")
-                            for suggestion in rec['suggestions'][:2]:  # Show only the first 2 suggestions
+                            for suggestion in rec["suggestions"][
+                                :2
+                            ]:  # Show only the first 2 suggestions
                                 print(f"         - {suggestion}")
-                            if len(rec['suggestions']) > 2:
-                                print(f"         ... and {len(rec['suggestions']) - 2} more suggestions")
+                            if len(rec["suggestions"]) > 2:
+                                print(
+                                    f"         ... and {len(rec['suggestions']) - 2} more suggestions"
+                                )
 
                     if len(type_recs) > 3:
-                        print(f"    ... and {len(type_recs) - 3} more {rec_type} recommendations")
+                        print(
+                            f"    ... and {len(type_recs) - 3} more {rec_type} recommendations"
+                        )
 
         return 0
 
-    def generate_report(self, container_id: Optional[str] = None,
-                       format: str = 'text',
-                       output_file: Optional[str] = None) -> int:
+    def generate_report(
+        self,
+        container_id: Optional[str] = None,
+        format: str = "text",
+        output_file: Optional[str] = None,
+    ) -> int:
         """
         Generate an optimization report.
 
@@ -536,8 +631,7 @@ class ResourceMonitoringCLI:
             return 1
 
         report = self.daemon_manager.generate_optimization_report(
-            container_id=container_id,
-            format=format
+            container_id=container_id, format=format
         )
 
         if not report or report == "No optimization recommendations available.":
@@ -546,7 +640,7 @@ class ResourceMonitoringCLI:
 
         if output_file:
             # Write report to file
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write(report)
             print(f"Report written to {output_file}")
         else:
@@ -554,6 +648,7 @@ class ResourceMonitoringCLI:
             print(report)
 
         return 0
+
 
 def main() -> int:
     """
@@ -565,5 +660,6 @@ def main() -> int:
     cli = ResourceMonitoringCLI()
     return cli.run(sys.argv[1:])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

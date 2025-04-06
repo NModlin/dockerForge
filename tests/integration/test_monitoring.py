@@ -2,25 +2,26 @@
 DockerForge Integration Tests - Monitoring Functionality
 """
 
-import pytest
 import os
+import subprocess
 import sys
 import time
-import subprocess
 from pathlib import Path
+
+import pytest
 
 # Add the src directory to the path so we can import the modules
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 # Import the necessary modules
 try:
-    from monitoring.log_collector import LogCollector
-    from monitoring.log_analyzer import LogAnalyzer
-    from monitoring.pattern_recognition import PatternRecognition
     from monitoring.issue_detector import IssueDetector
+    from monitoring.log_analyzer import LogAnalyzer
+    from monitoring.log_collector import LogCollector
+    from monitoring.pattern_recognition import PatternRecognition
     from monitoring.recommendation_engine import RecommendationEngine
-    from resource_monitoring.metrics_collector import MetricsCollector
     from resource_monitoring.anomaly_detector import AnomalyDetector
+    from resource_monitoring.metrics_collector import MetricsCollector
 except ImportError as e:
     print(f"Import error: {e}")
     print("These tests may be running in a limited environment.")
@@ -36,18 +37,26 @@ class TestMonitoringFunctionality:
         self.test_dir = Path(__file__).parent
         self.project_root = self.test_dir.parent.parent
         self.test_container_name = "dockerforge-test-container"
-        
+
         # Check if we need to create a test container
         self.container_created = False
         try:
             # Try to run a simple container for testing
             subprocess.run(
                 [
-                    "docker", "run", "-d", "--name", self.test_container_name,
-                    "--rm", "alpine", "sh", "-c", "while true; do echo 'test log message'; sleep 1; done"
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    self.test_container_name,
+                    "--rm",
+                    "alpine",
+                    "sh",
+                    "-c",
+                    "while true; do echo 'test log message'; sleep 1; done",
                 ],
                 check=True,
-                capture_output=True
+                capture_output=True,
             )
             self.container_created = True
         except subprocess.CalledProcessError:
@@ -64,7 +73,7 @@ class TestMonitoringFunctionality:
                 subprocess.run(
                     ["docker", "stop", self.test_container_name],
                     check=False,
-                    capture_output=True
+                    capture_output=True,
                 )
             except Exception as e:
                 print(f"Failed to stop test container: {e}")
@@ -83,7 +92,7 @@ class TestMonitoringFunctionality:
         """Test log collection from a container"""
         if not self.container_created:
             pytest.skip("Test container not available")
-            
+
         try:
             log_collector = LogCollector()
             logs = log_collector.collect_logs(self.test_container_name, max_lines=10)
@@ -102,7 +111,7 @@ class TestMonitoringFunctionality:
             sample_log = [
                 "2023-01-01T00:00:00Z Error: Connection refused",
                 "2023-01-01T00:00:01Z Warning: High memory usage",
-                "2023-01-01T00:00:02Z Info: Container started"
+                "2023-01-01T00:00:02Z Info: Container started",
             ]
             patterns = pattern_recognition.find_patterns(sample_log)
             assert patterns is not None
@@ -121,7 +130,7 @@ class TestMonitoringFunctionality:
             sample_log = [
                 "2023-01-01T00:00:00Z Error: Connection refused",
                 "2023-01-01T00:00:01Z Warning: High memory usage",
-                "2023-01-01T00:00:02Z Error: Connection refused"
+                "2023-01-01T00:00:02Z Error: Connection refused",
             ]
             issues = issue_detector.detect_issues(sample_log)
             assert issues is not None
@@ -141,9 +150,11 @@ class TestMonitoringFunctionality:
                 "type": "connection_refused",
                 "severity": "high",
                 "count": 2,
-                "context": ["Error: Connection refused"]
+                "context": ["Error: Connection refused"],
             }
-            recommendations = recommendation_engine.generate_recommendations([sample_issue])
+            recommendations = recommendation_engine.generate_recommendations(
+                [sample_issue]
+            )
             assert recommendations is not None
             # Check that we generated at least one recommendation
             assert len(recommendations) > 0
@@ -166,7 +177,7 @@ class TestMonitoringFunctionality:
         """Test metrics collection from a container"""
         if not self.container_created:
             pytest.skip("Test container not available")
-            
+
         try:
             metrics_collector = MetricsCollector()
             metrics = metrics_collector.collect_metrics(self.test_container_name)
@@ -186,7 +197,7 @@ class TestMonitoringFunctionality:
             # Create sample metrics with an anomaly
             sample_metrics = {
                 "cpu": [10, 15, 20, 90, 25],  # 90 is an anomaly
-                "memory": [200, 210, 220, 230, 240]
+                "memory": [200, 210, 220, 230, 240],
             }
             anomalies = anomaly_detector.detect_anomalies(sample_metrics)
             assert anomalies is not None
@@ -204,7 +215,7 @@ class TestMonitoringFunctionality:
             ["python", "-m", "dockerforge", "monitor", "--help"],
             cwd=self.project_root,
             capture_output=True,
-            text=True
+            text=True,
         )
         # Check that the command executed successfully
         assert result.returncode == 0

@@ -5,21 +5,22 @@ This module provides functionality to analyze container logs using AI,
 identify issues, and generate recommendations.
 """
 
-import os
 import json
 import logging
+import os
 import time
-from typing import Dict, Any, List, Optional, Tuple, Set, Union
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from dataclasses import dataclass, field, asdict
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from src.config.config_manager import get_config
-from src.utils.logging_manager import get_logger
-from src.core.ai_provider import get_ai_provider, AIProviderError
+from src.core.ai_provider import AIProviderError, get_ai_provider
 from src.monitoring.log_collector import LogEntry, get_log_collection_manager
 from src.monitoring.pattern_recognition import (
-    PatternMatch, get_pattern_recognition_engine
+    PatternMatch,
+    get_pattern_recognition_engine,
 )
+from src.utils.logging_manager import get_logger
 
 logger = get_logger("log_analyzer")
 
@@ -27,7 +28,7 @@ logger = get_logger("log_analyzer")
 @dataclass
 class AnalysisResult:
     """Result of log analysis."""
-    
+
     container_id: str
     container_name: str
     timestamp: datetime
@@ -39,42 +40,42 @@ class AnalysisResult:
     ai_model: str
     analysis_duration: float  # in seconds
     log_count: int
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert analysis result to dictionary.
-        
+
         Returns:
             Dict[str, Any]: Analysis result as dictionary
         """
         result = asdict(self)
         result["timestamp"] = result["timestamp"].isoformat()
         return result
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "AnalysisResult":
         """
         Create analysis result from dictionary.
-        
+
         Args:
             data: Dictionary with analysis result data
-            
+
         Returns:
             AnalysisResult: Analysis result
         """
         data = data.copy()
         data["timestamp"] = datetime.fromisoformat(data["timestamp"])
-        
+
         return cls(**data)
 
 
 class LogAnalyzer:
     """Analyzer for container logs using AI."""
-    
+
     def __init__(self, ai_provider_name: Optional[str] = None):
         """
         Initialize log analyzer.
-        
+
         Args:
             ai_provider_name: AI provider name (default: from config)
         """
@@ -83,27 +84,26 @@ class LogAnalyzer:
         except AIProviderError as e:
             logger.warning(f"AI provider error: {str(e)}")
             self.ai_provider = None
-        
+
         self.log_collection_manager = get_log_collection_manager()
         self.pattern_recognition_engine = get_pattern_recognition_engine()
-        
+
         # Analysis history
         self.analysis_history: List[AnalysisResult] = []
         self.max_history_size = get_config("monitoring.max_analysis_history", 100)
-        
+
         # Analysis templates
         self.templates_dir = get_config(
-            "monitoring.templates_dir",
-            os.path.expanduser("~/.dockerforge/templates")
+            "monitoring.templates_dir", os.path.expanduser("~/.dockerforge/templates")
         )
-        
+
         # Load analysis templates
         self.templates = self._load_templates()
-    
+
     def _load_templates(self) -> Dict[str, Dict[str, Any]]:
         """
         Load analysis templates.
-        
+
         Returns:
             Dict[str, Dict[str, Any]]: Analysis templates
         """
@@ -140,8 +140,8 @@ class LogAnalyzer:
                             "description": "Detailed description of the recommendation",
                             "steps": ["Step 1", "Step 2", "..."],
                         }
-                    ]
-                }
+                    ],
+                },
             },
             "error_analysis": {
                 "name": "Error Analysis",
@@ -174,8 +174,8 @@ class LogAnalyzer:
                             "steps": ["Step 1", "Step 2", "..."],
                             "code_example": "Example code fix if applicable",
                         }
-                    ]
-                }
+                    ],
+                },
             },
             "performance_analysis": {
                 "name": "Performance Analysis",
@@ -212,8 +212,8 @@ class LogAnalyzer:
                             "expected_improvement": "Expected performance improvement",
                             "steps": ["Step 1", "Step 2", "..."],
                         }
-                    ]
-                }
+                    ],
+                },
             },
             "security_analysis": {
                 "name": "Security Analysis",
@@ -247,17 +247,17 @@ class LogAnalyzer:
                             "priority": "high|medium|low",
                             "steps": ["Step 1", "Step 2", "..."],
                         }
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         }
-        
+
         # Check if templates directory exists
         if not os.path.exists(self.templates_dir):
             try:
                 os.makedirs(self.templates_dir, exist_ok=True)
                 logger.info(f"Created templates directory: {self.templates_dir}")
-                
+
                 # Save default templates
                 for template_id, template in templates.items():
                     file_path = os.path.join(self.templates_dir, f"{template_id}.json")
@@ -279,20 +279,22 @@ class LogAnalyzer:
                                 templates[template_id] = template_data
                                 logger.debug(f"Loaded template from {file_path}")
                         except Exception as e:
-                            logger.error(f"Error loading template from {file_path}: {str(e)}")
+                            logger.error(
+                                f"Error loading template from {file_path}: {str(e)}"
+                            )
             except Exception as e:
                 logger.error(f"Error loading templates from directory: {str(e)}")
-        
+
         return templates
-    
+
     def save_template(self, template_id: str, template: Dict[str, Any]) -> bool:
         """
         Save an analysis template.
-        
+
         Args:
             template_id: Template ID
             template: Template data
-            
+
         Returns:
             bool: True if the template was saved
         """
@@ -302,42 +304,42 @@ class LogAnalyzer:
             except Exception as e:
                 logger.error(f"Error creating templates directory: {str(e)}")
                 return False
-        
+
         try:
             file_path = os.path.join(self.templates_dir, f"{template_id}.json")
             with open(file_path, "w") as f:
                 json.dump(template, f, indent=2)
-            
+
             # Update templates dictionary
             self.templates[template_id] = template
-            
+
             logger.debug(f"Saved template to {file_path}")
             return True
         except Exception as e:
             logger.error(f"Error saving template: {str(e)}")
             return False
-    
+
     def get_template(self, template_id: str) -> Optional[Dict[str, Any]]:
         """
         Get an analysis template.
-        
+
         Args:
             template_id: Template ID
-            
+
         Returns:
             Optional[Dict[str, Any]]: Template data or None
         """
         return self.templates.get(template_id)
-    
+
     def get_all_templates(self) -> Dict[str, Dict[str, Any]]:
         """
         Get all analysis templates.
-        
+
         Returns:
             Dict[str, Dict[str, Any]]: All templates
         """
         return self.templates
-    
+
     def analyze_container_logs(
         self,
         container_id: str,
@@ -349,7 +351,7 @@ class LogAnalyzer:
     ) -> AnalysisResult:
         """
         Analyze logs for a specific container.
-        
+
         Args:
             container_id: Container ID
             template_id: Analysis template ID
@@ -357,10 +359,10 @@ class LogAnalyzer:
             until: Include logs until this timestamp
             limit: Maximum number of logs to analyze
             confirm_cost: Whether to confirm cost before analysis
-            
+
         Returns:
             AnalysisResult: Analysis result
-            
+
         Raises:
             ValueError: If container not found or AI provider not available
         """
@@ -369,7 +371,7 @@ class LogAnalyzer:
                 self.ai_provider = get_ai_provider()
             except AIProviderError as e:
                 raise ValueError(f"AI provider not available: {str(e)}")
-        
+
         # Get template
         template = self.get_template(template_id)
         if not template:
@@ -377,7 +379,7 @@ class LogAnalyzer:
             template = self.get_template("default")
             if not template:
                 raise ValueError("Default template not found")
-        
+
         # Get container logs
         start_time = time.time()
         logs = self.log_collection_manager.get_container_logs(
@@ -386,22 +388,22 @@ class LogAnalyzer:
             until=until,
             limit=limit,
         )
-        
+
         if not logs:
             raise ValueError(f"No logs found for container {container_id}")
-        
+
         # Get container name
         container_name = logs[0].container_name
-        
+
         # Get pattern matches
         pattern_matches = []
         for log_entry in logs:
             matches = self.pattern_recognition_engine.process_log(log_entry)
             pattern_matches.extend(matches)
-        
+
         # Prepare logs for analysis
         log_text = "\n".join(str(log) for log in logs)
-        
+
         # Prepare pattern matches for analysis
         pattern_matches_text = ""
         if pattern_matches:
@@ -414,7 +416,7 @@ class LogAnalyzer:
                         f"  Match: {match.match_text}\n"
                         f"  Log: {match.log_entry}\n\n"
                     )
-        
+
         # Prepare context for AI analysis
         context = {
             "container_id": container_id,
@@ -427,28 +429,28 @@ class LogAnalyzer:
             "logs": log_text,
             "pattern_matches": pattern_matches_text,
         }
-        
+
         # Prepare query
         system_prompt = template.get("system_prompt", "")
         prompt = template.get("prompt", "")
         output_format = template.get("output_format", {})
-        
+
         query = (
             f"{prompt}\n\n"
             f"Please provide your analysis in the following JSON format:\n"
             f"{json.dumps(output_format, indent=2)}\n\n"
         )
-        
+
         # Estimate cost
         if confirm_cost:
             # Convert context to string for cost estimation
             context_str = json.dumps(context, indent=2)
-            
+
             # Estimate cost
             cost_info = self.ai_provider.estimate_cost(
                 context_str + "\n\n" + system_prompt + "\n\n" + query
             )
-            
+
             # Log cost information
             logger.info(
                 f"Estimated cost for log analysis: "
@@ -456,19 +458,21 @@ class LogAnalyzer:
                 f"({cost_info['input_tokens']} input tokens, "
                 f"{cost_info['output_tokens']} output tokens)"
             )
-            
+
             # Confirm cost
             if not self.ai_provider.confirm_cost(cost_info):
                 raise ValueError(
                     f"Analysis cost exceeds budget limits: "
                     f"${cost_info['estimated_cost_usd']:.4f}"
                 )
-        
+
         # Analyze with AI
         # Check if the provider supports system_prompt parameter
-        provider_capabilities = getattr(self.ai_provider, 'report_capabilities', lambda: {})()
-        
-        if provider_capabilities.get('function_calling', False):
+        provider_capabilities = getattr(
+            self.ai_provider, "report_capabilities", lambda: {}
+        )()
+
+        if provider_capabilities.get("function_calling", False):
             # Provider likely supports system_prompt as a parameter
             try:
                 analysis = self.ai_provider.analyze(
@@ -490,7 +494,7 @@ class LogAnalyzer:
                 context=context,
                 query=combined_query,
             )
-        
+
         # Parse analysis result
         try:
             result_json = json.loads(analysis["analysis"])
@@ -499,7 +503,10 @@ class LogAnalyzer:
             try:
                 # Look for JSON block in markdown
                 import re
-                json_match = re.search(r"```json\n(.*?)\n```", analysis["analysis"], re.DOTALL)
+
+                json_match = re.search(
+                    r"```json\n(.*?)\n```", analysis["analysis"], re.DOTALL
+                )
                 if json_match:
                     result_json = json.loads(json_match.group(1))
                 else:
@@ -516,7 +523,7 @@ class LogAnalyzer:
                     "issues": [],
                     "recommendations": [],
                 }
-        
+
         # Create analysis result
         analysis_result = AnalysisResult(
             container_id=container_id,
@@ -531,43 +538,52 @@ class LogAnalyzer:
             analysis_duration=time.time() - start_time,
             log_count=len(logs),
         )
-        
+
         # Add to history
         self.analysis_history.append(analysis_result)
-        
+
         # Trim history if needed
         if len(self.analysis_history) > self.max_history_size:
-            self.analysis_history = self.analysis_history[-self.max_history_size:]
-        
+            self.analysis_history = self.analysis_history[-self.max_history_size :]
+
         # Record usage if available
         try:
-            if hasattr(self.ai_provider, 'usage_tracker') and self.ai_provider.usage_tracker:
+            if (
+                hasattr(self.ai_provider, "usage_tracker")
+                and self.ai_provider.usage_tracker
+            ):
                 # Extract token counts from response if available
-                input_tokens = cost_info['input_tokens'] if 'input_tokens' in locals() else 0
-                output_tokens = analysis.get('output_tokens', 0)
-                if 'raw_response' in analysis and 'usage' in analysis['raw_response']:
-                    input_tokens = analysis['raw_response']['usage'].get('prompt_tokens', input_tokens)
-                    output_tokens = analysis['raw_response']['usage'].get('completion_tokens', output_tokens)
-                
+                input_tokens = (
+                    cost_info["input_tokens"] if "input_tokens" in locals() else 0
+                )
+                output_tokens = analysis.get("output_tokens", 0)
+                if "raw_response" in analysis and "usage" in analysis["raw_response"]:
+                    input_tokens = analysis["raw_response"]["usage"].get(
+                        "prompt_tokens", input_tokens
+                    )
+                    output_tokens = analysis["raw_response"]["usage"].get(
+                        "completion_tokens", output_tokens
+                    )
+
                 # Calculate cost
                 cost = 0.0
-                if 'estimated_cost_usd' in locals() and 'cost_info' in locals():
-                    cost = cost_info['estimated_cost_usd']
-                
+                if "estimated_cost_usd" in locals() and "cost_info" in locals():
+                    cost = cost_info["estimated_cost_usd"]
+
                 # Record usage
                 self.ai_provider.usage_tracker.record_usage(
-                    provider=analysis['provider'],
-                    model=analysis['model'],
-                    operation='analyze_container_logs',
+                    provider=analysis["provider"],
+                    model=analysis["model"],
+                    operation="analyze_container_logs",
                     input_tokens=input_tokens,
                     output_tokens=output_tokens,
                     cost_usd=cost,
                 )
         except Exception as e:
             logger.debug(f"Error recording usage: {str(e)}")
-        
+
         return analysis_result
-    
+
     def get_analysis_history(
         self,
         container_id: Optional[str] = None,
@@ -576,48 +592,48 @@ class LogAnalyzer:
     ) -> List[AnalysisResult]:
         """
         Get analysis history.
-        
+
         Args:
             container_id: Filter by container ID
             since: Filter by timestamp
             limit: Maximum number of results to return
-            
+
         Returns:
             List[AnalysisResult]: Analysis history
         """
         # Start with all history
         history = self.analysis_history.copy()
-        
+
         # Filter by container ID
         if container_id:
             history = [h for h in history if h.container_id == container_id]
-        
+
         # Filter by timestamp
         if since:
             history = [h for h in history if h.timestamp >= since]
-        
+
         # Sort by timestamp (newest first)
         history.sort(key=lambda h: h.timestamp, reverse=True)
-        
+
         # Apply limit
         if limit and len(history) > limit:
             history = history[:limit]
-        
+
         return history
-    
+
     def get_latest_analysis(self, container_id: str) -> Optional[AnalysisResult]:
         """
         Get the latest analysis for a container.
-        
+
         Args:
             container_id: Container ID
-            
+
         Returns:
             Optional[AnalysisResult]: Latest analysis or None
         """
         history = self.get_analysis_history(container_id=container_id, limit=1)
         return history[0] if history else None
-    
+
     def clear_analysis_history(self) -> None:
         """Clear analysis history."""
         self.analysis_history.clear()
@@ -630,15 +646,15 @@ _log_analyzer = None
 def get_log_analyzer(ai_provider_name: Optional[str] = None) -> LogAnalyzer:
     """
     Get the log analyzer (singleton).
-    
+
     Args:
         ai_provider_name: AI provider name (default: from config)
-        
+
     Returns:
         LogAnalyzer: Log analyzer
     """
     global _log_analyzer
     if _log_analyzer is None:
         _log_analyzer = LogAnalyzer(ai_provider_name)
-    
+
     return _log_analyzer

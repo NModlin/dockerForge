@@ -2,15 +2,15 @@
 Tests for the platform detection module.
 """
 
-import unittest
 import os
 import platform
-from unittest.mock import patch, MagicMock
+import unittest
+from unittest.mock import MagicMock, patch
 
 from src.platforms.platform_detector import (
-    PlatformType,
     InitSystem,
     PlatformInfo,
+    PlatformType,
     get_platform_info,
 )
 

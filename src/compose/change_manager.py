@@ -6,15 +6,16 @@ including automatic backups, diff generation, atomic updates, version history,
 and restore capabilities.
 """
 
-import os
-import shutil
-import tempfile
 import datetime
 import difflib
 import json
-import yaml
-from typing import Dict, List, Optional, Tuple, Any
+import os
+import shutil
+import tempfile
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import yaml
 
 from ..utils.logging_manager import get_logger
 
@@ -41,16 +42,18 @@ class ChangeManager:
         Returns:
             Path to the backup directory
         """
-        backup_dir = self.config.get('backup_dir', os.path.expanduser('~/.dockerforge/backups/compose'))
+        backup_dir = self.config.get(
+            "backup_dir", os.path.expanduser("~/.dockerforge/backups/compose")
+        )
         os.makedirs(backup_dir, exist_ok=True)
         return backup_dir
 
     def _load_history(self) -> None:
         """Load change history from disk."""
-        history_file = os.path.join(self.backup_dir, 'history.json')
+        history_file = os.path.join(self.backup_dir, "history.json")
         if os.path.exists(history_file):
             try:
-                with open(history_file, 'r') as f:
+                with open(history_file, "r") as f:
                     self.history = json.load(f)
                 logger.debug(f"Loaded change history from {history_file}")
             except Exception as e:
@@ -59,9 +62,9 @@ class ChangeManager:
 
     def _save_history(self) -> None:
         """Save change history to disk."""
-        history_file = os.path.join(self.backup_dir, 'history.json')
+        history_file = os.path.join(self.backup_dir, "history.json")
         try:
-            with open(history_file, 'w') as f:
+            with open(history_file, "w") as f:
                 json.dump(self.history, f, indent=2)
             logger.debug(f"Saved change history to {history_file}")
         except Exception as e:
@@ -83,7 +86,7 @@ class ChangeManager:
                 raise FileNotFoundError(f"File not found: {file_path}")
 
             # Create backup filename with timestamp
-            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             file_name = os.path.basename(file_path)
             backup_name = f"{file_name}.{timestamp}.bak"
             backup_path = os.path.join(self.backup_dir, backup_name)
@@ -97,11 +100,13 @@ class ChangeManager:
             if abs_path not in self.history:
                 self.history[abs_path] = []
 
-            self.history[abs_path].append({
-                'timestamp': timestamp,
-                'backup_path': backup_path,
-                'description': description or 'Automatic backup before change',
-            })
+            self.history[abs_path].append(
+                {
+                    "timestamp": timestamp,
+                    "backup_path": backup_path,
+                    "description": description or "Automatic backup before change",
+                }
+            )
 
             # Save history
             self._save_history()
@@ -136,7 +141,7 @@ class ChangeManager:
                 raise FileNotFoundError(f"Backup not found: {backup_path}")
 
             # Create a backup of the current file before restoring
-            self.backup_file(file_path, description='Automatic backup before restore')
+            self.backup_file(file_path, description="Automatic backup before restore")
 
             # Copy backup to original location
             shutil.copy2(backup_path, file_path)
@@ -147,17 +152,21 @@ class ChangeManager:
             if abs_path not in self.history:
                 self.history[abs_path] = []
 
-            self.history[abs_path].append({
-                'timestamp': datetime.datetime.now().strftime('%Y%m%d_%H%M%S'),
-                'backup_path': backup_path,
-                'description': f'Restored from backup {os.path.basename(backup_path)}',
-                'is_restore': True,
-            })
+            self.history[abs_path].append(
+                {
+                    "timestamp": datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+                    "backup_path": backup_path,
+                    "description": f"Restored from backup {os.path.basename(backup_path)}",
+                    "is_restore": True,
+                }
+            )
 
             # Save history
             self._save_history()
         except Exception as e:
-            logger.error(f"Failed to restore {file_path} from backup {backup_path}: {e}")
+            logger.error(
+                f"Failed to restore {file_path} from backup {backup_path}: {e}"
+            )
             raise
 
     def generate_diff(self, file_path: str, backup_path: str = None) -> str:
@@ -180,16 +189,16 @@ class ChangeManager:
                 history = self.get_backup_history(file_path)
                 if not history:
                     raise ValueError(f"No backup history found for {file_path}")
-                backup_path = history[-1]['backup_path']
+                backup_path = history[-1]["backup_path"]
 
             # Ensure backup exists
             if not os.path.exists(backup_path):
                 raise FileNotFoundError(f"Backup not found: {backup_path}")
 
             # Read files
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 current_lines = f.readlines()
-            with open(backup_path, 'r') as f:
+            with open(backup_path, "r") as f:
                 backup_lines = f.readlines()
 
             # Generate diff
@@ -198,15 +207,17 @@ class ChangeManager:
                 current_lines,
                 fromfile=f"a/{os.path.basename(file_path)}",
                 tofile=f"b/{os.path.basename(file_path)}",
-                n=3
+                n=3,
             )
 
-            return ''.join(diff)
+            return "".join(diff)
         except Exception as e:
             logger.error(f"Failed to generate diff for {file_path}: {e}")
             raise
 
-    def update_file(self, file_path: str, new_content: str, description: str = None) -> None:
+    def update_file(
+        self, file_path: str, new_content: str, description: str = None
+    ) -> None:
         """Update a Docker Compose file atomically.
 
         Args:
@@ -223,7 +234,7 @@ class ChangeManager:
             self.backup_file(file_path, description=description)
 
             # Write to a temporary file first
-            with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
                 temp_file.write(new_content)
                 temp_path = temp_file.name
 
@@ -234,7 +245,9 @@ class ChangeManager:
             logger.error(f"Failed to update {file_path}: {e}")
             raise
 
-    def update_yaml(self, file_path: str, yaml_data: Dict, description: str = None) -> None:
+    def update_yaml(
+        self, file_path: str, yaml_data: Dict, description: str = None
+    ) -> None:
         """Update a Docker Compose file with new YAML data.
 
         Args:
@@ -245,7 +258,7 @@ class ChangeManager:
         try:
             # Convert YAML data to string
             yaml_str = yaml.dump(yaml_data, default_flow_style=False, sort_keys=False)
-            
+
             # Update the file
             self.update_file(file_path, yaml_str, description)
         except Exception as e:
@@ -264,7 +277,7 @@ class ChangeManager:
         history = self.get_backup_history(file_path)
         if not history:
             return None
-        return history[-1]['backup_path']
+        return history[-1]["backup_path"]
 
     def cleanup_old_backups(self, file_path: str, max_backups: int = 10) -> None:
         """Clean up old backups for a Docker Compose file.
@@ -276,20 +289,20 @@ class ChangeManager:
         try:
             abs_path = os.path.abspath(file_path)
             history = self.history.get(abs_path, [])
-            
+
             # If we have more backups than the maximum, remove the oldest ones
             if len(history) > max_backups:
                 # Sort by timestamp
-                history.sort(key=lambda x: x['timestamp'])
-                
+                history.sort(key=lambda x: x["timestamp"])
+
                 # Remove oldest backups
                 backups_to_remove = history[:-max_backups]
                 for backup in backups_to_remove:
-                    backup_path = backup['backup_path']
+                    backup_path = backup["backup_path"]
                     if os.path.exists(backup_path):
                         os.remove(backup_path)
                         logger.debug(f"Removed old backup: {backup_path}")
-                
+
                 # Update history
                 self.history[abs_path] = history[-max_backups:]
                 self._save_history()

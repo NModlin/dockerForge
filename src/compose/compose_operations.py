@@ -6,16 +6,17 @@ including up/down operations, service updates, configuration validation, health 
 and controlled restarts.
 """
 
+import json
 import os
 import subprocess
 import time
-import json
-import yaml
-from typing import Dict, List, Any, Optional, Tuple, Union
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..utils.logging_manager import get_logger
+import yaml
+
 from ..docker.connection_manager import DockerConnectionManager
+from ..utils.logging_manager import get_logger
 
 logger = get_logger(__name__)
 
@@ -23,7 +24,9 @@ logger = get_logger(__name__)
 class ComposeOperations:
     """Integrate with Docker Compose operations."""
 
-    def __init__(self, config: Dict = None, docker_connection: DockerConnectionManager = None):
+    def __init__(
+        self, config: Dict = None, docker_connection: DockerConnectionManager = None
+    ):
         """Initialize ComposeOperations.
 
         Args:
@@ -44,36 +47,38 @@ class ComposeOperations:
         try:
             # Try docker compose (new style)
             result = subprocess.run(
-                ['docker', 'compose', 'version'],
+                ["docker", "compose", "version"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
             if result.returncode == 0:
                 logger.debug("Using 'docker compose' command")
-                return 'docker compose'
+                return "docker compose"
         except Exception:
             pass
 
         try:
             # Try docker-compose (old style)
             result = subprocess.run(
-                ['docker-compose', '--version'],
+                ["docker-compose", "--version"],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
             if result.returncode == 0:
                 logger.debug("Using 'docker-compose' command")
-                return 'docker-compose'
+                return "docker-compose"
         except Exception:
             pass
 
         # Default to new style
-        logger.warning("Could not determine Docker Compose command, defaulting to 'docker compose'")
-        return 'docker compose'
+        logger.warning(
+            "Could not determine Docker Compose command, defaulting to 'docker compose'"
+        )
+        return "docker compose"
 
     def validate_compose_file(self, file_path: str) -> Tuple[bool, List[str]]:
         """Validate a Docker Compose file.
@@ -87,25 +92,33 @@ class ComposeOperations:
         try:
             # Run docker-compose config to validate
             result = subprocess.run(
-                f'{self.compose_command} -f {file_path} config --quiet',
+                f"{self.compose_command} -f {file_path} config --quiet",
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 logger.info(f"Docker Compose file {file_path} is valid")
                 return True, []
             else:
-                logger.warning(f"Docker Compose file {file_path} is invalid: {result.stderr}")
-                return False, result.stderr.strip().split('\n')
+                logger.warning(
+                    f"Docker Compose file {file_path} is invalid: {result.stderr}"
+                )
+                return False, result.stderr.strip().split("\n")
         except Exception as e:
             logger.error(f"Failed to validate Docker Compose file {file_path}: {e}")
             return False, [str(e)]
 
-    def up(self, file_path: str, services: List[str] = None, detach: bool = True, build: bool = False) -> Tuple[bool, str]:
+    def up(
+        self,
+        file_path: str,
+        services: List[str] = None,
+        detach: bool = True,
+        build: bool = False,
+    ) -> Tuple[bool, str]:
         """Start services defined in a Docker Compose file.
 
         Args:
@@ -119,21 +132,21 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path}'
-            
+            cmd = f"{self.compose_command} -f {file_path}"
+
             # Add options
             if detach:
-                cmd += ' -d'
-            
+                cmd += " -d"
+
             if build:
-                cmd += ' --build'
-            
-            cmd += ' up'
-            
+                cmd += " --build"
+
+            cmd += " up"
+
             # Add services if specified
             if services:
-                cmd += ' ' + ' '.join(services)
-            
+                cmd += " " + " ".join(services)
+
             # Run command
             logger.info(f"Starting Docker Compose services: {cmd}")
             result = subprocess.run(
@@ -142,20 +155,24 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 logger.info(f"Docker Compose services started successfully")
                 return True, result.stdout
             else:
-                logger.warning(f"Failed to start Docker Compose services: {result.stderr}")
+                logger.warning(
+                    f"Failed to start Docker Compose services: {result.stderr}"
+                )
                 return False, result.stderr
         except Exception as e:
             logger.error(f"Error starting Docker Compose services: {e}")
             return False, str(e)
 
-    def down(self, file_path: str, volumes: bool = False, remove_orphans: bool = True) -> Tuple[bool, str]:
+    def down(
+        self, file_path: str, volumes: bool = False, remove_orphans: bool = True
+    ) -> Tuple[bool, str]:
         """Stop services defined in a Docker Compose file.
 
         Args:
@@ -168,17 +185,17 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path}'
-            
+            cmd = f"{self.compose_command} -f {file_path}"
+
             # Add options
             if volumes:
-                cmd += ' -v'
-            
+                cmd += " -v"
+
             if remove_orphans:
-                cmd += ' --remove-orphans'
-            
-            cmd += ' down'
-            
+                cmd += " --remove-orphans"
+
+            cmd += " down"
+
             # Run command
             logger.info(f"Stopping Docker Compose services: {cmd}")
             result = subprocess.run(
@@ -187,14 +204,16 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 logger.info(f"Docker Compose services stopped successfully")
                 return True, result.stdout
             else:
-                logger.warning(f"Failed to stop Docker Compose services: {result.stderr}")
+                logger.warning(
+                    f"Failed to stop Docker Compose services: {result.stderr}"
+                )
                 return False, result.stderr
         except Exception as e:
             logger.error(f"Error stopping Docker Compose services: {e}")
@@ -212,12 +231,12 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path} restart'
-            
+            cmd = f"{self.compose_command} -f {file_path} restart"
+
             # Add services if specified
             if services:
-                cmd += ' ' + ' '.join(services)
-            
+                cmd += " " + " ".join(services)
+
             # Run command
             logger.info(f"Restarting Docker Compose services: {cmd}")
             result = subprocess.run(
@@ -226,14 +245,16 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 logger.info(f"Docker Compose services restarted successfully")
                 return True, result.stdout
             else:
-                logger.warning(f"Failed to restart Docker Compose services: {result.stderr}")
+                logger.warning(
+                    f"Failed to restart Docker Compose services: {result.stderr}"
+                )
                 return False, result.stderr
         except Exception as e:
             logger.error(f"Error restarting Docker Compose services: {e}")
@@ -251,12 +272,12 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path} pull'
-            
+            cmd = f"{self.compose_command} -f {file_path} pull"
+
             # Add services if specified
             if services:
-                cmd += ' ' + ' '.join(services)
-            
+                cmd += " " + " ".join(services)
+
             # Run command
             logger.info(f"Pulling Docker Compose images: {cmd}")
             result = subprocess.run(
@@ -265,9 +286,9 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 logger.info(f"Docker Compose images pulled successfully")
                 return True, result.stdout
@@ -278,7 +299,9 @@ class ComposeOperations:
             logger.error(f"Error pulling Docker Compose images: {e}")
             return False, str(e)
 
-    def build(self, file_path: str, services: List[str] = None, no_cache: bool = False) -> Tuple[bool, str]:
+    def build(
+        self, file_path: str, services: List[str] = None, no_cache: bool = False
+    ) -> Tuple[bool, str]:
         """Build images for services defined in a Docker Compose file.
 
         Args:
@@ -291,18 +314,18 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path}'
-            
+            cmd = f"{self.compose_command} -f {file_path}"
+
             # Add options
             if no_cache:
-                cmd += ' --no-cache'
-            
-            cmd += ' build'
-            
+                cmd += " --no-cache"
+
+            cmd += " build"
+
             # Add services if specified
             if services:
-                cmd += ' ' + ' '.join(services)
-            
+                cmd += " " + " ".join(services)
+
             # Run command
             logger.info(f"Building Docker Compose images: {cmd}")
             result = subprocess.run(
@@ -311,20 +334,28 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 logger.info(f"Docker Compose images built successfully")
                 return True, result.stdout
             else:
-                logger.warning(f"Failed to build Docker Compose images: {result.stderr}")
+                logger.warning(
+                    f"Failed to build Docker Compose images: {result.stderr}"
+                )
                 return False, result.stderr
         except Exception as e:
             logger.error(f"Error building Docker Compose images: {e}")
             return False, str(e)
 
-    def logs(self, file_path: str, services: List[str] = None, follow: bool = False, tail: str = 'all') -> Tuple[bool, str]:
+    def logs(
+        self,
+        file_path: str,
+        services: List[str] = None,
+        follow: bool = False,
+        tail: str = "all",
+    ) -> Tuple[bool, str]:
         """Get logs for services defined in a Docker Compose file.
 
         Args:
@@ -338,18 +369,18 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path}'
-            
+            cmd = f"{self.compose_command} -f {file_path}"
+
             # Add options
             if follow:
-                cmd += ' -f'
-            
-            cmd += f' --tail={tail} logs'
-            
+                cmd += " -f"
+
+            cmd += f" --tail={tail} logs"
+
             # Add services if specified
             if services:
-                cmd += ' ' + ' '.join(services)
-            
+                cmd += " " + " ".join(services)
+
             # Run command
             logger.info(f"Getting Docker Compose logs: {cmd}")
             result = subprocess.run(
@@ -358,9 +389,9 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 return True, result.stdout
             else:
@@ -382,12 +413,12 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path} ps'
-            
+            cmd = f"{self.compose_command} -f {file_path} ps"
+
             # Add services if specified
             if services:
-                cmd += ' ' + ' '.join(services)
-            
+                cmd += " " + " ".join(services)
+
             # Run command
             logger.info(f"Listing Docker Compose containers: {cmd}")
             result = subprocess.run(
@@ -396,13 +427,15 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 return True, result.stdout
             else:
-                logger.warning(f"Failed to list Docker Compose containers: {result.stderr}")
+                logger.warning(
+                    f"Failed to list Docker Compose containers: {result.stderr}"
+                )
                 return False, result.stderr
         except Exception as e:
             logger.error(f"Error listing Docker Compose containers: {e}")
@@ -421,8 +454,8 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path} exec {service} {command}'
-            
+            cmd = f"{self.compose_command} -f {file_path} exec {service} {command}"
+
             # Run command
             logger.info(f"Executing command in Docker Compose container: {cmd}")
             result = subprocess.run(
@@ -431,19 +464,23 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 return True, result.stdout
             else:
-                logger.warning(f"Failed to execute command in Docker Compose container: {result.stderr}")
+                logger.warning(
+                    f"Failed to execute command in Docker Compose container: {result.stderr}"
+                )
                 return False, result.stderr
         except Exception as e:
             logger.error(f"Error executing command in Docker Compose container: {e}")
             return False, str(e)
 
-    def check_health(self, file_path: str, services: List[str] = None) -> Dict[str, str]:
+    def check_health(
+        self, file_path: str, services: List[str] = None
+    ) -> Dict[str, str]:
         """Check the health status of services defined in a Docker Compose file.
 
         Args:
@@ -459,50 +496,54 @@ class ComposeOperations:
             if not success:
                 logger.warning(f"Failed to get container IDs: {output}")
                 return {}
-            
+
             # Parse output to get container IDs
-            lines = output.strip().split('\n')
+            lines = output.strip().split("\n")
             if len(lines) < 2:
                 logger.warning("No containers found")
                 return {}
-            
+
             # Skip header line
             container_ids = {}
             for line in lines[1:]:
                 parts = line.split()
                 if len(parts) >= 2:
                     container_id = parts[0]
-                    service_name = parts[1].split('_')[-1]
+                    service_name = parts[1].split("_")[-1]
                     container_ids[service_name] = container_id
-            
+
             # Check health status for each container
             health_status = {}
             for service_name, container_id in container_ids.items():
                 try:
                     # Use Docker API to get container info
-                    container = self.docker_connection.client.containers.get(container_id)
+                    container = self.docker_connection.client.containers.get(
+                        container_id
+                    )
                     inspect_data = container.attrs
-                    
+
                     # Check if container has health check
-                    if 'Health' in inspect_data.get('State', {}):
-                        health = inspect_data['State']['Health']
-                        health_status[service_name] = health['Status']
+                    if "Health" in inspect_data.get("State", {}):
+                        health = inspect_data["State"]["Health"]
+                        health_status[service_name] = health["Status"]
                     else:
                         # No health check defined
-                        if inspect_data.get('State', {}).get('Running', False):
-                            health_status[service_name] = 'running (no health check)'
+                        if inspect_data.get("State", {}).get("Running", False):
+                            health_status[service_name] = "running (no health check)"
                         else:
-                            health_status[service_name] = 'not running'
+                            health_status[service_name] = "not running"
                 except Exception as e:
                     logger.warning(f"Failed to check health for {service_name}: {e}")
-                    health_status[service_name] = 'unknown'
-            
+                    health_status[service_name] = "unknown"
+
             return health_status
         except Exception as e:
             logger.error(f"Error checking health status: {e}")
             return {}
 
-    def controlled_restart(self, file_path: str, services: List[str] = None, wait_time: int = 5) -> Tuple[bool, Dict[str, str]]:
+    def controlled_restart(
+        self, file_path: str, services: List[str] = None, wait_time: int = 5
+    ) -> Tuple[bool, Dict[str, str]]:
         """Perform a controlled restart of services with health checks.
 
         Args:
@@ -519,22 +560,22 @@ class ComposeOperations:
             if not success:
                 logger.warning(f"Failed to restart services: {output}")
                 return False, {}
-            
+
             # Wait for services to start
             logger.info(f"Waiting {wait_time} seconds for services to start...")
             time.sleep(wait_time)
-            
+
             # Check health status
             health_status = self.check_health(file_path, services)
-            
+
             # Check if all services are healthy
-            all_healthy = all(status == 'healthy' for status in health_status.values())
-            
+            all_healthy = all(status == "healthy" for status in health_status.values())
+
             if all_healthy:
                 logger.info("All services are healthy")
             else:
                 logger.warning("Not all services are healthy")
-            
+
             return all_healthy, health_status
         except Exception as e:
             logger.error(f"Error performing controlled restart: {e}")
@@ -552,14 +593,14 @@ class ComposeOperations:
         try:
             # Run docker-compose config
             result = subprocess.run(
-                f'{self.compose_command} -f {file_path} config',
+                f"{self.compose_command} -f {file_path} config",
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 # Parse YAML output
                 config_dict = yaml.safe_load(result.stdout)
@@ -583,8 +624,8 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f'{self.compose_command} -f {file_path} {command}'
-            
+            cmd = f"{self.compose_command} -f {file_path} {command}"
+
             # Run command
             logger.info(f"Running Docker Compose command: {cmd}")
             result = subprocess.run(
@@ -593,9 +634,9 @@ class ComposeOperations:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                check=False
+                check=False,
             )
-            
+
             if result.returncode == 0:
                 return True, result.stdout
             else:

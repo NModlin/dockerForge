@@ -3,10 +3,12 @@ Database configuration for the DockerForge Web UI.
 
 This module provides the database configuration and session management.
 """
+
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
 from contextlib import contextmanager
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from src.web.api.models.base import Base
 
@@ -18,8 +20,8 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dockerforge.db")
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,  # Check connection before using it
-    pool_recycle=3600,   # Recycle connections after 1 hour
-    echo=False,          # Set to True for SQL query logging
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    echo=False,  # Set to True for SQL query logging
 )
 
 # Create session factory
@@ -87,8 +89,9 @@ def create_initial_data():
 
     This function is used to populate the database with initial data.
     """
-    from src.web.api.models.user import User, Role, Permission
     from passlib.context import CryptContext
+
+    from src.web.api.models.user import Permission, Role, User
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -99,11 +102,15 @@ def create_initial_data():
             return
 
         # Create admin role
-        admin_role = Role(name="admin", description="Administrator role with full access")
+        admin_role = Role(
+            name="admin", description="Administrator role with full access"
+        )
         db.add(admin_role)
 
         # Create user role
-        user_role = Role(name="user", description="Regular user role with limited access")
+        user_role = Role(
+            name="user", description="Regular user role with limited access"
+        )
         db.add(user_role)
 
         # Create permissions
@@ -112,7 +119,9 @@ def create_initial_data():
             Permission(name="users:write", description="Create and update users"),
             Permission(name="users:delete", description="Delete users"),
             Permission(name="containers:read", description="Read containers"),
-            Permission(name="containers:write", description="Create and update containers"),
+            Permission(
+                name="containers:write", description="Create and update containers"
+            ),
             Permission(name="containers:delete", description="Delete containers"),
             Permission(name="images:read", description="Read images"),
             Permission(name="images:write", description="Create and update images"),
@@ -124,15 +133,21 @@ def create_initial_data():
             Permission(name="networks:write", description="Create and update networks"),
             Permission(name="networks:delete", description="Delete networks"),
             Permission(name="compose:read", description="Read compose projects"),
-            Permission(name="compose:write", description="Create and update compose projects"),
+            Permission(
+                name="compose:write", description="Create and update compose projects"
+            ),
             Permission(name="compose:delete", description="Delete compose projects"),
             Permission(name="security:read", description="Read security scans"),
-            Permission(name="security:write", description="Create and update security scans"),
+            Permission(
+                name="security:write", description="Create and update security scans"
+            ),
             Permission(name="backup:read", description="Read backups"),
             Permission(name="backup:write", description="Create and update backups"),
             Permission(name="backup:delete", description="Delete backups"),
             Permission(name="monitoring:read", description="Read monitoring data"),
-            Permission(name="monitoring:write", description="Create and update monitoring data"),
+            Permission(
+                name="monitoring:write", description="Create and update monitoring data"
+            ),
             Permission(name="settings:read", description="Read settings"),
             Permission(name="settings:write", description="Update settings"),
         ]

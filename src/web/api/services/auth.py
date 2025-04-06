@@ -3,18 +3,21 @@ Authentication service for the DockerForge Web UI.
 
 This module provides the authentication services for the DockerForge Web UI.
 """
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
-from jose import jwt, JWTError
-from passlib.context import CryptContext
+
 import os
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from src.web.api.database import get_db
-from src.web.api.models.user import User as UserModel, Role
-from src.web.api.schemas.auth import User, UserInDB, TokenData
+from src.web.api.models.user import Role
+from src.web.api.models.user import User as UserModel
+from src.web.api.schemas.auth import TokenData, User, UserInDB
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -116,7 +119,9 @@ def authenticate_user(username: str, password: str, db: Session) -> Optional[Use
     return user
 
 
-def change_password(user: UserModel, current_password: str, new_password: str, db: Session) -> bool:
+def change_password(
+    user: UserModel, current_password: str, new_password: str, db: Session
+) -> bool:
     """
     Change a user's password.
 
@@ -138,8 +143,13 @@ def change_password(user: UserModel, current_password: str, new_password: str, d
     return True
 
 
-def reset_password_with_local_auth(username: str, local_username: str, local_password: str,
-                                  new_password: str, db: Session) -> bool:
+def reset_password_with_local_auth(
+    username: str,
+    local_username: str,
+    local_password: str,
+    new_password: str,
+    db: Session,
+) -> bool:
     """
     Reset a user's password using local system authentication.
 
@@ -168,7 +178,9 @@ def reset_password_with_local_auth(username: str, local_username: str, local_pas
     return True
 
 
-def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
     """
     Create a JWT access token.
     """
@@ -185,7 +197,9 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> UserModel:
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+) -> UserModel:
     """
     Get the current user from the JWT token.
     """
@@ -238,7 +252,9 @@ def check_permission(user: UserModel, permission: str) -> bool:
     return False
 
 
-async def get_current_active_user(current_user: UserModel = Depends(get_current_user)) -> UserModel:
+async def get_current_active_user(
+    current_user: UserModel = Depends(get_current_user),
+) -> UserModel:
     """
     Get the current active user.
     """

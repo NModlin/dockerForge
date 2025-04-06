@@ -3,19 +3,21 @@ Chat handler for DockerForge AI assistant.
 
 This module handles the processing of chat messages and generating responses.
 """
-import logging
+
 import json
+import logging
 import os
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from src.backup.checkpoint_manager import get_checkpoint_manager
+from src.monitoring.issue_detector import get_issue_detector
+from src.monitoring.log_analyzer import get_log_analyzer
+from src.security.security_reporter import get_security_reporter
+from src.security.vulnerability_scanner import get_vulnerability_scanner
 
 from .ai_provider import get_ai_provider
 from .prompt_template import PromptTemplate
-from src.backup.checkpoint_manager import get_checkpoint_manager
-from src.security.vulnerability_scanner import get_vulnerability_scanner
-from src.security.security_reporter import get_security_reporter
-from src.monitoring.log_analyzer import get_log_analyzer
-from src.monitoring.issue_detector import get_issue_detector
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +35,7 @@ class ChatHandler:
         """
         # Use the configured AI provider
         from src.core.ai_provider import get_ai_provider
+
         self.ai_provider = get_ai_provider()
 
         # Load prompt templates
@@ -52,7 +55,9 @@ class ChatHandler:
         # Track workflow states for security and troubleshooting resolutions
         self.active_workflows = {}
 
-    def process_message(self, message: str, context: Optional[Dict[str, Any]] = None) -> Tuple[str, List[str]]:
+    def process_message(
+        self, message: str, context: Optional[Dict[str, Any]] = None
+    ) -> Tuple[str, List[str]]:
         """
         Process a user message and generate a response.
 
@@ -68,9 +73,13 @@ class ChatHandler:
         if workflow_id and workflow_id in self.active_workflows:
             workflow_type = self.active_workflows[workflow_id].get("type")
             if workflow_type == "vulnerability_fix":
-                return self._process_security_workflow_step(message, workflow_id, context)
+                return self._process_security_workflow_step(
+                    message, workflow_id, context
+                )
             elif workflow_type == "container_troubleshooting":
-                return self._process_container_workflow_step(message, workflow_id, context)
+                return self._process_container_workflow_step(
+                    message, workflow_id, context
+                )
 
         # Select the appropriate template based on context
         template = self._select_template(message, context)
@@ -86,7 +95,9 @@ class ChatHandler:
 
         return response, suggestions
 
-    def _select_template(self, message: str, context: Optional[Dict[str, Any]]) -> PromptTemplate:
+    def _select_template(
+        self, message: str, context: Optional[Dict[str, Any]]
+    ) -> PromptTemplate:
         """
         Select the appropriate template based on the message and context.
 
@@ -98,7 +109,16 @@ class ChatHandler:
             The selected prompt template
         """
         # Check if this is a security-related message or context
-        security_keywords = ["vulnerability", "security", "cve", "exploit", "patch", "fix", "secure", "risk"]
+        security_keywords = [
+            "vulnerability",
+            "security",
+            "cve",
+            "exploit",
+            "patch",
+            "fix",
+            "secure",
+            "risk",
+        ]
 
         # Check context for security-related properties
         is_security_context = False
@@ -110,10 +130,17 @@ class ChatHandler:
                 is_security_context = True
 
             # If we have vulnerability data, return security template
-            if any(key in context for key in [
-                "vulnerability_id", "vulnerability_severity", "vulnerability_description",
-                "affected_package", "fixed_version", "cve_id"
-            ]):
+            if any(
+                key in context
+                for key in [
+                    "vulnerability_id",
+                    "vulnerability_severity",
+                    "vulnerability_description",
+                    "affected_package",
+                    "fixed_version",
+                    "cve_id",
+                ]
+            ):
                 return self.security_template
 
         # Check if the message contains security keywords
@@ -133,14 +160,24 @@ class ChatHandler:
                 return self.image_template
 
         # Check for troubleshooting keywords
-        troubleshooting_keywords = ["error", "issue", "problem", "fail", "crash", "debug", "troubleshoot"]
+        troubleshooting_keywords = [
+            "error",
+            "issue",
+            "problem",
+            "fail",
+            "crash",
+            "debug",
+            "troubleshoot",
+        ]
         if any(keyword in message.lower() for keyword in troubleshooting_keywords):
             return self.troubleshooting_template
 
         # Default to general template
         return self.general_template
 
-    def _build_prompt(self, template: PromptTemplate, message: str, context: Optional[Dict[str, Any]]) -> str:
+    def _build_prompt(
+        self, template: PromptTemplate, message: str, context: Optional[Dict[str, Any]]
+    ) -> str:
         """
         Build a prompt with context for the AI provider.
 
@@ -165,31 +202,41 @@ class ChatHandler:
             "current_version": "none",
             "fixed_version": "none",
             "cve_id": "none",
-            "recommendation_id": "none"
+            "recommendation_id": "none",
         }
 
         # Update with context if available
         if context:
-            variables.update({
-                "current_page": context.get("current_page", "unknown"),
-                "container_id": context.get("current_container_id", "none"),
-                "image_id": context.get("current_image_id", "none")
-            })
+            variables.update(
+                {
+                    "current_page": context.get("current_page", "unknown"),
+                    "container_id": context.get("current_container_id", "none"),
+                    "image_id": context.get("current_image_id", "none"),
+                }
+            )
 
             # Add security context if available
             if context.get("vulnerability_id"):
-                variables.update({
-                    "vulnerability_id": context.get("vulnerability_id", "none"),
-                    "vulnerability_severity": context.get("vulnerability_severity", "none"),
-                    "vulnerability_description": context.get("vulnerability_description", "none"),
-                    "affected_package": context.get("affected_package", "none"),
-                    "current_version": context.get("current_version", "none"),
-                    "fixed_version": context.get("fixed_version", "none"),
-                    "cve_id": context.get("cve_id", "none")
-                })
+                variables.update(
+                    {
+                        "vulnerability_id": context.get("vulnerability_id", "none"),
+                        "vulnerability_severity": context.get(
+                            "vulnerability_severity", "none"
+                        ),
+                        "vulnerability_description": context.get(
+                            "vulnerability_description", "none"
+                        ),
+                        "affected_package": context.get("affected_package", "none"),
+                        "current_version": context.get("current_version", "none"),
+                        "fixed_version": context.get("fixed_version", "none"),
+                        "cve_id": context.get("cve_id", "none"),
+                    }
+                )
 
             if context.get("recommendation_id"):
-                variables["recommendation_id"] = context.get("recommendation_id", "none")
+                variables["recommendation_id"] = context.get(
+                    "recommendation_id", "none"
+                )
 
             # Add any additional context data
             if context.get("additional_data"):
@@ -198,7 +245,9 @@ class ChatHandler:
         # Render the template with the variables
         return template.render(**variables)
 
-    def _generate_suggestions(self, message: str, context: Optional[Dict[str, Any]]) -> List[str]:
+    def _generate_suggestions(
+        self, message: str, context: Optional[Dict[str, Any]]
+    ) -> List[str]:
         """
         Generate suggested responses based on the message and context.
 
@@ -216,39 +265,49 @@ class ChatHandler:
             page = context.get("current_page")
 
             if page == "containers":
-                suggestions.extend([
-                    "Show me the logs for this container",
-                    "What's using the most CPU in this container?",
-                    "How can I optimize this container?"
-                ])
+                suggestions.extend(
+                    [
+                        "Show me the logs for this container",
+                        "What's using the most CPU in this container?",
+                        "How can I optimize this container?",
+                    ]
+                )
 
             elif page == "images":
-                suggestions.extend([
-                    "Are there any security vulnerabilities in this image?",
-                    "Show me how to optimize this Dockerfile",
-                    "What are the tags for this image?"
-                ])
+                suggestions.extend(
+                    [
+                        "Are there any security vulnerabilities in this image?",
+                        "Show me how to optimize this Dockerfile",
+                        "What are the tags for this image?",
+                    ]
+                )
 
             elif page == "volumes":
-                suggestions.extend([
-                    "Which containers are using this volume?",
-                    "How can I back up this volume?",
-                    "Show me the data in this volume"
-                ])
+                suggestions.extend(
+                    [
+                        "Which containers are using this volume?",
+                        "How can I back up this volume?",
+                        "Show me the data in this volume",
+                    ]
+                )
 
             elif page == "security":
-                suggestions.extend([
-                    "How do I fix these vulnerabilities?",
-                    "Explain the impact of this security issue",
-                    "Create a security fix workflow"
-                ])
+                suggestions.extend(
+                    [
+                        "How do I fix these vulnerabilities?",
+                        "Explain the impact of this security issue",
+                        "Create a security fix workflow",
+                    ]
+                )
 
         # Security vulnerability context
-        if context and (context.get("vulnerability_id") or context.get("recommendation_id")):
+        if context and (
+            context.get("vulnerability_id") or context.get("recommendation_id")
+        ):
             suggestions = [
                 "Show me how to fix this vulnerability",
                 "What's the impact of this vulnerability?",
-                "Create a checkpoint before applying fixes"
+                "Create a checkpoint before applying fixes",
             ]
             return suggestions
 
@@ -268,7 +327,7 @@ class ChatHandler:
                 "Show me Docker best practices",
                 "How can I monitor my containers?",
                 "Explain Docker networking",
-                "Tell me about Docker volumes"
+                "Tell me about Docker volumes",
             ]
 
             # Add default suggestions until we have at least 3
@@ -281,7 +340,9 @@ class ChatHandler:
         # Return no more than 3 suggestions
         return suggestions[:3]
 
-    def _process_security_workflow_step(self, message: str, workflow_id: str, context: Optional[Dict[str, Any]]) -> Tuple[str, List[str]]:
+    def _process_security_workflow_step(
+        self, message: str, workflow_id: str, context: Optional[Dict[str, Any]]
+    ) -> Tuple[str, List[str]]:
         """
         Process a step in an active security workflow.
 
@@ -297,7 +358,11 @@ class ChatHandler:
         current_step = workflow.get("current_step", 0)
 
         # Process confirmation/response based on the current step
-        if "yes" in message.lower() or "confirm" in message.lower() or "proceed" in message.lower():
+        if (
+            "yes" in message.lower()
+            or "confirm" in message.lower()
+            or "proceed" in message.lower()
+        ):
             # User confirmed the action, proceed to next step
             if current_step == 1:  # Create checkpoint confirmation
                 # Create a checkpoint before applying fixes
@@ -308,7 +373,11 @@ class ChatHandler:
 
                 # Move to next step
                 workflow["current_step"] = 2
-                suggestions = ["Proceed with fixes", "Show me details first", "Cancel fix workflow"]
+                suggestions = [
+                    "Proceed with fixes",
+                    "Show me details first",
+                    "Cancel fix workflow",
+                ]
 
             elif current_step == 2:  # Apply fixes confirmation
                 # Apply the security fixes
@@ -319,11 +388,19 @@ class ChatHandler:
 
                     # Clean up workflow
                     del self.active_workflows[workflow_id]
-                    suggestions = ["Verify the fix", "Run security scan", "Show me other vulnerabilities"]
+                    suggestions = [
+                        "Verify the fix",
+                        "Run security scan",
+                        "Show me other vulnerabilities",
+                    ]
                 else:
                     response = f"There was an issue applying the security fixes: {result.get('error', 'Unknown error')}. Would you like to restore from the checkpoint?"
                     workflow["current_step"] = 3
-                    suggestions = ["Restore from checkpoint", "Try again", "Cancel and exit workflow"]
+                    suggestions = [
+                        "Restore from checkpoint",
+                        "Try again",
+                        "Cancel and exit workflow",
+                    ]
 
             elif current_step == 3:  # Restore confirmation
                 # Restore from checkpoint
@@ -340,43 +417,83 @@ class ChatHandler:
 
                 # Clean up workflow
                 del self.active_workflows[workflow_id]
-                suggestions = ["Try a different approach", "Explain the issue again", "Run security scan"]
+                suggestions = [
+                    "Try a different approach",
+                    "Explain the issue again",
+                    "Run security scan",
+                ]
 
             else:
-                response = "I'm not sure what to do at this step. Let's restart the workflow."
+                response = (
+                    "I'm not sure what to do at this step. Let's restart the workflow."
+                )
                 del self.active_workflows[workflow_id]
-                suggestions = ["Start new security workflow", "Show security dashboard", "Run security scan"]
+                suggestions = [
+                    "Start new security workflow",
+                    "Show security dashboard",
+                    "Run security scan",
+                ]
 
-        elif "no" in message.lower() or "cancel" in message.lower() or "stop" in message.lower():
+        elif (
+            "no" in message.lower()
+            or "cancel" in message.lower()
+            or "stop" in message.lower()
+        ):
             # User canceled or rejected the action
-            response = "Security fix workflow canceled. No changes were made to your system."
+            response = (
+                "Security fix workflow canceled. No changes were made to your system."
+            )
 
             # Clean up workflow
             del self.active_workflows[workflow_id]
-            suggestions = ["Show security dashboard", "Run security scan", "Show me other vulnerabilities"]
+            suggestions = [
+                "Show security dashboard",
+                "Run security scan",
+                "Show me other vulnerabilities",
+            ]
 
         else:
             # User provided some other input, provide help based on current step
             if current_step == 1:
                 response = "To proceed with creating a checkpoint before applying security fixes, please confirm with 'yes' or 'proceed'. If you want to cancel, please say 'no' or 'cancel'."
-                suggestions = ["Yes, create checkpoint", "No, cancel workflow", "Explain what a checkpoint is"]
+                suggestions = [
+                    "Yes, create checkpoint",
+                    "No, cancel workflow",
+                    "Explain what a checkpoint is",
+                ]
 
             elif current_step == 2:
                 response = "To proceed with applying the security fixes, please confirm with 'yes' or 'proceed'. If you want to cancel, please say 'no' or 'cancel'."
-                suggestions = ["Yes, apply fixes", "No, cancel workflow", "Show me what changes will be made"]
+                suggestions = [
+                    "Yes, apply fixes",
+                    "No, cancel workflow",
+                    "Show me what changes will be made",
+                ]
 
             elif current_step == 3:
                 response = "Would you like to restore from the checkpoint? Please confirm with 'yes' or 'proceed'. If you want to exit without restoring, please say 'no' or 'cancel'."
-                suggestions = ["Yes, restore from checkpoint", "No, exit workflow", "Explain what happened"]
+                suggestions = [
+                    "Yes, restore from checkpoint",
+                    "No, exit workflow",
+                    "Explain what happened",
+                ]
 
             else:
-                response = "I'm not sure what to do at this step. Let's restart the workflow."
+                response = (
+                    "I'm not sure what to do at this step. Let's restart the workflow."
+                )
                 del self.active_workflows[workflow_id]
-                suggestions = ["Start new security workflow", "Show security dashboard", "Run security scan"]
+                suggestions = [
+                    "Start new security workflow",
+                    "Show security dashboard",
+                    "Run security scan",
+                ]
 
         return response, suggestions
 
-    def start_security_workflow(self, vulnerability_id: str, context: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    def start_security_workflow(
+        self, vulnerability_id: str, context: Dict[str, Any]
+    ) -> Tuple[str, List[str], str]:
         """
         Start a new security resolution workflow for a vulnerability.
 
@@ -388,7 +505,9 @@ class ChatHandler:
             A tuple containing (response_text, suggested_responses, workflow_id)
         """
         # Create a unique workflow ID
-        workflow_id = f"security-workflow-{vulnerability_id}-{int(datetime.now().timestamp())}"
+        workflow_id = (
+            f"security-workflow-{vulnerability_id}-{int(datetime.now().timestamp())}"
+        )
 
         # Set up workflow details
         workflow = {
@@ -401,7 +520,7 @@ class ChatHandler:
             "fixed_version": context.get("fixed_version", "unknown"),
             "container_id": context.get("container_id"),
             "image_id": context.get("image_id"),
-            "started_at": datetime.now().isoformat()
+            "started_at": datetime.now().isoformat(),
         }
 
         # Store workflow
@@ -418,7 +537,7 @@ class ChatHandler:
         suggestions = [
             "Yes, create checkpoint",
             "No, cancel workflow",
-            "Explain what changes will be made"
+            "Explain what changes will be made",
         ]
 
         return response, suggestions, workflow_id
@@ -446,7 +565,9 @@ class ChatHandler:
 
         # Mock implementation for now
         checkpoint_id = f"checkpoint-{workflow['vulnerability_id']}-{int(datetime.now().timestamp())}"
-        logger.info(f"Created checkpoint {checkpoint_id} for security workflow {workflow['id']}")
+        logger.info(
+            f"Created checkpoint {checkpoint_id} for security workflow {workflow['id']}"
+        )
 
         return checkpoint_id
 
@@ -468,13 +589,15 @@ class ChatHandler:
         # )
 
         # Mock implementation
-        logger.info(f"Applied security fix for vulnerability {workflow['vulnerability_id']}")
+        logger.info(
+            f"Applied security fix for vulnerability {workflow['vulnerability_id']}"
+        )
 
         # Simulate successful fix
         return {
             "success": True,
             "message": f"Updated {workflow['affected_package']} to version {workflow['fixed_version']}",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _restore_from_checkpoint(self, checkpoint_id: str) -> Dict[str, Any]:
@@ -497,10 +620,12 @@ class ChatHandler:
         return {
             "success": True,
             "message": f"Restored from checkpoint {checkpoint_id}",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
-    def _process_container_workflow_step(self, message: str, workflow_id: str, context: Optional[Dict[str, Any]]) -> Tuple[str, List[str]]:
+    def _process_container_workflow_step(
+        self, message: str, workflow_id: str, context: Optional[Dict[str, Any]]
+    ) -> Tuple[str, List[str]]:
         """
         Process a step in an active container troubleshooting workflow.
 
@@ -516,12 +641,20 @@ class ChatHandler:
         current_step = workflow.get("current_step", 0)
 
         # Process confirmation/response based on the current step
-        if "yes" in message.lower() or "confirm" in message.lower() or "proceed" in message.lower():
+        if (
+            "yes" in message.lower()
+            or "confirm" in message.lower()
+            or "proceed" in message.lower()
+        ):
             # User confirmed the action, proceed to next step
             if current_step == 1:  # Log analysis confirmation
                 # Analyze container logs
                 analysis_result = self._analyze_container_logs(workflow)
-                workflow["analysis_result"] = analysis_result.to_dict() if hasattr(analysis_result, "to_dict") else analysis_result
+                workflow["analysis_result"] = (
+                    analysis_result.to_dict()
+                    if hasattr(analysis_result, "to_dict")
+                    else analysis_result
+                )
 
                 # Format the analysis results for display
                 if analysis_result.get("issues"):
@@ -540,7 +673,11 @@ class ChatHandler:
 
                 # Move to next step
                 workflow["current_step"] = 2
-                suggestions = ["Yes, help me fix the issues", "Show me more details", "No, I'll handle it myself"]
+                suggestions = [
+                    "Yes, help me fix the issues",
+                    "Show me more details",
+                    "No, I'll handle it myself",
+                ]
 
             elif current_step == 2:  # Fix confirmation
                 # Start applying fixes
@@ -568,16 +705,30 @@ class ChatHandler:
 
                     if recommendations:
                         rec = recommendations[0]
-                        steps_text = "\n".join([f"- {step}" for step in rec.get("steps", [])])
+                        steps_text = "\n".join(
+                            [f"- {step}" for step in rec.get("steps", [])]
+                        )
                         response += f"**Recommended Fix:**\n{rec.get('description')}\n\n**Steps:**\n{steps_text}\n\nWould you like me to apply this fix?"
-                        suggestions = ["Yes, apply the fix", "Show me more details", "Skip to next issue"]
+                        suggestions = [
+                            "Yes, apply the fix",
+                            "Show me more details",
+                            "Skip to next issue",
+                        ]
                     else:
                         response += "I don't have specific recommendations for this issue. Would you like suggestions for troubleshooting?"
-                        suggestions = ["Show me troubleshooting steps", "Skip to next issue", "Exit workflow"]
+                        suggestions = [
+                            "Show me troubleshooting steps",
+                            "Skip to next issue",
+                            "Exit workflow",
+                        ]
                 else:
                     response = "There are no issues to fix based on the analysis. Would you like me to suggest general container optimization tips instead?"
                     workflow["current_step"] = 5  # Skip to final step
-                    suggestions = ["Show me optimization tips", "Analyze logs again", "Exit workflow"]
+                    suggestions = [
+                        "Show me optimization tips",
+                        "Analyze logs again",
+                        "Exit workflow",
+                    ]
 
             elif current_step == 3:  # Apply specific fix
                 # Get the current issue and recommendations
@@ -600,19 +751,35 @@ class ChatHandler:
                         if current_index + 1 < len(issues):
                             next_issue = issues[current_index + 1]
                             response += f"\n\nNext issue to address: **{next_issue.get('title')}**\n\n{next_issue.get('description')}\n\nWould you like to fix this issue as well?"
-                            suggestions = ["Yes, fix this issue", "Skip this issue", "Stop and exit workflow"]
+                            suggestions = [
+                                "Yes, fix this issue",
+                                "Skip this issue",
+                                "Stop and exit workflow",
+                            ]
                         else:
                             response += "\n\nAll identified issues have been addressed! Would you like to verify that the fixes resolved the problems?"
                             workflow["current_step"] = 4  # Move to verification step
-                            suggestions = ["Verify fixes", "Show me the updated container", "Exit workflow"]
+                            suggestions = [
+                                "Verify fixes",
+                                "Show me the updated container",
+                                "Exit workflow",
+                            ]
                     else:
                         response = f"❌ There was a problem applying the fix: {fix_result.get('error', 'Unknown error')}\n\nWould you like to try an alternative approach or restore from the checkpoint?"
-                        suggestions = ["Try alternative approach", "Restore from checkpoint", "Skip to next issue"]
+                        suggestions = [
+                            "Try alternative approach",
+                            "Restore from checkpoint",
+                            "Skip to next issue",
+                        ]
                 else:
                     # No more issues to fix
                     response = "All identified issues have been addressed! Would you like to verify that the fixes resolved the problems?"
                     workflow["current_step"] = 4  # Move to verification step
-                    suggestions = ["Verify fixes", "Show me the updated container", "Exit workflow"]
+                    suggestions = [
+                        "Verify fixes",
+                        "Show me the updated container",
+                        "Exit workflow",
+                    ]
 
             elif current_step == 4:  # Verification step
                 # Verify the fixes
@@ -628,7 +795,11 @@ class ChatHandler:
 
                     # Clean up workflow
                     del self.active_workflows[workflow_id]
-                    suggestions = ["Show container metrics", "Optimize this container", "Back to container list"]
+                    suggestions = [
+                        "Show container metrics",
+                        "Optimize this container",
+                        "Back to container list",
+                    ]
                 else:
                     response = (
                         "⚠️ Verification shows there are still issues with the container.\n\n"
@@ -637,7 +808,11 @@ class ChatHandler:
                         f"**Issues**: {verification_result.get('message', 'Unknown errors')}\n\n"
                         "Would you like to restore from the checkpoint and try a different approach?"
                     )
-                    suggestions = ["Restore from checkpoint", "Try more fixes", "Exit workflow"]
+                    suggestions = [
+                        "Restore from checkpoint",
+                        "Try more fixes",
+                        "Exit workflow",
+                    ]
 
             elif current_step == 5:  # Final step / optimization
                 # Provide optimization tips
@@ -653,30 +828,57 @@ class ChatHandler:
 
                 # Clean up workflow
                 del self.active_workflows[workflow_id]
-                suggestions = ["Resource limit best practices", "Multi-stage build examples", "Health check setup"]
+                suggestions = [
+                    "Resource limit best practices",
+                    "Multi-stage build examples",
+                    "Health check setup",
+                ]
 
             else:
-                response = "I'm not sure what to do at this step. Let's restart the workflow."
+                response = (
+                    "I'm not sure what to do at this step. Let's restart the workflow."
+                )
                 del self.active_workflows[workflow_id]
-                suggestions = ["Start new troubleshooting", "Show container dashboard", "Back to container list"]
+                suggestions = [
+                    "Start new troubleshooting",
+                    "Show container dashboard",
+                    "Back to container list",
+                ]
 
-        elif "no" in message.lower() or "cancel" in message.lower() or "stop" in message.lower() or "exit" in message.lower():
+        elif (
+            "no" in message.lower()
+            or "cancel" in message.lower()
+            or "stop" in message.lower()
+            or "exit" in message.lower()
+        ):
             # User canceled or rejected the action
             response = "Container troubleshooting workflow canceled. No changes were made to your container."
 
             # Clean up workflow
             del self.active_workflows[workflow_id]
-            suggestions = ["Show container dashboard", "Show container logs", "Back to container list"]
+            suggestions = [
+                "Show container dashboard",
+                "Show container logs",
+                "Back to container list",
+            ]
 
         else:
             # User provided some other input, provide help based on current step
             if current_step == 1:
                 response = "Would you like me to analyze the logs for this container? Please confirm with 'yes' or 'proceed'. If you want to cancel, please say 'no' or 'cancel'."
-                suggestions = ["Yes, analyze logs", "No, cancel", "Show me the logs first"]
+                suggestions = [
+                    "Yes, analyze logs",
+                    "No, cancel",
+                    "Show me the logs first",
+                ]
 
             elif current_step == 2:
                 response = "Would you like me to help resolve the issues found in the container? Please confirm with 'yes' or 'proceed'. If you want to cancel, please say 'no' or 'cancel'."
-                suggestions = ["Yes, help me fix issues", "No, cancel", "Show me more details"]
+                suggestions = [
+                    "Yes, help me fix issues",
+                    "No, cancel",
+                    "Show me more details",
+                ]
 
             elif current_step == 3:
                 current_index = workflow.get("current_issue_index", 0)
@@ -685,23 +887,43 @@ class ChatHandler:
                 if current_index < len(issues):
                     current_issue = issues[current_index]
                     response = f"Would you like me to fix the issue '{current_issue.get('title')}'? Please confirm with 'yes' or 'proceed'. If you want to skip this issue, please say 'skip' or 'next'."
-                    suggestions = ["Yes, fix this issue", "Skip this issue", "Cancel workflow"]
+                    suggestions = [
+                        "Yes, fix this issue",
+                        "Skip this issue",
+                        "Cancel workflow",
+                    ]
                 else:
                     response = "There are no more issues to fix. Would you like to verify the fixes?"
-                    suggestions = ["Verify fixes", "Exit workflow", "Show container dashboard"]
+                    suggestions = [
+                        "Verify fixes",
+                        "Exit workflow",
+                        "Show container dashboard",
+                    ]
 
             elif current_step == 4:
                 response = "Would you like to verify that the fixes resolved the container issues? Please confirm with 'yes' or 'proceed'."
-                suggestions = ["Yes, verify fixes", "No, exit workflow", "Show me the container"]
+                suggestions = [
+                    "Yes, verify fixes",
+                    "No, exit workflow",
+                    "Show me the container",
+                ]
 
             else:
-                response = "I'm not sure what to do at this step. Let's restart the workflow."
+                response = (
+                    "I'm not sure what to do at this step. Let's restart the workflow."
+                )
                 del self.active_workflows[workflow_id]
-                suggestions = ["Start new troubleshooting", "Show container dashboard", "Back to container list"]
+                suggestions = [
+                    "Start new troubleshooting",
+                    "Show container dashboard",
+                    "Back to container list",
+                ]
 
         return response, suggestions
 
-    def start_container_troubleshooting_workflow(self, container_id: str, context: Dict[str, Any]) -> Tuple[str, List[str], str]:
+    def start_container_troubleshooting_workflow(
+        self, container_id: str, context: Dict[str, Any]
+    ) -> Tuple[str, List[str], str]:
         """
         Start a new container troubleshooting workflow for a container.
 
@@ -713,7 +935,9 @@ class ChatHandler:
             A tuple containing (response_text, suggested_responses, workflow_id)
         """
         # Create a unique workflow ID
-        workflow_id = f"container-workflow-{container_id[:8]}-{int(datetime.now().timestamp())}"
+        workflow_id = (
+            f"container-workflow-{container_id[:8]}-{int(datetime.now().timestamp())}"
+        )
 
         # Set up workflow details
         workflow = {
@@ -727,7 +951,7 @@ class ChatHandler:
             "container_status": context.get("container_status", "unknown"),
             "container_health": context.get("container_health", "unknown"),
             "exit_code": context.get("exit_code"),
-            "started_at": datetime.now().isoformat()
+            "started_at": datetime.now().isoformat(),
         }
 
         # Store workflow
@@ -753,7 +977,7 @@ class ChatHandler:
         suggestions = [
             "Yes, analyze logs",
             "Show me more details first",
-            "Cancel workflow"
+            "Cancel workflow",
         ]
 
         return response, suggestions, workflow_id
@@ -780,7 +1004,9 @@ class ChatHandler:
 
         # Mock implementation for now
         checkpoint_id = f"checkpoint-container-{workflow['container_id'][:8]}-{int(datetime.now().timestamp())}"
-        logger.info(f"Created checkpoint {checkpoint_id} for container workflow {workflow['id']}")
+        logger.info(
+            f"Created checkpoint {checkpoint_id} for container workflow {workflow['id']}"
+        )
 
         return checkpoint_id
 
@@ -812,22 +1038,22 @@ class ChatHandler:
                     "title": "Memory limit reached multiple times",
                     "description": "The container is hitting its memory limit, causing possible OOM (Out of Memory) events",
                     "severity": "error",
-                    "evidence": "2023-03-15T10:22:31Z Container memory usage high: 98%"
+                    "evidence": "2023-03-15T10:22:31Z Container memory usage high: 98%",
                 },
                 {
                     "id": "issue-2",
                     "title": "High CPU usage spikes",
                     "description": "The container shows periodic CPU usage spikes that may indicate inefficient processing",
                     "severity": "warning",
-                    "evidence": "2023-03-15T10:24:12Z Container CPU usage: 95%"
+                    "evidence": "2023-03-15T10:24:12Z Container CPU usage: 95%",
                 },
                 {
                     "id": "issue-3",
                     "title": "Slow database queries",
                     "description": "Several database queries are taking longer than 500ms to complete",
                     "severity": "warning",
-                    "evidence": "2023-03-15T10:23:45Z Query took 1250ms to complete"
-                }
+                    "evidence": "2023-03-15T10:23:45Z Query took 1250ms to complete",
+                },
             ],
             "recommendations": [
                 {
@@ -838,8 +1064,8 @@ class ChatHandler:
                     "steps": [
                         "Update the container configuration to set memory limit to at least 1GB",
                         "Restart the container with the new configuration",
-                        "Monitor memory usage after the change"
-                    ]
+                        "Monitor memory usage after the change",
+                    ],
                 },
                 {
                     "id": "rec-2",
@@ -849,8 +1075,8 @@ class ChatHandler:
                     "steps": [
                         "Enable application profiling to identify hotspots",
                         "Consider adding caching for frequently accessed data",
-                        "Update resource limits to set CPU constraints"
-                    ]
+                        "Update resource limits to set CPU constraints",
+                    ],
                 },
                 {
                     "id": "rec-3",
@@ -860,19 +1086,21 @@ class ChatHandler:
                     "steps": [
                         "Add indexes for frequently queried fields",
                         "Review and optimize query structure",
-                        "Consider implementing query caching"
-                    ]
-                }
+                        "Consider implementing query caching",
+                    ],
+                },
             ],
             "pattern_matches": [],
             "ai_provider": "mock",
             "ai_model": "mock-model",
             "analysis_duration": 1.5,
             "log_count": 1250,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
-    def _apply_container_fix(self, workflow: Dict[str, Any], issue_id: str) -> Dict[str, Any]:
+    def _apply_container_fix(
+        self, workflow: Dict[str, Any], issue_id: str
+    ) -> Dict[str, Any]:
         """
         Apply a fix for a specific container issue.
 
@@ -887,7 +1115,9 @@ class ChatHandler:
         # For example, updating configuration files, restarting the container, etc.
 
         # Mock implementation
-        logger.info(f"Applied fix for issue {issue_id} in container {workflow['container_id']}")
+        logger.info(
+            f"Applied fix for issue {issue_id} in container {workflow['container_id']}"
+        )
 
         # Find the recommendation for this issue
         recommendation = None
@@ -900,8 +1130,10 @@ class ChatHandler:
         return {
             "success": True,
             "message": f"Applied fix: {recommendation['title'] if recommendation else 'Unknown fix'}",
-            "steps_completed": recommendation.get("steps", []) if recommendation else [],
-            "timestamp": datetime.now().isoformat()
+            "steps_completed": (
+                recommendation.get("steps", []) if recommendation else []
+            ),
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _verify_container_fixes(self, workflow: Dict[str, Any]) -> Dict[str, Any]:
@@ -926,7 +1158,7 @@ class ChatHandler:
             "status": "running",
             "health": "healthy",
             "message": "Container is running properly with no detected issues",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 

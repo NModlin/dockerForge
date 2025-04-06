@@ -5,13 +5,13 @@ This module provides functionality to detect the operating system and
 adapt to platform-specific requirements.
 """
 
+import ctypes
 import os
 import platform
 import subprocess
 import sys
-import ctypes
 from enum import Enum
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, List, Optional, Tuple
 
 # Try to import distro for Linux distribution detection
 try:
@@ -22,6 +22,7 @@ except ImportError:
 
 class PlatformType(Enum):
     """Enum representing supported platform types."""
+
     LINUX = "linux"
     WINDOWS = "windows"
     MACOS = "darwin"
@@ -30,6 +31,7 @@ class PlatformType(Enum):
 
 class InitSystem(Enum):
     """Enum representing supported init systems."""
+
     SYSTEMD = "systemd"
     UPSTART = "upstart"
     SYSVINIT = "sysvinit"
@@ -79,16 +81,19 @@ class PlatformInfo:
                                 return line.split("=")[1].strip().strip('"')
                 except (FileNotFoundError, IOError):
                     pass
-                
+
                 # Try lsb_release command
                 try:
-                    return subprocess.check_output(
-                        ["lsb_release", "-is"], 
-                        universal_newlines=True
-                    ).strip().lower()
+                    return (
+                        subprocess.check_output(
+                            ["lsb_release", "-is"], universal_newlines=True
+                        )
+                        .strip()
+                        .lower()
+                    )
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass
-                
+
                 return "unknown"
         elif self.platform_type == PlatformType.MACOS:
             return "macos"
@@ -111,16 +116,15 @@ class PlatformInfo:
                                 return line.split("=")[1].strip().strip('"')
                 except (FileNotFoundError, IOError):
                     pass
-                
+
                 # Try lsb_release command
                 try:
                     return subprocess.check_output(
-                        ["lsb_release", "-rs"], 
-                        universal_newlines=True
+                        ["lsb_release", "-rs"], universal_newlines=True
                     ).strip()
                 except (subprocess.SubprocessError, FileNotFoundError):
                     pass
-                
+
                 return "unknown"
         elif self.platform_type == PlatformType.MACOS:
             return platform.mac_ver()[0]
@@ -133,48 +137,53 @@ class PlatformInfo:
         """Detect the init system."""
         if self.platform_type == PlatformType.LINUX:
             # Check for systemd
-            if os.path.exists("/run/systemd/system") or os.path.exists("/sys/fs/cgroup/systemd"):
+            if os.path.exists("/run/systemd/system") or os.path.exists(
+                "/sys/fs/cgroup/systemd"
+            ):
                 return InitSystem.SYSTEMD
-            
+
             # Check for Upstart
             if os.path.exists("/sbin/initctl") and os.path.exists("/etc/init"):
                 return InitSystem.UPSTART
-            
+
             # Assume SysVinit if neither systemd nor Upstart
             if os.path.exists("/etc/init.d"):
                 return InitSystem.SYSVINIT
-            
+
             return InitSystem.UNKNOWN
-        
+
         elif self.platform_type == PlatformType.MACOS:
             return InitSystem.LAUNCHD
-        
+
         elif self.platform_type == PlatformType.WINDOWS:
             return InitSystem.WINDOWS_SERVICE
-        
+
         return InitSystem.UNKNOWN
 
     def _get_docker_socket_path(self) -> str:
         """Get the Docker socket path."""
-        if self.platform_type == PlatformType.LINUX or self.platform_type == PlatformType.MACOS:
+        if (
+            self.platform_type == PlatformType.LINUX
+            or self.platform_type == PlatformType.MACOS
+        ):
             # Common Docker socket paths
             socket_paths = [
                 "/var/run/docker.sock",
                 "/run/docker.sock",
                 os.path.expanduser("~/.docker/run/docker.sock"),
             ]
-            
+
             for path in socket_paths:
                 if os.path.exists(path):
                     return path
-            
+
             # Default path even if it doesn't exist
             return "/var/run/docker.sock"
-        
+
         elif self.platform_type == PlatformType.WINDOWS:
             # Windows uses named pipes
             return "//./pipe/docker_engine"
-        
+
         return ""
 
     def _get_docker_config_path(self) -> str:
@@ -184,7 +193,9 @@ class PlatformInfo:
         elif self.platform_type == PlatformType.MACOS:
             return os.path.expanduser("~/Library/Containers/com.docker.docker/Data")
         elif self.platform_type == PlatformType.WINDOWS:
-            return os.path.join(os.environ.get("ProgramData", "C:\\ProgramData"), "Docker")
+            return os.path.join(
+                os.environ.get("ProgramData", "C:\\ProgramData"), "Docker"
+            )
         return ""
 
     def _get_home_dir(self) -> str:
@@ -207,13 +218,13 @@ class PlatformInfo:
         """Check if sudo is available."""
         if self.platform_type == PlatformType.WINDOWS:
             return False
-        
+
         try:
             subprocess.run(
-                ["sudo", "-n", "true"], 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
-                check=False
+                ["sudo", "-n", "true"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
             )
             return True
         except (subprocess.SubprocessError, FileNotFoundError):
