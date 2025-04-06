@@ -137,12 +137,14 @@ class ExportImportManager:
                     # Decompress file
                     with tarfile.open(input_path, "r:gz") as f_in:
                         # Validate tarfile members to prevent path traversal attacks
+                        # Validate and extract files one by one
+                        extract_dir = os.path.dirname(temp_path)
                         for member in f_in.getmembers():
                             # Check for path traversal attempts
                             if member.name.startswith('/') or '..' in member.name:
                                 raise ValueError(f"Potentially insecure path in archive: {member.name}")
-                        # Extract validated files
-                        f_in.extractall(path=os.path.dirname(temp_path))
+                            # Extract only safe files
+                            f_in.extract(member, path=extract_dir)
 
                     # Find extracted file
                     extracted_files = os.listdir(os.path.dirname(temp_path))
@@ -292,22 +294,22 @@ class ExportImportManager:
                 # Extract archive
                 if input_path.endswith(".gz"):
                     with tarfile.open(input_path, "r:gz") as tar:
-                        # Validate tarfile members to prevent path traversal attacks
+                        # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
                             if member.name.startswith('/') or '..' in member.name:
                                 raise ValueError(f"Potentially insecure path in archive: {member.name}")
-                        # Extract validated files
-                        tar.extractall(path=temp_dir)
+                            # Extract only safe files
+                            tar.extract(member, path=temp_dir)
                 else:
                     with tarfile.open(input_path, "r") as tar:
-                        # Validate tarfile members to prevent path traversal attacks
+                        # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
                             if member.name.startswith('/') or '..' in member.name:
                                 raise ValueError(f"Potentially insecure path in archive: {member.name}")
-                        # Extract validated files
-                        tar.extractall(path=temp_dir)
+                            # Extract only safe files
+                            tar.extract(member, path=temp_dir)
 
                 # Check if required files exist
                 fs_path = os.path.join(temp_dir, "fs.tar")
@@ -465,22 +467,22 @@ class ExportImportManager:
                 # Extract archive
                 if input_path.endswith(".gz"):
                     with tarfile.open(input_path, "r:gz") as tar:
-                        # Validate tarfile members to prevent path traversal attacks
+                        # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
                             if member.name.startswith('/') or '..' in member.name:
                                 raise ValueError(f"Potentially insecure path in archive: {member.name}")
-                        # Extract validated files
-                        tar.extractall(path=temp_dir)
+                            # Extract only safe files
+                            tar.extract(member, path=temp_dir)
                 else:
                     with tarfile.open(input_path, "r") as tar:
-                        # Validate tarfile members to prevent path traversal attacks
+                        # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
                             if member.name.startswith('/') or '..' in member.name:
                                 raise ValueError(f"Potentially insecure path in archive: {member.name}")
-                        # Extract validated files
-                        tar.extractall(path=temp_dir)
+                            # Extract only safe files
+                            tar.extract(member, path=temp_dir)
 
                 # Check if required files exist
                 data_path = os.path.join(temp_dir, "data.tar")

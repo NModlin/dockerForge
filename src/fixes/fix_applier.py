@@ -104,9 +104,15 @@ class FixApplier:
         """
         try:
             # Execute command
+            # Split the command string into a list to avoid shell=True
+            if isinstance(command, str):
+                cmd_parts = command.split()
+            else:
+                cmd_parts = command
+
             process = subprocess.run(
-                command,
-                shell=True,
+                cmd_parts,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,

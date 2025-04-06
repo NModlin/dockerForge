@@ -526,8 +526,10 @@ class WindowsAdapter(PlatformAdapter):
 
                 time.sleep(2)
 
-                cmd = ["start", "Docker Desktop"]
-                success, stdout, stderr = self.execute_command(cmd, shell=True)
+                # Use the Windows 'start' command without shell=True
+                # For Windows, we need to use the full path to the Docker Desktop executable
+                cmd = ["cmd", "/c", "start", "\"Docker Desktop\"", "\"C:\Program Files\Docker\Docker\Docker Desktop.exe\""]
+                success, stdout, stderr = self.execute_command(cmd, shell=False)
 
                 if success:
                     return True, "Docker Desktop restarted successfully"
@@ -607,14 +609,19 @@ class WindowsAdapter(PlatformAdapter):
                 command = ["runas", "/user:Administrator"] + command
 
             if shell:
-                # For some Windows commands, we need to use shell=True
+                # For Windows commands that need shell, use cmd /c instead of shell=True
+                if isinstance(command, list):
+                    cmd_parts = ["cmd", "/c"] + command
+                else:
+                    cmd_parts = ["cmd", "/c", command]
+
                 process = subprocess.run(
-                    " ".join(command),
+                    cmd_parts,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
                     check=False,
-                    shell=True,
+                    shell=False,
                 )
             else:
                 process = subprocess.run(
