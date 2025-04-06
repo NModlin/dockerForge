@@ -1489,6 +1489,9 @@ class VisualizationEngine:
                     shutil.copy2(file_path, os.path.join(report_dir, os.path.basename(file_path)))
 
             return output_file
+        except Exception as e:
+            logger.error(f"Error compiling HTML report: {e}")
+            return None
 
 from src.config.config_manager import ConfigManager
 from src.resource_monitoring.metrics_collector import MetricsCollector
