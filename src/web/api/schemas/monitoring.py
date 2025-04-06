@@ -311,3 +311,39 @@ class ResourceStatsSummary(BaseModel):
     image_count: int
     volume_count: int
     network_count: int
+    containers: Optional[List[Dict[str, Any]]] = None
+
+
+# Alert Schemas
+class AlertSeverity(str):
+    """Alert severity levels."""
+    INFO = "info"
+    WARNING = "warning"
+    CRITICAL = "critical"
+
+
+class AlertMetric(BaseModel):
+    """Schema for alert metric."""
+    name: str
+    value: float
+    unit: str
+
+
+class AlertResource(BaseModel):
+    """Schema for alert resource."""
+    type: str
+    id: str
+    name: str
+
+
+class Alert(BaseModel):
+    """Schema for alert."""
+    id: str
+    title: str
+    description: str
+    severity: str
+    timestamp: str
+    acknowledged: bool = False
+    resolved: bool = False
+    resource: Optional[AlertResource] = None
+    metrics: Optional[List[AlertMetric]] = None

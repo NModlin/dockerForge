@@ -12,7 +12,7 @@ from src.config.config_manager import get_config
 from src.core.ai_provider import get_ai_provider, AIProviderFactory, AIProviderError
 from src.core.ai_usage_tracker import AIUsageTracker
 from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
-from src.web.api.services import host_stats
+from src.web.api.services import host_stats, alerts
 
 router = APIRouter()
 
@@ -325,4 +325,57 @@ async def troubleshoot_connection():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error troubleshooting connection: {str(e)}"
+        )
+
+
+# Alerts Endpoints
+
+@router.get("/alerts", response_model=List[schemas.Alert])
+async def get_alerts():
+    """
+    Get all active alerts.
+    """
+    try:
+        # Get alerts
+        active_alerts = await alerts.get_active_alerts()
+
+        return active_alerts
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting alerts: {str(e)}"
+        )
+
+
+@router.post("/alerts/{alert_id}/acknowledge")
+async def acknowledge_alert(alert_id: str):
+    """
+    Acknowledge an alert.
+    """
+    try:
+        # Acknowledge alert
+        await alerts.acknowledge_alert(alert_id)
+
+        return {"status": "success", "message": f"Alert {alert_id} acknowledged"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error acknowledging alert: {str(e)}"
+        )
+
+
+@router.post("/alerts/{alert_id}/resolve")
+async def resolve_alert(alert_id: str):
+    """
+    Resolve an alert.
+    """
+    try:
+        # Resolve alert
+        await alerts.resolve_alert(alert_id)
+
+        return {"status": "success", "message": f"Alert {alert_id} resolved"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error resolving alert: {str(e)}"
         )

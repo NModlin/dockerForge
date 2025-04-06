@@ -447,6 +447,7 @@ export default {
       containerMetricsDialog: false,
       selectedContainer: null,
       activeMetricTab: 0,
+      containerWebSocket: null,
       charts: {
         cpu: null,
         memory: null,
@@ -479,6 +480,16 @@ export default {
     this.refreshInterval = setInterval(() => {
       this.fetchMonitoringData(false);
     }, 30000);
+  },
+
+  watch: {
+    // Close WebSocket connection when dialog is closed
+    containerMetricsDialog(newVal) {
+      if (!newVal && this.containerWebSocket) {
+        this.containerWebSocket.close();
+        this.containerWebSocket = null;
+      }
+    }
   },
   beforeDestroy() {
     // Clear the refresh interval when component is destroyed
@@ -525,129 +536,183 @@ export default {
           count: summary.volume_count,
         };
 
-        // Fetch container resources
-        // In a real implementation, this would be fetched from the API
-        // For now, we'll use mock data
-        // For now, we'll use mock data for container resources
-        this.containerResources = [
-          {
-            id: 'c1',
-            name: 'web-server',
-            cpu_percent: 12.5,
-            memory_percent: 8.2,
-            memory_usage: 1024 * 1024 * 256, // 256 MB
-            network: { rx: '1.2 MB/s', tx: '3.5 MB/s' },
-            disk: { read: '0.5 MB/s', write: '0.2 MB/s' },
-          },
-          {
-            id: 'c2',
-            name: 'api-service',
-            cpu_percent: 28.7,
-            memory_percent: 15.3,
-            memory_usage: 1024 * 1024 * 512, // 512 MB
-            network: { rx: '2.8 MB/s', tx: '1.7 MB/s' },
-            disk: { read: '0.3 MB/s', write: '0.8 MB/s' },
-          },
-          {
-            id: 'c3',
-            name: 'database',
-            cpu_percent: 45.2,
-            memory_percent: 62.8,
-            memory_usage: 1024 * 1024 * 1024 * 2, // 2 GB
-            network: { rx: '0.5 MB/s', tx: '0.3 MB/s' },
-            disk: { read: '4.2 MB/s', write: '3.8 MB/s' },
-          },
-          {
-            id: 'c4',
-            name: 'cache',
-            cpu_percent: 5.3,
-            memory_percent: 28.1,
-            memory_usage: 1024 * 1024 * 768, // 768 MB
-            network: { rx: '4.5 MB/s', tx: '3.2 MB/s' },
-            disk: { read: '0.1 MB/s', write: '0.05 MB/s' },
-          },
-          {
-            id: 'c5',
-            name: 'worker',
-            cpu_percent: 78.9,
-            memory_percent: 42.6,
-            memory_usage: 1024 * 1024 * 896, // 896 MB
-            network: { rx: '0.3 MB/s', tx: '0.2 MB/s' },
-            disk: { read: '2.1 MB/s', write: '1.8 MB/s' },
-          },
-        ];
+        // Fetch container resources from the API
+        try {
+          // Get all running containers
+          const containersResponse = await axios.get(`${API_URL}/containers`, {
+            params: { status: 'running' },
+            headers: { 'Authorization': `Bearer ${this.token}` }
+          });
 
-        // Mock alerts for development
-        this.alerts = [
-          {
-            id: 'a1',
-            title: 'High CPU Usage',
-            description: 'Container "worker" is using excessive CPU resources (78.9%). This may indicate a performance issue or resource contention.',
-            severity: 'warning',
-            timestamp: '2025-03-17T05:45:00Z',
-            acknowledged: false,
-            resolved: false,
-            resource: {
-              type: 'container',
-              id: 'c5',
-              name: 'worker',
-            },
-            metrics: [
-              {
-                name: 'CPU Usage',
-                value: 78.9,
-                unit: '%',
+          // Process container data
+          const containers = containersResponse.data;
+          this.containerResources = [];
+
+          // Fetch stats for each container using the monitoring service
+          for (const container of containers) {
+            try {
+              // Use the getContainerMetrics function from the monitoring service
+              const stats = await getContainerMetrics(container.id);
+
+              this.containerResources.push({
+                id: container.id,
+                name: container.name,
+                cpu_percent: stats.cpu_percent || 0,
+                memory_percent: stats.memory_percent || 0,
+                memory_usage: stats.memory_usage || 0,
+                network_rx: stats.network_rx || 0,
+                network_tx: stats.network_tx || 0,
+                disk_read: stats.block_read || 0,
+                disk_write: stats.block_write || 0
+              });
+            } catch (error) {
+              console.error(`Error fetching stats for container ${container.id}:`, error);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching containers:', error);
+          // Fallback to empty array if API call fails
+          this.containerResources = [];
+        }
+
+        // Fetch alerts from the API
+        try {
+          const alertsResponse = await axios.get(`${API_URL}/monitoring/alerts`, {
+            headers: { 'Authorization': `Bearer ${this.token}` }
+          });
+
+          this.alerts = alertsResponse.data;
+        } catch (error) {
+          console.error('Error fetching alerts:', error);
+
+          // Fallback to empty array if API call fails
+          this.alerts = [];
+
+          // Generate some alerts based on the metrics we have
+          // This is a fallback in case the alerts API is not available
+          if (this.systemMetrics.cpu_usage > 70) {
+            this.alerts.push({
+              id: 'auto-cpu',
+              title: 'High CPU Usage',
+              description: `Host system is experiencing high CPU usage (${this.systemMetrics.cpu_usage.toFixed(1)}%). This may affect performance of running containers.`,
+              severity: this.systemMetrics.cpu_usage > 90 ? 'critical' : 'warning',
+              timestamp: new Date().toISOString(),
+              acknowledged: false,
+              resolved: false,
+              resource: {
+                type: 'host',
+                id: 'host',
+                name: 'Docker Host',
               },
-            ],
-          },
-          {
-            id: 'a2',
-            title: 'Memory Leak Detected',
-            description: 'Container "database" shows a steady increase in memory usage over the past 6 hours, indicating a possible memory leak.',
-            severity: 'critical',
-            timestamp: '2025-03-17T04:30:00Z',
-            acknowledged: true,
-            resolved: false,
-            resource: {
-              type: 'container',
-              id: 'c3',
-              name: 'database',
-            },
-            metrics: [
-              {
-                name: 'Memory Usage',
-                value: 62.8,
-                unit: '%',
+              metrics: [
+                {
+                  name: 'CPU Usage',
+                  value: this.systemMetrics.cpu_usage,
+                  unit: '%',
+                },
+              ],
+            });
+          }
+
+          if (this.systemMetrics.memory_usage_percent > 80) {
+            this.alerts.push({
+              id: 'auto-memory',
+              title: 'High Memory Usage',
+              description: `Host system is running low on memory (${this.systemMetrics.memory_usage_percent.toFixed(1)}% used). This may cause containers to be killed if they exceed memory limits.`,
+              severity: this.systemMetrics.memory_usage_percent > 90 ? 'critical' : 'warning',
+              timestamp: new Date().toISOString(),
+              acknowledged: false,
+              resolved: false,
+              resource: {
+                type: 'host',
+                id: 'host',
+                name: 'Docker Host',
               },
-              {
-                name: 'Memory Growth Rate',
-                value: 5.2,
-                unit: '%/hour',
+              metrics: [
+                {
+                  name: 'Memory Usage',
+                  value: this.systemMetrics.memory_usage_percent,
+                  unit: '%',
+                },
+              ],
+            });
+          }
+
+          if (this.systemMetrics.disk_usage_percent > 75) {
+            this.alerts.push({
+              id: 'auto-disk',
+              title: 'Disk Space Warning',
+              description: `Host system is running low on disk space (${this.systemMetrics.disk_usage_percent.toFixed(1)}% used). Consider cleaning up unused images and volumes.`,
+              severity: this.systemMetrics.disk_usage_percent > 90 ? 'critical' : 'warning',
+              timestamp: new Date().toISOString(),
+              acknowledged: false,
+              resolved: false,
+              resource: {
+                type: 'host',
+                id: 'host',
+                name: 'Docker Host',
               },
-            ],
-          },
-          {
-            id: 'a3',
-            title: 'Disk Space Warning',
-            description: 'Host system is running low on disk space (68.3% used). Consider cleaning up unused images and volumes.',
-            severity: 'warning',
-            timestamp: '2025-03-17T03:15:00Z',
-            acknowledged: false,
-            resolved: false,
-            resource: {
-              type: 'host',
-              id: 'host',
-              name: 'Docker Host',
-            },
-            metrics: [
-              {
-                name: 'Disk Usage',
-                value: 68.3,
-                unit: '%',
-              },
-            ],
-          },
-        ];
+              metrics: [
+                {
+                  name: 'Disk Usage',
+                  value: this.systemMetrics.disk_usage_percent,
+                  unit: '%',
+                },
+              ],
+            });
+          }
+
+          // Add alerts for containers with high resource usage
+          this.containerResources.forEach(container => {
+            if (container.cpu_percent > 80) {
+              this.alerts.push({
+                id: `auto-container-cpu-${container.id}`,
+                title: 'High Container CPU Usage',
+                description: `Container "${container.name}" is using excessive CPU resources (${container.cpu_percent.toFixed(1)}%). This may indicate a performance issue or resource contention.`,
+                severity: container.cpu_percent > 90 ? 'critical' : 'warning',
+                timestamp: new Date().toISOString(),
+                acknowledged: false,
+                resolved: false,
+                resource: {
+                  type: 'container',
+                  id: container.id,
+                  name: container.name,
+                },
+                metrics: [
+                  {
+                    name: 'CPU Usage',
+                    value: container.cpu_percent,
+                    unit: '%',
+                  },
+                ],
+              });
+            }
+
+            if (container.memory_percent > 80) {
+              this.alerts.push({
+                id: `auto-container-memory-${container.id}`,
+                title: 'High Container Memory Usage',
+                description: `Container "${container.name}" is using excessive memory (${container.memory_percent.toFixed(1)}%). This may indicate a memory leak or insufficient memory allocation.`,
+                severity: container.memory_percent > 90 ? 'critical' : 'warning',
+                timestamp: new Date().toISOString(),
+                acknowledged: false,
+                resolved: false,
+                resource: {
+                  type: 'container',
+                  id: container.id,
+                  name: container.name,
+                },
+                metrics: [
+                  {
+                    name: 'Memory Usage',
+                    value: container.memory_percent,
+                    unit: '%',
+                  },
+                ],
+              });
+            }
+          });
+        }
 
         this.loading = false;
 
@@ -719,30 +784,170 @@ export default {
       // Initialize container charts after dialog is shown
       this.$nextTick(() => {
         this.initContainerCharts();
+        this.setupContainerWebSocket();
       });
     },
-    acknowledgeAlert(alert) {
-      // In a real implementation, this would call the API
-      // await axios.post(`/api/monitoring/alerts/${alert.id}/acknowledge`, {}, {
-      //   headers: { Authorization: `Bearer ${this.token}` },
-      // });
 
-      // Mock implementation
-      alert.acknowledged = true;
+    setupContainerWebSocket() {
+      if (!this.selectedContainer) return;
+
+      // Close existing WebSocket connection if any
+      if (this.containerWebSocket) {
+        this.containerWebSocket.close();
+        this.containerWebSocket = null;
+      }
+
+      // Create a new WebSocket connection for real-time updates
+      this.containerWebSocket = createContainerStatsWebSocket(
+        this.selectedContainer.id,
+        // Message handler
+        (data) => {
+          // Update the selected container's metrics
+          if (this.selectedContainer && this.selectedContainer.id === data.container_id) {
+            this.selectedContainer.cpu_percent = data.cpu_percent || this.selectedContainer.cpu_percent;
+            this.selectedContainer.memory_percent = data.memory_percent || this.selectedContainer.memory_percent;
+            this.selectedContainer.memory_usage = data.memory_usage || this.selectedContainer.memory_usage;
+
+            // Update charts if they exist
+            if (this.charts.containerCpu && this.charts.containerCpu.data && this.charts.containerCpu.data.datasets) {
+              const cpuData = this.charts.containerCpu.data.datasets[0].data;
+              cpuData.push(data.cpu_percent);
+              // Keep only the last 24 data points
+              if (cpuData.length > 24) {
+                cpuData.shift();
+              }
+              this.charts.containerCpu.update();
+            }
+
+            if (this.charts.containerMemory && this.charts.containerMemory.data && this.charts.containerMemory.data.datasets) {
+              const memoryData = this.charts.containerMemory.data.datasets[0].data;
+              memoryData.push(data.memory_percent);
+              // Keep only the last 24 data points
+              if (memoryData.length > 24) {
+                memoryData.shift();
+              }
+              this.charts.containerMemory.update();
+            }
+
+            // Update network chart if it exists
+            if (this.charts.containerNetwork && this.charts.containerNetwork.data && this.charts.containerNetwork.data.datasets) {
+              const rxData = this.charts.containerNetwork.data.datasets[0].data;
+              const txData = this.charts.containerNetwork.data.datasets[1].data;
+
+              rxData.push(data.network_rx_rate || 0);
+              txData.push(data.network_tx_rate || 0);
+
+              // Keep only the last 24 data points
+              if (rxData.length > 24) {
+                rxData.shift();
+              }
+              if (txData.length > 24) {
+                txData.shift();
+              }
+
+              this.charts.containerNetwork.update();
+            }
+
+            // Update disk chart if it exists
+            if (this.charts.containerDisk && this.charts.containerDisk.data && this.charts.containerDisk.data.datasets) {
+              const readData = this.charts.containerDisk.data.datasets[0].data;
+              const writeData = this.charts.containerDisk.data.datasets[1].data;
+
+              readData.push(data.block_read_rate || 0);
+              writeData.push(data.block_write_rate || 0);
+
+              // Keep only the last 24 data points
+              if (readData.length > 24) {
+                readData.shift();
+              }
+              if (writeData.length > 24) {
+                writeData.shift();
+              }
+
+              this.charts.containerDisk.update();
+            }
+          }
+        },
+        // Error handler
+        (error) => {
+          console.error('WebSocket error:', error);
+        },
+        // Close handler
+        () => {
+          console.log('WebSocket connection closed');
+          this.containerWebSocket = null;
+        }
+      );
     },
-    resolveAlert(alert) {
-      // In a real implementation, this would call the API
-      // await axios.post(`/api/monitoring/alerts/${alert.id}/resolve`, {}, {
-      //   headers: { Authorization: `Bearer ${this.token}` },
-      // });
+    async acknowledgeAlert(alert) {
+      try {
+        // Call the API to acknowledge the alert
+        await axios.post(`${API_URL}/monitoring/alerts/${alert.id}/acknowledge`, {}, {
+          headers: { 'Authorization': `Bearer ${this.token}` }
+        });
 
-      // Mock implementation
-      alert.resolved = true;
+        // Update the local alert object
+        alert.acknowledged = true;
 
-      // Remove the alert from the list after a short delay
-      setTimeout(() => {
-        this.alerts = this.alerts.filter(a => a.id !== alert.id);
-      }, 500);
+        // Show success message
+        this.$emit('show-snackbar', {
+          text: 'Alert acknowledged',
+          color: 'success'
+        });
+      } catch (error) {
+        console.error(`Error acknowledging alert ${alert.id}:`, error);
+
+        // Show error message
+        this.$emit('show-snackbar', {
+          text: 'Failed to acknowledge alert',
+          color: 'error'
+        });
+
+        // Fallback for development/testing
+        if (alert.id.startsWith('auto-')) {
+          alert.acknowledged = true;
+        }
+      }
+    },
+    async resolveAlert(alert) {
+      try {
+        // Call the API to resolve the alert
+        await axios.post(`${API_URL}/monitoring/alerts/${alert.id}/resolve`, {}, {
+          headers: { 'Authorization': `Bearer ${this.token}` }
+        });
+
+        // Update the local alert object
+        alert.resolved = true;
+
+        // Show success message
+        this.$emit('show-snackbar', {
+          text: 'Alert resolved',
+          color: 'success'
+        });
+
+        // Remove the alert from the list after a short delay
+        setTimeout(() => {
+          this.alerts = this.alerts.filter(a => a.id !== alert.id);
+        }, 500);
+      } catch (error) {
+        console.error(`Error resolving alert ${alert.id}:`, error);
+
+        // Show error message
+        this.$emit('show-snackbar', {
+          text: 'Failed to resolve alert',
+          color: 'error'
+        });
+
+        // Fallback for development/testing
+        if (alert.id.startsWith('auto-')) {
+          alert.resolved = true;
+
+          // Remove the alert from the list after a short delay
+          setTimeout(() => {
+            this.alerts = this.alerts.filter(a => a.id !== alert.id);
+          }, 500);
+        }
+      }
     },
     async initCharts() {
       try {
@@ -955,10 +1160,13 @@ export default {
       if (!this.selectedContainer) return;
 
       try {
-        // In a real implementation, we would fetch container metrics history from the API
-        // For now, we'll create mock data
+        // Fetch container metrics history from the API
+        const cpuHistory = await getContainerMetricsHistory(this.selectedContainer.id, 'cpu', 24);
+        const memoryHistory = await getContainerMetricsHistory(this.selectedContainer.id, 'memory', 24);
+        const networkHistory = await getContainerMetricsHistory(this.selectedContainer.id, 'network', 24);
+        const diskHistory = await getContainerMetricsHistory(this.selectedContainer.id, 'disk', 24);
 
-        // Create mock data for container charts
+        // Process data for charts
         const timeLabels = [];
         const cpuData = [];
         const memoryData = [];
@@ -967,20 +1175,52 @@ export default {
         const diskReadData = [];
         const diskWriteData = [];
 
-        // Generate time labels for the last 24 hours
-        const now = new Date();
-        for (let i = 23; i >= 0; i--) {
-          const time = new Date(now);
-          time.setHours(now.getHours() - i);
-          timeLabels.push(time.toLocaleTimeString());
+        // Process CPU data
+        cpuHistory.forEach(item => {
+          const date = new Date(item.timestamp);
+          timeLabels.push(date.toLocaleTimeString());
+          cpuData.push(item.data.cpu_percent || 0);
+        });
 
-          // Generate random data points
-          cpuData.push(Math.random() * 50 + (this.selectedContainer.cpu_percent - 25));
-          memoryData.push(Math.random() * 30 + (this.selectedContainer.memory_percent - 15));
-          networkRxData.push(Math.random() * 5 + 0.5);
-          networkTxData.push(Math.random() * 3 + 0.2);
-          diskReadData.push(Math.random() * 5 + 0.5);
-          diskWriteData.push(Math.random() * 3 + 0.2);
+        // Process memory data
+        memoryHistory.forEach((item, index) => {
+          // Only add time labels from the first dataset to avoid duplicates
+          if (timeLabels.length <= index) {
+            const date = new Date(item.timestamp);
+            timeLabels.push(date.toLocaleTimeString());
+          }
+          memoryData.push(item.data.memory_percent || 0);
+        });
+
+        // Process network data
+        networkHistory.forEach((item, index) => {
+          networkRxData.push(item.data.network_rx_rate || 0);
+          networkTxData.push(item.data.network_tx_rate || 0);
+        });
+
+        // Process disk data
+        diskHistory.forEach((item, index) => {
+          diskReadData.push(item.data.block_read_rate || 0);
+          diskWriteData.push(item.data.block_write_rate || 0);
+        });
+
+        // If we don't have any data, use fallback mock data
+        if (timeLabels.length === 0) {
+          // Generate time labels for the last 24 hours
+          const now = new Date();
+          for (let i = 23; i >= 0; i--) {
+            const time = new Date(now);
+            time.setHours(now.getHours() - i);
+            timeLabels.push(time.toLocaleTimeString());
+
+            // Generate random data points
+            cpuData.push(Math.random() * 50 + (this.selectedContainer.cpu_percent - 25));
+            memoryData.push(Math.random() * 30 + (this.selectedContainer.memory_percent - 15));
+            networkRxData.push(Math.random() * 5 + 0.5);
+            networkTxData.push(Math.random() * 3 + 0.2);
+            diskReadData.push(Math.random() * 5 + 0.5);
+            diskWriteData.push(Math.random() * 3 + 0.2);
+          }
         }
 
         // Create CPU chart
