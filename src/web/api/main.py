@@ -11,6 +11,8 @@ from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 
+from src.web.api.middleware.api_key_usage import ApiKeyUsageMiddleware
+
 from .database import get_db, init_db, create_initial_data
 
 # Create FastAPI app
@@ -20,14 +22,18 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Initialize database on startup
+# Initialize database and services on startup
 @app.on_event("startup")
 async def startup_event():
     """
-    Initialize database on startup.
+    Initialize database and services on startup.
     """
     init_db()
     create_initial_data()
+
+    # Initialize default security policies
+    from src.web.api.services import policy as policy_service
+    await policy_service.initialize_default_policies()
 
 # Configure CORS
 # Get environment
@@ -53,8 +59,11 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"] if env == "development" else ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allow_headers=["*"] if env == "development" else ["Authorization", "Content-Type"],
+    allow_headers=["*"] if env == "development" else ["Authorization", "Content-Type", "X-API-Key"],
 )
+
+# Add API key usage middleware
+app.add_middleware(ApiKeyUsageMiddleware)
 
 # Mount static files
 # Get static directory from environment variable or use default
@@ -86,7 +95,7 @@ async def root():
     }
 
 # Import and include routers
-from src.web.api.routers import auth, containers, images, backup, monitoring, chat, websocket, terminal, stats
+from src.web.api.routers import auth, containers, images, backup, monitoring, chat, websocket, terminal, stats, networks, volumes, compose, compose_templates, security, policy, alerts, logs, daemon_config, api_key, api_key_usage, user_preferences
 # Import additional routers as they are implemented
 from src.web.api.models import __all__ as models  # Import all models to ensure they are registered
 
@@ -95,11 +104,19 @@ app.include_router(containers.router, prefix="/api/containers", tags=["Container
 app.include_router(images.router, prefix="/api/images", tags=["Images"])
 app.include_router(backup.router, prefix="/api/backup", tags=["Backup"])
 app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
-# app.include_router(volumes.router, prefix="/api/volumes", tags=["Volumes"])
-# app.include_router(networks.router, prefix="/api/networks", tags=["Networks"])
-# app.include_router(compose.router, prefix="/api/compose", tags=["Compose"])
-# app.include_router(security.router, prefix="/api/security", tags=["Security"])
+app.include_router(volumes.router, prefix="/api/volumes", tags=["Volumes"])
+app.include_router(networks.router, prefix="/api/networks", tags=["Networks"])
+app.include_router(compose.router, prefix="/api/compose", tags=["Compose"])
+app.include_router(compose_templates.router, tags=["Compose Templates"])
+app.include_router(security.router, prefix="/api/security", tags=["Security"])
+app.include_router(policy.router, prefix="/api/security/policy", tags=["Security Policy"])
 app.include_router(monitoring.router, prefix="/api/monitoring", tags=["Monitoring"])
+app.include_router(alerts.router, prefix="/api/monitoring/alerts", tags=["Alerts"])
+app.include_router(logs.router, prefix="/api/monitoring/logs", tags=["Logs"])
+app.include_router(daemon_config.router, prefix="/api/settings/daemon", tags=["Docker Daemon Configuration"])
+app.include_router(api_key.router, prefix="/api/settings/api-keys", tags=["API Keys"])
+app.include_router(api_key_usage.router, prefix="/api/settings/api-keys", tags=["API Key Usage"])
+app.include_router(user_preferences.router, prefix="/api/settings/user-preferences", tags=["User Preferences"])
 app.include_router(websocket.router, tags=["WebSocket"])
 app.include_router(terminal.router, prefix="/api/terminal", tags=["Terminal"])
 app.include_router(stats.router, prefix="/api/stats", tags=["Stats"])

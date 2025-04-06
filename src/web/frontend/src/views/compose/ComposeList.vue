@@ -61,19 +61,29 @@
       >
         <!-- Name Column -->
         <template v-slot:item.name="{ item }">
-          <router-link :to="`/compose/${item.id}`" class="text-decoration-none">
-            {{ item.name }}
-          </router-link>
+          <div class="d-flex align-center">
+            <v-chip
+              small
+              :color="getStatusColor(item.status)"
+              text-color="white"
+              class="mr-2"
+            >
+              {{ item.status }}
+            </v-chip>
+            <router-link :to="`/compose/${item.id}`" class="text-decoration-none">
+              {{ item.name }}
+            </router-link>
+          </div>
         </template>
 
-        <!-- Status Column -->
-        <template v-slot:item.status="{ item }">
+        <!-- Services Column -->
+        <template v-slot:item.service_count="{ item }">
           <v-chip
-            :color="getStatusColor(item.status)"
-            text-color="white"
             small
+            color="primary"
+            text-color="white"
           >
-            {{ item.status }}
+            {{ item.service_count }} services
           </v-chip>
         </template>
 
@@ -101,6 +111,14 @@
             title="Stop"
           >
             <v-icon small>mdi-stop</v-icon>
+          </v-btn>
+          <v-btn
+            icon
+            small
+            @click="navigateToEditCompose(item)"
+            title="Edit"
+          >
+            <v-icon small>mdi-pencil</v-icon>
           </v-btn>
           <v-btn
             icon
@@ -137,6 +155,14 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Snackbar for notifications -->
+    <v-snackbar v-model="snackbar" :color="snackbarColor" :timeout="3000">
+      {{ snackbarText }}
+      <template v-slot:action="{ attrs }">
+        <v-btn text v-bind="attrs" @click="snackbar = false">Close</v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
@@ -153,9 +179,12 @@ export default {
       filters: {
         name: '',
       },
+      snackbar: false,
+      snackbarText: '',
+      snackbarColor: 'success',
       headers: [
         { text: 'Name', value: 'name', sortable: true },
-        { text: 'Status', value: 'status', sortable: true },
+
         { text: 'Services', value: 'service_count', sortable: true },
         { text: 'Location', value: 'location', sortable: true },
         { text: 'Created', value: 'created_at', sortable: true },
@@ -248,12 +277,14 @@ export default {
         // await axios.post(`/api/compose/${project.id}/start`, {}, {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
-        
+
         // Mock implementation
         project.status = 'running';
         this.$forceUpdate();
+        this.showSuccess(`Compose project ${project.name} started successfully`);
       } catch (error) {
         this.error = `Failed to start compose project ${project.name}`;
+        this.showError(this.error);
       }
     },
     async stopComposeProject(project) {
@@ -262,12 +293,14 @@ export default {
         // await axios.post(`/api/compose/${project.id}/stop`, {}, {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
-        
+
         // Mock implementation
         project.status = 'stopped';
         this.$forceUpdate();
+        this.showSuccess(`Compose project ${project.name} stopped successfully`);
       } catch (error) {
         this.error = `Failed to stop compose project ${project.name}`;
+        this.showError(this.error);
       }
     },
     showDeleteDialog(project) {
@@ -277,22 +310,40 @@ export default {
     },
     async deleteComposeProject() {
       if (!this.selectedProject) return;
-      
+
       try {
         // In a real implementation, this would call the API
         // await axios.delete(`/api/compose/${this.selectedProject.id}`, {
         //   headers: { Authorization: `Bearer ${this.token}` },
         //   params: { removeVolumes: this.deleteWithVolumes },
         // });
-        
+
         // Mock implementation
         this.composeProjects = this.composeProjects.filter(p => p.id !== this.selectedProject.id);
         this.deleteDialog = false;
+        this.showSuccess(`Compose project ${this.selectedProject.name} deleted successfully`);
         this.selectedProject = null;
       } catch (error) {
         this.error = `Failed to delete compose project ${this.selectedProject.name}`;
+        this.showError(this.error);
         this.deleteDialog = false;
       }
+    },
+
+    navigateToEditCompose(project) {
+      this.$router.push(`/compose/${project.id}/edit`);
+    },
+
+    showSuccess(message) {
+      this.snackbarText = message;
+      this.snackbarColor = 'success';
+      this.snackbar = true;
+    },
+
+    showError(message) {
+      this.snackbarText = message;
+      this.snackbarColor = 'error';
+      this.snackbar = true;
     },
   },
 };

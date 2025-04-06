@@ -28,7 +28,7 @@
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
-        
+
         <v-img
           v-if="currentStepData.image"
           :src="currentStepData.image"
@@ -36,10 +36,10 @@
           class="grey lighten-4"
           contain
         ></v-img>
-        
+
         <v-card-text>
           <p v-html="currentStepData.content"></p>
-          
+
           <div v-if="currentStepData.hint" class="hint mt-2">
             <v-alert
               text
@@ -51,7 +51,7 @@
             </v-alert>
           </div>
         </v-card-text>
-        
+
         <v-card-actions>
           <v-btn
             text
@@ -61,9 +61,9 @@
             <v-icon left>mdi-arrow-left</v-icon>
             Back
           </v-btn>
-          
+
           <v-spacer></v-spacer>
-          
+
           <div class="tour-progress">
             <v-progress-linear
               :value="(currentStep / (tourSteps.length - 1)) * 100"
@@ -73,9 +73,9 @@
             ></v-progress-linear>
             <span class="caption">{{ currentStep + 1 }} / {{ tourSteps.length }}</span>
           </div>
-          
+
           <v-spacer></v-spacer>
-          
+
           <v-btn
             v-if="currentStep < tourSteps.length - 1"
             color="primary"
@@ -84,7 +84,7 @@
             Next
             <v-icon right>mdi-arrow-right</v-icon>
           </v-btn>
-          
+
           <v-btn
             v-else
             color="success"
@@ -96,7 +96,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    
+
     <v-snackbar
       v-model="tourCompleteSnackbar"
       timeout="5000"
@@ -268,7 +268,7 @@ export default {
     if (this.autoStart && !this.hasCompletedTour()) {
       this.startTour();
     }
-    
+
     // If there's a specific target route for this instance
     if (this.targetRoute && this.$route.path !== this.targetRoute) {
       this.tourStarted = false;
@@ -277,15 +277,43 @@ export default {
   methods: {
     startTour() {
       this.tourStarted = true;
-      this.currentStep = 0;
+
+      // Check if there's a saved tour progress
+      const savedProgress = localStorage.getItem('guided-tour-progress');
+      if (savedProgress) {
+        try {
+          const progress = JSON.parse(savedProgress);
+          this.currentStep = progress.step || 0;
+        } catch (e) {
+          console.error('Failed to parse saved tour progress:', e);
+          this.currentStep = 0;
+        }
+      } else {
+        this.currentStep = 0;
+      }
+
       this.highlightElement();
       this.$emit('tour-started');
+
+      // Track tour start in analytics if available
+      if (this.$analytics) {
+        this.$analytics.trackEvent('tour', 'start');
+      }
     },
     nextStep() {
       if (this.currentStep < this.tourSteps.length - 1) {
         this.currentStep++;
         this.handleRouteChange();
         this.highlightElement();
+        this.saveTourProgress();
+
+        // Track step progress in analytics if available
+        if (this.$analytics) {
+          this.$analytics.trackEvent('tour', 'next_step', {
+            step: this.currentStep,
+            stepTitle: this.currentStepData.title
+          });
+        }
       }
     },
     prevStep() {
@@ -293,12 +321,31 @@ export default {
         this.currentStep--;
         this.handleRouteChange();
         this.highlightElement();
+        this.saveTourProgress();
+
+        // Track step progress in analytics if available
+        if (this.$analytics) {
+          this.$analytics.trackEvent('tour', 'prev_step', {
+            step: this.currentStep,
+            stepTitle: this.currentStepData.title
+          });
+        }
       }
     },
     endTour() {
       this.tourStarted = false;
       this.removeHighlights();
       this.$emit('tour-ended');
+
+      // Track tour end in analytics if available
+      if (this.$analytics) {
+        this.$analytics.trackEvent('tour', 'end', {
+          step: this.currentStep,
+          completed: false
+        });
+      }
+
+      // Keep the progress in case user wants to resume later
     },
     completeTour() {
       this.tourStarted = false;
@@ -307,10 +354,23 @@ export default {
       this.removeHighlights();
       this.markTourCompleted();
       this.$emit('tour-completed');
+
+      // Clear progress since tour is completed
+      localStorage.removeItem('guided-tour-progress');
+
+      // Track tour completion in analytics if available
+      if (this.$analytics) {
+        this.$analytics.trackEvent('tour', 'complete');
+      }
     },
     skipTour() {
       this.tourComplete = true;
       this.$emit('tour-skipped');
+
+      // Track tour skip in analytics if available
+      if (this.$analytics) {
+        this.$analytics.trackEvent('tour', 'skip');
+      }
     },
     handleRouteChange() {
       // If the current step specifies a route, navigate to it
@@ -321,7 +381,7 @@ export default {
     },
     highlightElement() {
       this.removeHighlights();
-      
+
       // If the current step targets an element, highlight it
       const targetSelector = this.currentStepData.targetElement;
       if (targetSelector) {
@@ -343,6 +403,35 @@ export default {
     },
     markTourCompleted() {
       localStorage.setItem('guided-tour-completed', 'true');
+    },
+
+    saveTourProgress() {
+      // Save current tour progress to localStorage
+      try {
+        const progress = {
+          step: this.currentStep,
+          timestamp: new Date().toISOString()
+        };
+        localStorage.setItem('guided-tour-progress', JSON.stringify(progress));
+      } catch (e) {
+        console.error('Failed to save tour progress:', e);
+      }
+    },
+
+    resumeTour() {
+      // Resume tour from saved progress
+      const savedProgress = localStorage.getItem('guided-tour-progress');
+      if (savedProgress) {
+        try {
+          const progress = JSON.parse(savedProgress);
+          this.currentStep = progress.step || 0;
+          this.startTour();
+          return true;
+        } catch (e) {
+          console.error('Failed to parse saved tour progress:', e);
+        }
+      }
+      return false;
     }
   }
 };

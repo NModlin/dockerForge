@@ -2,7 +2,10 @@
   <v-app>
     <v-app-bar app color="primary" dark>
       <v-app-bar-nav-icon v-if="isAuthenticated" @click="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title class="cursor-pointer" @click="$router.push('/')">DockerForge</v-toolbar-title>
+      <v-toolbar-title class="cursor-pointer d-flex align-center" @click="$router.push('/')">
+        <img :src="currentLogo" alt="DockerForge Logo" class="app-logo" />
+        DockerForge
+      </v-toolbar-title>
 
       <!-- Quick Actions Menu -->
       <v-menu v-if="isAuthenticated" offset-y left>
@@ -232,6 +235,80 @@
           <v-icon>mdi-robot</v-icon>
         </v-btn>
 
+        <!-- Theme Toggle -->
+        <v-menu offset-y left>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon v-bind="attrs" v-on="on" v-tooltip="'Change Theme'">
+              <v-icon>{{ getThemeIcon() }}</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="setTheme('light')" :class="{ 'primary--text': currentTheme === 'light' }">
+              <v-list-item-icon>
+                <v-icon>mdi-weather-sunny</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Light Theme</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-action v-if="currentTheme === 'light'">
+                <v-icon color="primary">mdi-check</v-icon>
+              </v-list-item-action>
+            </v-list-item>
+
+            <v-list-item @click="setTheme('dark')" :class="{ 'primary--text': currentTheme === 'dark' }">
+              <v-list-item-icon>
+                <v-icon>mdi-weather-night</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Dark Theme</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-action v-if="currentTheme === 'dark'">
+                <v-icon color="primary">mdi-check</v-icon>
+              </v-list-item-action>
+            </v-list-item>
+
+            <v-list-item @click="setTheme('highContrast')" :class="{ 'primary--text': currentTheme === 'highContrast' }">
+              <v-list-item-icon>
+                <v-icon>mdi-contrast-circle</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>High Contrast</v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-action v-if="currentTheme === 'highContrast'">
+                <v-icon color="primary">mdi-check</v-icon>
+              </v-list-item-action>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
+        <!-- Language Selector -->
+        <v-menu offset-y left>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon v-bind="attrs" v-on="on" v-tooltip="'Change Language'">
+              <v-icon>mdi-translate</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="changeLanguage('en')" :class="{ 'primary--text': currentLanguage === 'en' }">
+              <v-list-item-icon>
+                <v-icon v-if="currentLanguage === 'en'" color="primary">mdi-check</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>English</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item @click="changeLanguage('es')" :class="{ 'primary--text': currentLanguage === 'es' }">
+              <v-list-item-icon>
+                <v-icon v-if="currentLanguage === 'es'" color="primary">mdi-check</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title>Español</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+
         <!-- User Menu -->
         <v-menu offset-y left>
           <template v-slot:activator="{ on, attrs }">
@@ -288,9 +365,7 @@
         <v-card-title class="headline">About DockerForge</v-card-title>
         <v-card-text>
           <div class="text-center mb-4">
-            <v-avatar size="80" color="primary" class="white--text">
-              <v-icon size="48">mdi-docker</v-icon>
-            </v-avatar>
+            <img :src="currentLogo" alt="DockerForge Logo" height="80" />
             <h2 class="mt-2">DockerForge</h2>
             <p class="text-body-2">Version 1.0.0</p>
           </div>
@@ -402,7 +477,16 @@
               <v-icon>mdi-view-list</v-icon>
             </v-list-item-icon>
             <v-list-item-content>
-              <v-list-item-title>Projects</v-list-item-title>
+              <v-list-item-title>Compose Files</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item to="/compose/projects" link>
+            <v-list-item-icon>
+              <v-icon>mdi-cube-outline</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title>Compose Projects</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
 
@@ -486,10 +570,20 @@
 
       <template v-slot:append>
         <div class="pa-2">
-          <v-btn block color="primary" @click="toggleTheme">
-            <v-icon left>{{ isDarkMode ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
-            {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
-          </v-btn>
+          <v-btn-group block>
+            <v-btn color="primary" @click="setTheme('light')" :outlined="currentTheme !== 'light'">
+              <v-icon left>mdi-weather-sunny</v-icon>
+              Light
+            </v-btn>
+            <v-btn color="primary" @click="setTheme('dark')" :outlined="currentTheme !== 'dark'">
+              <v-icon left>mdi-weather-night</v-icon>
+              Dark
+            </v-btn>
+            <v-btn color="primary" @click="setTheme('highContrast')" :outlined="currentTheme !== 'highContrast'">
+              <v-icon left>mdi-contrast-circle</v-icon>
+              HC
+            </v-btn>
+          </v-btn-group>
         </div>
       </template>
     </v-navigation-drawer>
@@ -498,6 +592,14 @@
       <v-container fluid>
         <router-view></router-view>
       </v-container>
+
+      <!-- Guided Tour Component -->
+      <guided-tour
+        v-if="showGuidedTour"
+        @tour-ended="showGuidedTour = false"
+        @tour-completed="showGuidedTour = false"
+        @tour-skipped="showGuidedTour = false"
+      />
     </v-main>
 
     <v-footer app>
@@ -532,12 +634,14 @@
 
 <script>
 import ChatSidebar from './components/chat/ChatSidebar.vue';
+import GuidedTour from './components/help/GuidedTour.vue';
 import { mapGetters, mapActions } from 'vuex';
 
 export default {
   name: 'App',
   components: {
-    ChatSidebar
+    ChatSidebar,
+    GuidedTour
   },
   data() {
     return {
@@ -546,6 +650,9 @@ export default {
       searchQuery: '',
       searchType: 'all',
       showAboutDialog: false,
+      showGuidedTour: false,
+      currentLanguage: localStorage.getItem('language') || 'en',
+      currentTheme: localStorage.getItem('theme') || 'light',
       notifications: [
         {
           id: 1,
@@ -581,6 +688,7 @@ export default {
         vertical: false,
         top: false
       }
+    }
   },
   created() {
     // Apply the theme from store
@@ -633,6 +741,11 @@ export default {
 
     // Listen for snackbar events
     window.addEventListener('show-snackbar', this.handleSnackbarEvent);
+
+    // Listen for guided tour events
+    this.$root.$on('start-guided-tour', () => {
+      this.showGuidedTour = true;
+    });
   },
 
   beforeUnmount() {
@@ -660,6 +773,11 @@ export default {
     },
     unreadNotifications() {
       return this.notifications.filter(n => !n.read).length;
+    },
+    currentLogo() {
+      // Get the logo path from CSS variable
+      const logoPath = getComputedStyle(document.documentElement).getPropertyValue('--logo-path').trim();
+      return logoPath.replace(/['"\/]/g, '');
     }
   },
   methods: {
@@ -668,15 +786,40 @@ export default {
       this.$store.dispatch('auth/logout');
       this.$router.push('/login');
     },
+    setTheme(themeName) {
+      this.currentTheme = themeName;
+
+      // Update dark mode in store for backward compatibility
+      const isDark = themeName === 'dark' || themeName === 'highContrast';
+      this.$store.commit('SET_DARK_MODE', isDark);
+
+      // Apply theme using the theme utility
+      import('./themes').then(({ applyTheme }) => {
+        applyTheme(themeName, this.$vuetify);
+      });
+    },
+    getThemeIcon() {
+      switch(this.currentTheme) {
+        case 'light': return 'mdi-weather-sunny';
+        case 'dark': return 'mdi-weather-night';
+        case 'highContrast': return 'mdi-contrast-circle';
+        default: return 'mdi-theme-light-dark';
+      }
+    },
+    changeLanguage(lang) {
+      this.currentLanguage = lang;
+      this.$i18n.locale = lang;
+      localStorage.setItem('language', lang);
+      document.documentElement.setAttribute('lang', lang);
+    },
     applyTheme() {
-      // Set theme based on store value
-      this.$vuetify.theme.global.name = this.isDarkMode ? 'dark' : 'light';
+      // Apply the saved theme
+      import('./themes').then(({ applyTheme }) => {
+        applyTheme(this.currentTheme, this.$vuetify);
+      });
     },
     updateChatContext(contextData) {
       this.updateContext(contextData);
-    },
-    toggleTheme() {
-      this.$store.commit('SET_DARK_MODE', !this.isDarkMode);
     },
     performSearch() {
       if (!this.searchQuery.trim()) return;
@@ -697,9 +840,11 @@ export default {
       this.searchQuery = '';
     },
     startTour() {
-      // This would trigger the guided tour component
-      // For now, just navigate to help page
-      this.$router.push('/help');
+      // Dispatch action to start the guided tour
+      this.$store.dispatch('help/startTour');
+
+      // Show the tour component
+      this.showGuidedTour = true;
     },
     reportIssue() {
       // Open GitHub issue page in new tab
@@ -768,10 +913,13 @@ export default {
     }
   },
   watch: {
-    // Watch for changes to the dark mode setting
-    isDarkMode: {
+    // Watch for changes to the theme setting
+    currentTheme: {
       handler(newValue) {
-        this.$vuetify.theme.global.name = newValue ? 'dark' : 'light';
+        // Apply the theme when it changes
+        import('./themes').then(({ applyTheme }) => {
+          applyTheme(newValue, this.$vuetify);
+        });
       },
       immediate: true
     }
@@ -781,4 +929,35 @@ export default {
 
 <style>
 /* Global styles */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Apply theme transition to all cards */
+.v-card {
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color, #f1f1f1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-color, #888);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color, #555);
+}
 </style>

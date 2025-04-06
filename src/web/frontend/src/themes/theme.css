@@ -1,0 +1,107 @@
+/* Custom theme styles for DockerForge */
+
+:root {
+  --primary-color: #007BFF;
+  --secondary-color: #6C757D;
+  --accent-color: #17A2B8;
+  --background-color: #F8F9FA;
+  --surface-color: #FFFFFF;
+  --logo-path: '/img/logos/logo-light.svg';
+}
+
+/* Dark theme specific styles */
+body.dark-theme {
+  --background-color: #212529;
+  --surface-color: #343A40;
+  --logo-path: '/img/logos/logo-dark.svg';
+}
+
+/* High contrast theme specific styles */
+body.high-contrast-theme {
+  --primary-color: #FFFF00;
+  --secondary-color: #FFFFFF;
+  --accent-color: #00FFFF;
+  --background-color: #000000;
+  --surface-color: #0A0A0A;
+  --logo-path: '/img/logos/logo-high-contrast.svg';
+}
+
+/* Logo styles */
+.app-logo {
+  height: 36px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* Theme preview chips */
+.theme-preview-chip {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+/* Custom scrollbar for themed scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Theme transitions */
+.theme-transition {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom card styles for settings */
+.settings-card {
+  border-left: 4px solid var(--primary-color);
+  transition: transform 0.2s ease;
+}
+
+.settings-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Theme-specific notification styles */
+.notification-badge {
+  position: relative;
+}
+
+.notification-badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+/* Language selector styles */
+.language-option {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+}
+
+.language-flag {
+  width: 24px;
+  height: 16px;
+  margin-right: 8px;
+  object-fit: cover;
+}

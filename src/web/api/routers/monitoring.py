@@ -1,21 +1,106 @@
 """
 Monitoring router for the DockerForge Web UI.
 
-This module provides API endpoints for AI monitoring and troubleshooting.
+This module provides API endpoints for AI monitoring, resource monitoring, and troubleshooting.
 """
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlalchemy.orm import Session
-from datetime import datetime
+from typing import List, Dict, Any
+from fastapi import APIRouter, HTTPException, status, Query, Path
+from datetime import datetime, timedelta
 
-from src.web.api.database import get_db
 from src.web.api.schemas import monitoring as schemas
 from src.config.config_manager import get_config
 from src.core.ai_provider import get_ai_provider, AIProviderFactory, AIProviderError
 from src.core.ai_usage_tracker import AIUsageTracker
 from src.core.troubleshooter import get_troubleshooter, TroubleshooterError
+from src.web.api.services import host_stats
 
 router = APIRouter()
+
+
+# Host Metrics Endpoints
+
+@router.get("/host/metrics", response_model=schemas.HostMetrics)
+async def get_host_metrics():
+    """
+    Get current host metrics.
+    """
+    try:
+        # Get host metrics
+        metrics = await host_stats.get_host_metrics()
+
+        return metrics
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting host metrics: {str(e)}"
+        )
+
+
+@router.get("/host/metrics/history/{metric_type}", response_model=List[Dict[str, Any]])
+async def get_host_metrics_history(
+    metric_type: str = Path(..., description="Metric type (cpu, memory, disk, network)"),
+    hours: int = Query(1, ge=1, le=24, description="Number of hours of history to retrieve")
+):
+    """
+    Get historical host metrics.
+    """
+    try:
+        # Validate metric type
+        if metric_type not in ["cpu", "memory", "disk", "network"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid metric type: {metric_type}. Must be one of: cpu, memory, disk, network"
+            )
+
+        # Calculate time range
+        end_time = datetime.now()
+        start_time = end_time - timedelta(hours=hours)
+
+        # Get metrics history
+        metrics = await host_stats.get_host_metrics_history(metric_type, start_time, end_time)
+
+        return metrics
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting host metrics history: {str(e)}"
+        )
+
+
+@router.get("/host/system-info", response_model=schemas.SystemInfo)
+async def get_system_info():
+    """
+    Get system information.
+    """
+    try:
+        # Get system information
+        system_info = await host_stats.get_system_info()
+
+        return system_info
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting system information: {str(e)}"
+        )
+
+
+@router.get("/host/stats-summary", response_model=schemas.ResourceStatsSummary)
+async def get_resource_stats_summary():
+    """
+    Get resource stats summary.
+    """
+    try:
+        # Get resource stats summary
+        summary = await host_stats.get_resource_stats_summary()
+
+        return summary
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting resource stats summary: {str(e)}"
+        )
 
 
 @router.get("/ai-status", response_model=schemas.AIStatusResponse)

@@ -11,7 +11,8 @@ from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageSca
 from src.web.api.services.images import (
     get_images, get_image, create_image, delete_image,
     scan_image, get_image_scans, get_image_scan,
-    search_docker_hub, get_image_tags, validate_dockerfile, build_image_from_dockerfile
+    search_docker_hub, get_image_tags, validate_dockerfile, build_image_from_dockerfile,
+    add_tag_to_image, remove_tag_from_image
 )
 from src.web.api.services.auth import get_current_active_user, check_permission
 from src.web.api.database import get_db
@@ -262,6 +263,69 @@ async def build_dockerfile(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to build image: {str(e)}",
+        )
+
+
+@router.post("/{image_id}/tags", response_model=Dict[str, Any])
+async def add_image_tag(
+    image_id: str = Path(..., description="Image ID"),
+    tag_data: Dict[str, Any] = Body(..., description="Tag data"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Add a tag to an image.
+    """
+    # Check permission
+    if not check_permission(current_user, "images:write"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    try:
+        result = await add_tag_to_image(
+            image_id=image_id,
+            tag=tag_data.get("tag"),
+            is_latest=tag_data.get("is_latest", False),
+            db=db
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to add tag: {str(e)}",
+        )
+
+
+@router.delete("/{image_id}/tags/{tag_name}", response_model=Dict[str, Any])
+async def delete_image_tag(
+    image_id: str = Path(..., description="Image ID"),
+    tag_name: str = Path(..., description="Tag name"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a tag from an image.
+    """
+    # Check permission
+    if not check_permission(current_user, "images:write"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions",
+        )
+
+    try:
+        result = await remove_tag_from_image(
+            image_id=image_id,
+            tag=tag_name,
+            db=db
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to delete tag: {str(e)}",
         )
 
 

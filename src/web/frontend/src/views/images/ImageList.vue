@@ -19,9 +19,13 @@
                 <v-icon left>mdi-cloud-download</v-icon>
                 Pull Image
               </v-btn>
-              <v-btn color="secondary" @click="navigateToBuildPage">
+              <v-btn color="secondary" @click="navigateToBuildPage" class="mr-2">
                 <v-icon left>mdi-hammer-wrench</v-icon>
                 Build Image
+              </v-btn>
+              <v-btn color="info" @click="navigateToTagManagement">
+                <v-icon left>mdi-tag-multiple</v-icon>
+                Manage Tags
               </v-btn>
             </v-card-title>
             <v-data-table
@@ -258,6 +262,10 @@ export default {
 
     navigateToBuildPage() {
       this.$router.push({ name: 'ImageBuild' });
+    },
+
+    navigateToTagManagement() {
+      this.$router.push({ name: 'TagManagement' });
     },
 
     async scanImage(image) {

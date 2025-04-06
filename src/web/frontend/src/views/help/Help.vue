@@ -2,6 +2,9 @@
   <div class="help">
     <h1 class="text-h4 mb-4">Help & Documentation</h1>
 
+    <!-- Documentation Search -->
+    <documentation-search class="mb-4" />
+
     <v-card class="mb-4">
       <v-card-title>
         <v-icon left>mdi-book-open-variant</v-icon>
@@ -9,21 +12,21 @@
       </v-card-title>
       <v-card-text>
         <p>Welcome to DockerForge! This help section provides resources to help you get the most out of the application.</p>
-        
+
         <v-tabs v-model="activeTab" background-color="primary" dark>
           <v-tab>Getting Started</v-tab>
           <v-tab>User Guide</v-tab>
           <v-tab>API Reference</v-tab>
           <v-tab>FAQ</v-tab>
         </v-tabs>
-        
+
         <v-tabs-items v-model="activeTab">
           <!-- Getting Started -->
           <v-tab-item>
             <v-card flat>
               <v-card-text>
                 <h3 class="text-h5 mb-3">Getting Started with DockerForge</h3>
-                
+
                 <v-card outlined class="mb-4">
                   <v-card-title class="subtitle-1">
                     <v-icon left small>mdi-numeric-1-circle</v-icon>
@@ -40,7 +43,7 @@
                     <p>Use the Dashboard to quickly assess the health of your Docker environment and access common tasks.</p>
                   </v-card-text>
                 </v-card>
-                
+
                 <v-card outlined class="mb-4">
                   <v-card-title class="subtitle-1">
                     <v-icon left small>mdi-numeric-2-circle</v-icon>
@@ -58,7 +61,7 @@
                     <p>Click on a container name to view detailed information and access management options.</p>
                   </v-card-text>
                 </v-card>
-                
+
                 <v-card outlined class="mb-4">
                   <v-card-title class="subtitle-1">
                     <v-icon left small>mdi-numeric-3-circle</v-icon>
@@ -75,7 +78,7 @@
                     <p>Use the search field to quickly find specific images in your repository.</p>
                   </v-card-text>
                 </v-card>
-                
+
                 <v-btn color="primary" to="/">
                   <v-icon left>mdi-arrow-right</v-icon>
                   Go to Dashboard
@@ -83,13 +86,13 @@
               </v-card-text>
             </v-card>
           </v-tab-item>
-          
+
           <!-- User Guide -->
           <v-tab-item>
             <v-card flat>
               <v-card-text>
                 <h3 class="text-h5 mb-3">User Guide</h3>
-                
+
                 <v-expansion-panels>
                   <v-expansion-panel>
                     <v-expansion-panel-header>
@@ -108,7 +111,7 @@
                         <li>Configure container settings</li>
                         <li>Click "Create"</li>
                       </ol>
-                      
+
                       <h4 class="subtitle-1 font-weight-bold mb-2 mt-4">Managing Container Lifecycle</h4>
                       <p>You can manage container lifecycle using the action buttons:</p>
                       <ul>
@@ -120,7 +123,7 @@
                       </ul>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
-                  
+
                   <v-expansion-panel>
                     <v-expansion-panel-header>
                       <div>
@@ -137,7 +140,7 @@
                         <li>Enter the image name and tag</li>
                         <li>Click "Pull"</li>
                       </ol>
-                      
+
                       <h4 class="subtitle-1 font-weight-bold mb-2 mt-4">Building Images</h4>
                       <p>To build a custom Docker image:</p>
                       <ol>
@@ -149,7 +152,7 @@
                       </ol>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
-                  
+
                   <v-expansion-panel>
                     <v-expansion-panel-header>
                       <div>
@@ -167,7 +170,7 @@
                         <li>View logs for all services</li>
                         <li>Scale services up or down</li>
                       </ul>
-                      
+
                       <p>Navigate to the Compose section to get started with multi-container applications.</p>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
@@ -175,14 +178,14 @@
               </v-card-text>
             </v-card>
           </v-tab-item>
-          
+
           <!-- API Reference -->
           <v-tab-item>
             <v-card flat>
               <v-card-text>
                 <h3 class="text-h5 mb-3">API Reference</h3>
                 <p>DockerForge provides a comprehensive REST API for programmatic access to all functionality.</p>
-                
+
                 <v-alert
                   color="info"
                   outlined
@@ -196,14 +199,14 @@
                     </div>
                   </div>
                 </v-alert>
-                
+
                 <h4 class="subtitle-1 font-weight-bold mb-2">Authentication</h4>
                 <p>The API supports two authentication methods:</p>
                 <ul>
                   <li><strong>API Key</strong>: Include your API key in the <code>X-API-Key</code> header</li>
                   <li><strong>JWT Token</strong>: Include a JWT token in the <code>Authorization</code> header</li>
                 </ul>
-                
+
                 <h4 class="subtitle-1 font-weight-bold mb-2 mt-4">Example Endpoints</h4>
                 <v-simple-table>
                   <template v-slot:default>
@@ -243,7 +246,7 @@
                     </tbody>
                   </template>
                 </v-simple-table>
-                
+
                 <v-btn color="primary" class="mt-4" href="/api/docs" target="_blank">
                   <v-icon left>mdi-open-in-new</v-icon>
                   Open API Documentation
@@ -251,13 +254,13 @@
               </v-card-text>
             </v-card>
           </v-tab-item>
-          
+
           <!-- FAQ -->
           <v-tab-item>
             <v-card flat>
               <v-card-text>
                 <h3 class="text-h5 mb-3">Frequently Asked Questions</h3>
-                
+
                 <v-expansion-panels>
                   <v-expansion-panel>
                     <v-expansion-panel-header>
@@ -267,7 +270,7 @@
                       <p>DockerForge is a comprehensive web-based Docker management platform that allows you to manage containers, images, volumes, networks, and more through an intuitive interface. It provides advanced features like security scanning, monitoring, and backup management.</p>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
-                  
+
                   <v-expansion-panel>
                     <v-expansion-panel-header>
                       How do I create a new container?
@@ -283,7 +286,7 @@
                       </ol>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
-                  
+
                   <v-expansion-panel>
                     <v-expansion-panel-header>
                       How do I access container logs?
@@ -298,7 +301,7 @@
                       <p>You can also stream logs in real-time and filter them by keywords.</p>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
-                  
+
                   <v-expansion-panel>
                     <v-expansion-panel-header>
                       How do I scan images for vulnerabilities?
@@ -314,7 +317,7 @@
                       <p>The scan results will show any vulnerabilities found in the image, along with severity ratings and remediation advice.</p>
                     </v-expansion-panel-content>
                   </v-expansion-panel>
-                  
+
                   <v-expansion-panel>
                     <v-expansion-panel-header>
                       How do I create a backup?
@@ -332,7 +335,7 @@
                     </v-expansion-panel-content>
                   </v-expansion-panel>
                 </v-expansion-panels>
-                
+
                 <v-card outlined class="mt-6">
                   <v-card-title>
                     <v-icon left>mdi-help-circle</v-icon>
@@ -353,8 +356,8 @@
         </v-tabs-items>
       </v-card-text>
     </v-card>
-    
-    <v-card>
+
+    <v-card class="mb-4">
       <v-card-title>
         <v-icon left>mdi-school</v-icon>
         Guided Tour
@@ -370,12 +373,56 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+
+    <!-- Keyboard Shortcuts -->
+    <v-card class="mb-4">
+      <v-card-title>
+        <v-icon left>mdi-keyboard</v-icon>
+        Keyboard Shortcuts
+      </v-card-title>
+      <v-card-text>
+        <keyboard-shortcuts-guide />
+      </v-card-text>
+    </v-card>
+
+    <!-- Video Tutorials -->
+    <v-card class="mb-4">
+      <v-card-title>
+        <v-icon left>mdi-video</v-icon>
+        Video Tutorials
+      </v-card-title>
+      <v-card-text>
+        <video-tutorials />
+      </v-card-text>
+    </v-card>
+
+    <!-- Troubleshooting Guide -->
+    <v-card>
+      <v-card-title>
+        <v-icon left>mdi-wrench</v-icon>
+        Troubleshooting Guide
+      </v-card-title>
+      <v-card-text>
+        <troubleshooting-guide />
+      </v-card-text>
+    </v-card>
   </div>
 </template>
 
 <script>
+import DocumentationSearch from '@/components/help/DocumentationSearch.vue';
+import KeyboardShortcutsGuide from '@/components/help/KeyboardShortcutsGuide.vue';
+import VideoTutorials from '@/components/help/VideoTutorials.vue';
+import TroubleshootingGuide from '@/components/help/TroubleshootingGuide.vue';
+
 export default {
   name: 'Help',
+  components: {
+    DocumentationSearch,
+    KeyboardShortcutsGuide,
+    VideoTutorials,
+    TroubleshootingGuide
+  },
   data() {
     return {
       activeTab: 0,
@@ -383,8 +430,11 @@ export default {
   },
   methods: {
     startTour() {
-      // This would trigger the guided tour component
-      this.$store.dispatch('startGuidedTour');
+      // Dispatch action to start the guided tour
+      this.$store.dispatch('help/startTour');
+
+      // Emit event to show the tour component
+      this.$root.$emit('start-guided-tour');
     }
   }
 };

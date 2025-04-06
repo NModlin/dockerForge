@@ -1,7 +1,7 @@
 """
 Monitoring schemas for the DockerForge Web UI.
 
-This module provides the Pydantic models for AI monitoring and troubleshooting.
+This module provides the Pydantic models for AI monitoring, resource monitoring, and troubleshooting.
 """
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
@@ -133,3 +133,181 @@ class ConnectionTroubleshootingResult(BaseModel):
     connected: bool
     issues: List[str]
     fixes: List[str]
+
+
+# Resource Monitoring Schemas
+
+# CPU Metrics
+class CPUMetrics(BaseModel):
+    """Schema for CPU metrics."""
+    percent: float
+    count: int
+    physical_count: Optional[int] = None
+    per_cpu: List[float]
+    load_avg: List[float]
+    frequency: Optional[Dict[str, float]] = None
+    times: Dict[str, float]
+
+
+# Memory Metrics
+class MemoryDetails(BaseModel):
+    """Schema for memory details."""
+    total: int
+    available: Optional[int] = None
+    used: int
+    free: int
+    percent: float
+    active: Optional[int] = None
+    inactive: Optional[int] = None
+    buffers: Optional[int] = None
+    cached: Optional[int] = None
+    shared: Optional[int] = None
+
+
+class MemoryMetrics(BaseModel):
+    """Schema for memory metrics."""
+    virtual: MemoryDetails
+    swap: MemoryDetails
+
+
+# Disk Metrics
+class DiskUsage(BaseModel):
+    """Schema for disk usage."""
+    total: int
+    used: int
+    free: int
+    percent: float
+    device: str
+    fstype: str
+
+
+class DiskIO(BaseModel):
+    """Schema for disk I/O."""
+    read_bytes: int
+    write_bytes: int
+    read_count: int
+    write_count: int
+    read_bytes_rate: float
+    write_bytes_rate: float
+    read_count_rate: float
+    write_count_rate: float
+    read_time: Optional[int] = None
+    write_time: Optional[int] = None
+    busy_time: Optional[int] = None
+
+
+class DiskMetrics(BaseModel):
+    """Schema for disk metrics."""
+    usage: Dict[str, DiskUsage]
+    io: DiskIO
+
+
+# Network Metrics
+class NetworkAddress(BaseModel):
+    """Schema for network address."""
+    family: int
+    address: str
+    netmask: Optional[str] = None
+    broadcast: Optional[str] = None
+    ptp: Optional[str] = None
+
+
+class NetworkInterface(BaseModel):
+    """Schema for network interface."""
+    isup: bool
+    duplex: int
+    speed: int
+    mtu: int
+    addresses: List[NetworkAddress]
+
+
+class NetworkIO(BaseModel):
+    """Schema for network I/O."""
+    bytes_sent: int
+    bytes_recv: int
+    packets_sent: int
+    packets_recv: int
+    errin: int
+    errout: int
+    dropin: int
+    dropout: int
+    bytes_sent_rate: float
+    bytes_recv_rate: float
+    packets_sent_rate: float
+    packets_recv_rate: float
+
+
+class NetworkMetrics(BaseModel):
+    """Schema for network metrics."""
+    io: NetworkIO
+    interfaces: Dict[str, NetworkInterface]
+    connections: Dict[str, int]
+
+
+# Host Metrics
+class HostMetrics(BaseModel):
+    """Schema for host metrics."""
+    timestamp: str
+    cpu: CPUMetrics
+    memory: MemoryMetrics
+    disk: DiskMetrics
+    network: NetworkMetrics
+
+
+# System Information
+class DockerInfo(BaseModel):
+    """Schema for Docker information."""
+    version: str
+    containers: int
+    running: int
+    paused: int
+    stopped: int
+    images: int
+    driver: str
+    storage_driver: str
+    logging_driver: str
+    cgroup_driver: str
+    kernel_version: str
+    operating_system: str
+    os_type: str
+    architecture: str
+    cpus: int
+    memory: int
+    docker_root_dir: str
+    index_server_address: str
+    registry_config: Dict[str, Any]
+
+
+class SystemInfo(BaseModel):
+    """Schema for system information."""
+    platform: str
+    system: str
+    release: str
+    version: str
+    architecture: str
+    processor: str
+    hostname: str
+    python_version: str
+    cpu_count: int
+    physical_cpu_count: int
+    memory_total: int
+    boot_time: str
+    docker: DockerInfo
+
+
+# Resource Stats Summary
+class ResourceStatsSummary(BaseModel):
+    """Schema for resource stats summary."""
+    cpu_usage: float
+    cpu_cores: int
+    memory_usage_percent: float
+    memory_used: int
+    memory_total: int
+    disk_usage_percent: float
+    disk_used: int
+    disk_total: int
+    container_count: int
+    running_containers: int
+    image_count: int
+    volume_count: int
+    network_count: int

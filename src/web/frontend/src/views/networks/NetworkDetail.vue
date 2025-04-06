@@ -72,7 +72,17 @@
                     </tr>
                     <tr>
                       <td class="font-weight-bold">IP Range</td>
-                      <td>{{ network.ip_range || 'N/A' }}</td>
+                      <td>
+                        <v-chip
+                          v-if="network.subnet && network.subnet !== 'N/A'"
+                          small
+                          color="primary"
+                          text-color="white"
+                        >
+                          {{ network.subnet }}
+                        </v-chip>
+                        <span v-else>N/A</span>
+                      </td>
                     </tr>
                     <tr>
                       <td class="font-weight-bold">Internal</td>
@@ -128,15 +138,40 @@
         <v-col cols="12" md="4">
           <!-- Connected Containers -->
           <v-card>
-            <v-card-title>Connected Containers</v-card-title>
+            <v-card-title>
+              Connected Containers
+              <v-spacer></v-spacer>
+              <v-btn
+                text
+                small
+                color="primary"
+                @click="openConnectContainerDialog"
+                :disabled="isDefaultNetwork && network.driver === 'null'"
+              >
+                <v-icon left small>mdi-link</v-icon>
+                Connect
+              </v-btn>
+            </v-card-title>
             <v-card-text v-if="connectedContainers.length === 0">
-              <p class="text-center">No containers are connected to this network</p>
+              <div class="text-center pa-4">
+                <v-icon large color="grey lighten-1">mdi-docker</v-icon>
+                <p class="text-body-2 mt-2 grey--text">No containers connected</p>
+                <v-btn
+                  v-if="!isDefaultNetwork && network.driver !== 'null'"
+                  color="primary"
+                  class="mt-4"
+                  small
+                  @click="openConnectContainerDialog"
+                >
+                  <v-icon left>mdi-link</v-icon>
+                  Connect Container
+                </v-btn>
+              </div>
             </v-card-text>
             <v-list v-else dense>
               <v-list-item
                 v-for="container in connectedContainers"
                 :key="container.id"
-                :to="`/containers/${container.id}`"
               >
                 <v-list-item-icon>
                   <v-icon
@@ -146,13 +181,61 @@
                   </v-icon>
                 </v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title>{{ container.name }}</v-list-item-title>
+                  <v-list-item-title>
+                    <router-link :to="`/containers/${container.id}`" class="text-decoration-none">
+                      {{ container.name }}
+                    </router-link>
+                  </v-list-item-title>
                   <v-list-item-subtitle>
                     {{ container.ip_address || 'No IP assigned' }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
+                <v-list-item-action>
+                  <v-btn
+                    icon
+                    x-small
+                    color="error"
+                    @click="confirmDisconnectContainer(container)"
+                    :disabled="isDefaultNetwork && container.name === 'bridge'"
+                  >
+                    <v-icon x-small>mdi-link-off</v-icon>
+                  </v-btn>
+                </v-list-item-action>
               </v-list-item>
             </v-list>
+          </v-card>
+
+          <!-- Network Visualization -->
+          <v-card class="mt-4">
+            <v-card-title>
+              Network Visualization
+            </v-card-title>
+            <v-card-text>
+              <div class="network-visualization pa-4">
+                <div v-if="connectedContainers.length === 0" class="text-center pa-4">
+                  <p class="text-body-2 grey--text">No containers to visualize</p>
+                </div>
+                <div v-else class="network-diagram">
+                  <div class="network-node gateway" v-if="network.gateway && network.gateway !== 'N/A'">
+                    <v-icon large>mdi-router-wireless</v-icon>
+                    <div class="node-label">Gateway</div>
+                    <div class="node-sublabel">{{ network.gateway }}</div>
+                  </div>
+
+                  <div class="network-connections">
+                    <div
+                      v-for="(container, index) in connectedContainers"
+                      :key="index"
+                      class="network-node container"
+                    >
+                      <v-icon large>mdi-docker</v-icon>
+                      <div class="node-label">{{ container.name }}</div>
+                      <div class="node-sublabel">{{ container.ip_address || 'No IP' }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </v-card-text>
           </v-card>
         </v-col>
       </v-row>
@@ -186,6 +269,78 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Connect Container Dialog -->
+    <v-dialog v-model="connectContainerDialog" max-width="500">
+      <v-card>
+        <v-card-title>
+          <v-icon left>mdi-link</v-icon>
+          Connect Container
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>
+          <v-select
+            v-model="selectedContainer"
+            :items="availableContainers"
+            label="Select Container"
+            outlined
+            dense
+            :loading="loadingContainers"
+          ></v-select>
+
+          <v-text-field
+            v-model="containerAliases"
+            label="Network Aliases (comma-separated)"
+            hint="Optional aliases for the container in this network"
+            persistent-hint
+            outlined
+            dense
+          ></v-text-field>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text color="grey darken-1" @click="connectContainerDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn
+            color="primary"
+            :disabled="!selectedContainer"
+            @click="connectContainer"
+          >
+            Connect
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Disconnect Container Dialog -->
+    <v-dialog v-model="disconnectContainerDialog" max-width="500">
+      <v-card>
+        <v-card-title class="headline">
+          <v-icon left color="error">mdi-alert</v-icon>
+          Disconnect Container
+        </v-card-title>
+        <v-divider></v-divider>
+        <v-card-text class="py-4">
+          <p>Are you sure you want to disconnect the container <strong>{{ containerToDisconnect?.name }}</strong> from this network?</p>
+          <p class="text-caption mt-2">This action will remove the container from the network, and it will no longer be able to communicate with other containers on this network.</p>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text color="grey darken-1" @click="disconnectContainerDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn
+            color="error"
+            @click="disconnectContainer"
+          >
+            Disconnect
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -201,6 +356,13 @@ export default {
       network: null,
       connectedContainers: [],
       deleteDialog: false,
+      connectContainerDialog: false,
+      disconnectContainerDialog: false,
+      selectedContainer: null,
+      containerAliases: '',
+      containerToDisconnect: null,
+      availableContainers: [],
+      loadingContainers: false,
     };
   },
   computed: {
@@ -215,6 +377,7 @@ export default {
   },
   created() {
     this.fetchNetworkDetails();
+    this.fetchAvailableContainers();
   },
   methods: {
     async fetchNetworkDetails() {
@@ -227,7 +390,7 @@ export default {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
         // this.network = response.data;
-        
+
         // Mock data for development
         setTimeout(() => {
           // Simulate different networks based on the ID parameter
@@ -250,7 +413,7 @@ export default {
                 'com.docker.network.driver.mtu': '1500',
               },
             };
-            
+
             this.connectedContainers = [
               {
                 id: 'c1',
@@ -280,7 +443,7 @@ export default {
                 'com.example.project': 'dockerforge',
               },
             };
-            
+
             this.connectedContainers = [
               {
                 id: 'c3',
@@ -304,7 +467,7 @@ export default {
                 'com.docker.network.driver.overlay.mtu': '1450',
               },
             };
-            
+
             this.connectedContainers = [];
           } else {
             // Default network for any other ID
@@ -318,10 +481,10 @@ export default {
               internal: false,
               created_at: '2025-03-16T00:00:00Z',
             };
-            
+
             this.connectedContainers = [];
           }
-          
+
           this.loading = false;
         }, 1000);
       } catch (error) {
@@ -353,12 +516,122 @@ export default {
         // await axios.delete(`/api/networks/${this.network.id}`, {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
-        
+
         // Navigate back to networks list
         this.$router.push('/networks');
       } catch (error) {
         this.error = `Failed to delete network ${this.network.name}`;
         this.deleteDialog = false;
+      }
+    },
+
+    async fetchAvailableContainers() {
+      this.loadingContainers = true;
+      try {
+        // In a real implementation, this would call the API
+        // const response = await axios.get('/api/containers', {
+        //   headers: { Authorization: `Bearer ${this.token}` },
+        // });
+        // const containers = response.data;
+
+        // Mock data for development
+        setTimeout(() => {
+          const allContainers = [
+            { id: 'c1', name: 'nginx', status: 'running' },
+            { id: 'c2', name: 'redis', status: 'running' },
+            { id: 'c3', name: 'postgres', status: 'stopped' },
+            { id: 'c4', name: 'mongodb', status: 'running' },
+            { id: 'c5', name: 'mysql', status: 'running' }
+          ];
+
+          // Filter out containers that are already connected to the network
+          const connectedIds = this.connectedContainers.map(c => c.id);
+          this.availableContainers = allContainers
+            .filter(c => !connectedIds.includes(c.id))
+            .map(c => ({
+              text: `${c.name} (${c.status})`,
+              value: c.id,
+              ...c
+            }));
+
+          this.loadingContainers = false;
+        }, 500);
+      } catch (error) {
+        this.error = 'Failed to load available containers';
+        this.loadingContainers = false;
+      }
+    },
+
+    openConnectContainerDialog() {
+      this.selectedContainer = null;
+      this.containerAliases = '';
+      this.connectContainerDialog = true;
+    },
+
+    confirmDisconnectContainer(container) {
+      this.containerToDisconnect = container;
+      this.disconnectContainerDialog = true;
+    },
+
+    async connectContainer() {
+      if (!this.selectedContainer) return;
+
+      try {
+        // In a real implementation, this would call the API
+        // await axios.post(`/api/networks/${this.network.id}/connect`, {
+        //   containerId: this.selectedContainer,
+        //   aliases: this.containerAliases ? this.containerAliases.split(',').map(a => a.trim()) : []
+        // }, {
+        //   headers: { Authorization: `Bearer ${this.token}` },
+        // });
+
+        // Mock implementation
+        const selectedContainerData = this.availableContainers.find(c => c.value === this.selectedContainer);
+        if (selectedContainerData) {
+          this.connectedContainers.push({
+            id: selectedContainerData.id,
+            name: selectedContainerData.name,
+            status: selectedContainerData.status,
+            ip_address: `${this.network.subnet.split('/')[0].slice(0, -1)}${Math.floor(Math.random() * 254) + 1}`
+          });
+
+          // Update available containers
+          this.availableContainers = this.availableContainers.filter(c => c.value !== this.selectedContainer);
+        }
+
+        this.connectContainerDialog = false;
+      } catch (error) {
+        this.error = 'Failed to connect container to network';
+      }
+    },
+
+    async disconnectContainer() {
+      if (!this.containerToDisconnect) return;
+
+      try {
+        // In a real implementation, this would call the API
+        // await axios.post(`/api/networks/${this.network.id}/disconnect`, {
+        //   containerId: this.containerToDisconnect.id
+        // }, {
+        //   headers: { Authorization: `Bearer ${this.token}` },
+        // });
+
+        // Mock implementation
+        this.connectedContainers = this.connectedContainers.filter(c => c.id !== this.containerToDisconnect.id);
+
+        // Add the container back to available containers
+        this.availableContainers.push({
+          text: `${this.containerToDisconnect.name} (${this.containerToDisconnect.status || 'unknown'})`,
+          value: this.containerToDisconnect.id,
+          id: this.containerToDisconnect.id,
+          name: this.containerToDisconnect.name,
+          status: this.containerToDisconnect.status || 'unknown'
+        });
+
+        this.disconnectContainerDialog = false;
+        this.containerToDisconnect = null;
+      } catch (error) {
+        this.error = 'Failed to disconnect container from network';
       }
     },
   },
@@ -368,5 +641,66 @@ export default {
 <style scoped>
 .network-detail {
   padding: 16px;
+}
+
+.network-visualization {
+  min-height: 200px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.network-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.network-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px;
+  min-width: 120px;
+}
+
+.gateway {
+  background-color: rgba(33, 150, 243, 0.1);
+  border: 2px solid #2196F3;
+}
+
+.container {
+  background-color: rgba(76, 175, 80, 0.1);
+  border: 2px solid #4CAF50;
+}
+
+.node-label {
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.node-sublabel {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.network-connections {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+  position: relative;
+}
+
+.network-connections::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background-color: #ccc;
 }
 </style>

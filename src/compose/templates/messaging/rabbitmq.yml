@@ -1,0 +1,45 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER={{rabbitmq_user}}
+      - RABBITMQ_DEFAULT_PASS={{rabbitmq_password}}
+      - RABBITMQ_DEFAULT_VHOST={{rabbitmq_vhost}}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/conf:/etc/rabbitmq/conf.d
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    networks:
+      - messaging-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  messaging-network:
+    driver: bridge
+
+metadata:
+  name: rabbitmq
+  category: messaging
+  description: "RabbitMQ message broker with management UI"
+  difficulty: intermediate
+  tags:
+    - rabbitmq
+    - messaging
+    - queue
+    - amqp
+  variables:
+    - rabbitmq_user
+    - rabbitmq_password
+    - rabbitmq_vhost

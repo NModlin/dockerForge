@@ -85,6 +85,13 @@ import images from './store/modules/images';
 import chat from './store/modules/chat';
 import help from './store/modules/help';
 import containers from './store/modules/containers';
+import networks from './store/modules/networks';
+import volumes from './store/modules/volumes';
+import compose from './store/modules/compose';
+import security from './store/modules/security';
+import policy from './store/modules/policy';
+import settings from './store/modules/settings';
+import apiKeys from './store/modules/apiKeys';
 
 // Main store configuration
 export default {
@@ -94,6 +101,13 @@ export default {
     images,
     chat,
     help,
+    networks,
+    volumes,
+    compose,
+    security,
+    policy,
+    settings,
+    apiKeys,
   },
   state: {
     appName: 'DockerForge',

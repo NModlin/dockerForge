@@ -12,10 +12,12 @@ from .network import Network, NetworkConnection
 from .compose import ComposeProject, ComposeFile, ComposeService, ComposeServiceContainer
 from .backup import Backup, BackupItem, RestoreJob, RestoreItem
 from .monitoring import (
-    MetricSample, Alert, AlertRule, LogEntry, 
+    MetricSample, Alert, AlertRule, LogEntry,
     Dashboard, DashboardWidget
 )
 from .chat import ChatMessage, ChatSession, ChatFeedback, UserPreference, ChatCommandShortcut, ConversationMemory
+from .api_key import ApiKey
+from .user_preferences import UserPreferences
 
 # List of all models for easy access
 __all__ = [
@@ -29,4 +31,5 @@ __all__ = [
     'Backup', 'BackupItem', 'RestoreJob', 'RestoreItem',
     'MetricSample', 'Alert', 'AlertRule', 'LogEntry', 'Dashboard', 'DashboardWidget',
     'ChatMessage', 'ChatSession', 'ChatFeedback', 'UserPreference', 'ChatCommandShortcut', 'ConversationMemory',
+    'ApiKey', 'UserPreferences',
 ]

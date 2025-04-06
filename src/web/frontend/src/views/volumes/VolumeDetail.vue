@@ -30,7 +30,17 @@
         <v-col cols="12" md="8">
           <v-card class="mb-4">
             <v-card-title class="headline">
-              {{ volume.name }}
+              <div class="d-flex align-center">
+                <v-chip
+                  small
+                  :color="getVolumeTypeColor(volume.type)"
+                  text-color="white"
+                  class="mr-2"
+                >
+                  {{ volume.type || 'volume' }}
+                </v-chip>
+                {{ volume.name }}
+              </div>
               <v-spacer></v-spacer>
               <v-btn
                 color="error"
@@ -51,11 +61,31 @@
                     </tr>
                     <tr>
                       <td class="font-weight-bold">Driver</td>
-                      <td>{{ volume.driver }}</td>
+                      <td>
+                        <v-chip
+                          x-small
+                          :color="getDriverColor(volume.driver)"
+                          text-color="white"
+                        >
+                          {{ volume.driver }}
+                        </v-chip>
+                      </td>
                     </tr>
                     <tr>
                       <td class="font-weight-bold">Mount Point</td>
-                      <td>{{ volume.mountpoint }}</td>
+                      <td>
+                        <div class="text-truncate" style="max-width: 400px;" :title="volume.mountpoint">
+                          <code>{{ volume.mountpoint }}</code>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr v-if="volume.type === 'bind'">
+                      <td class="font-weight-bold">Host Path</td>
+                      <td>
+                        <div class="text-truncate" style="max-width: 400px;" :title="volume.source">
+                          <code>{{ volume.source }}</code>
+                        </div>
+                      </td>
                     </tr>
                     <tr>
                       <td class="font-weight-bold">Size</td>
@@ -108,15 +138,30 @@
 
           <!-- Connected Containers -->
           <v-card>
-            <v-card-title>Connected Containers</v-card-title>
-            <v-card-text v-if="connectedContainers.length === 0">
+            <v-card-title>
+              Connected Containers
+              <v-spacer></v-spacer>
+              <v-btn
+                text
+                small
+                color="primary"
+                @click="refreshContainers"
+                :loading="loadingContainers"
+              >
+                <v-icon left small>mdi-refresh</v-icon>
+                Refresh
+              </v-btn>
+            </v-card-title>
+            <v-card-text v-if="loadingContainers">
+              <v-progress-circular indeterminate color="primary" size="24" class="ma-2"></v-progress-circular>
+            </v-card-text>
+            <v-card-text v-else-if="connectedContainers.length === 0">
               <p class="text-center">No containers are using this volume</p>
             </v-card-text>
             <v-list v-else dense>
               <v-list-item
                 v-for="container in connectedContainers"
                 :key="container.id"
-                :to="`/containers/${container.id}`"
               >
                 <v-list-item-icon>
                   <v-icon
@@ -126,9 +171,27 @@
                   </v-icon>
                 </v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title>{{ container.name }}</v-list-item-title>
-                  <v-list-item-subtitle>{{ container.status }}</v-list-item-subtitle>
+                  <v-list-item-title>
+                    <router-link :to="`/containers/${container.id}`" class="text-decoration-none">
+                      {{ container.name }}
+                    </router-link>
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    <div class="d-flex align-center">
+                      <v-chip x-small :color="container.status === 'running' ? 'success' : 'grey'" text-color="white" class="mr-2">
+                        {{ container.status }}
+                      </v-chip>
+                      <span v-if="container.mount_path" class="text-caption">
+                        Mounted at: <code>{{ container.mount_path }}</code>
+                      </span>
+                    </div>
+                  </v-list-item-subtitle>
                 </v-list-item-content>
+                <v-list-item-action>
+                  <v-chip x-small :color="container.mount_mode === 'rw' ? 'primary' : 'warning'" text-color="white">
+                    {{ container.mount_mode }}
+                  </v-chip>
+                </v-list-item-action>
               </v-list-item>
             </v-list>
           </v-card>
@@ -175,6 +238,7 @@ export default {
   data() {
     return {
       loading: true,
+      loadingContainers: false,
       error: null,
       volume: null,
       connectedContainers: [],
@@ -190,7 +254,7 @@ export default {
       if (!this.volume || !this.volume.used || !this.volume.size) {
         return 0;
       }
-      
+
       // This is a simplified calculation for demonstration
       // In a real app, you'd parse the size strings and calculate properly
       return Math.min(Math.round((parseInt(this.volume.used) / parseInt(this.volume.size)) * 100), 100);
@@ -219,13 +283,14 @@ export default {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
         // this.volume = response.data;
-        
+
         // Mock data for development
         setTimeout(() => {
           this.volume = {
             id: this.$route.params.id,
             name: 'postgres_data',
             driver: 'local',
+            type: 'volume',
             mountpoint: '/var/lib/docker/volumes/postgres_data/_data',
             size: '1.2 GB',
             used: '800 MB',
@@ -235,15 +300,17 @@ export default {
               'com.example.environment': 'production',
             },
           };
-          
+
           this.connectedContainers = [
             {
               id: 'c1',
               name: 'postgres',
               status: 'running',
+              mount_path: '/var/lib/postgresql/data',
+              mount_mode: 'rw'
             },
           ];
-          
+
           this.loading = false;
         }, 1000);
       } catch (error) {
@@ -264,12 +331,59 @@ export default {
         // await axios.delete(`/api/volumes/${this.volume.id}`, {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
-        
+
         // Navigate back to volumes list
         this.$router.push('/volumes');
       } catch (error) {
         this.error = `Failed to delete volume ${this.volume.name}`;
         this.deleteDialog = false;
+      }
+    },
+
+    async refreshContainers() {
+      this.loadingContainers = true;
+
+      try {
+        // In a real implementation, this would call the API
+        // const response = await axios.get(`/api/volumes/${this.volume.id}/containers`, {
+        //   headers: { Authorization: `Bearer ${this.token}` },
+        // });
+        // this.connectedContainers = response.data;
+
+        // Mock implementation - simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Keep the same containers for demo purposes
+      } catch (error) {
+        this.error = 'Failed to refresh container list';
+      } finally {
+        this.loadingContainers = false;
+      }
+    },
+
+    getVolumeTypeColor(type) {
+      switch (type) {
+        case 'volume':
+          return 'primary';
+        case 'bind':
+          return 'warning';
+        case 'tmpfs':
+          return 'purple';
+        default:
+          return 'grey';
+      }
+    },
+
+    getDriverColor(driver) {
+      switch (driver) {
+        case 'local':
+          return 'success';
+        case 'nfs':
+          return 'orange';
+        case 'cifs':
+          return 'blue';
+        default:
+          return 'grey';
       }
     },
   },

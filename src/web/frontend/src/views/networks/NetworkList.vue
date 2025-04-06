@@ -61,9 +61,19 @@
       >
         <!-- Name Column -->
         <template v-slot:item.name="{ item }">
-          <router-link :to="`/networks/${item.id}`" class="text-decoration-none">
-            {{ item.name }}
-          </router-link>
+          <div class="d-flex align-center">
+            <v-chip
+              small
+              :color="getDriverColor(item.driver)"
+              text-color="white"
+              class="mr-2"
+            >
+              {{ item.driver }}
+            </v-chip>
+            <router-link :to="`/networks/${item.id}`" class="text-decoration-none">
+              {{ item.name }}
+            </router-link>
+          </div>
         </template>
 
         <!-- Scope Column -->
@@ -77,22 +87,80 @@
           </v-chip>
         </template>
 
+        <!-- Subnet Column -->
+        <template v-slot:item.subnet="{ item }">
+          <div v-if="item.subnet && item.subnet !== 'N/A'">
+            {{ item.subnet }}
+          </div>
+          <div v-else class="text-caption grey--text">
+            No subnet
+          </div>
+        </template>
+
         <!-- Created Column -->
         <template v-slot:item.created_at="{ item }">
           {{ formatDate(item.created_at) }}
         </template>
 
+        <!-- Connected Containers Column -->
+        <template v-slot:item.containers="{ item }">
+          <div v-if="item.containers && item.containers.length > 0">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-chip
+                  small
+                  color="primary"
+                  text-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ item.containers.length }} containers
+                </v-chip>
+              </template>
+              <div>
+                <div v-for="(container, index) in item.containers" :key="index">
+                  {{ container.name }} ({{ container.ip_address || 'No IP' }})
+                </div>
+              </div>
+            </v-tooltip>
+          </div>
+          <div v-else class="text-caption grey--text">
+            No containers
+          </div>
+        </template>
+
         <!-- Actions Column -->
         <template v-slot:item.actions="{ item }">
-          <v-btn
-            icon
-            small
-            @click="showDeleteDialog(item)"
-            title="Delete"
-            :disabled="item.name === 'bridge' || item.name === 'host' || item.name === 'none'"
-          >
-            <v-icon small>mdi-delete</v-icon>
-          </v-btn>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                icon
+                small
+                v-bind="attrs"
+                v-on="on"
+                :to="`/networks/${item.id}`"
+              >
+                <v-icon small>mdi-eye</v-icon>
+              </v-btn>
+            </template>
+            <span>View Details</span>
+          </v-tooltip>
+
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                icon
+                small
+                v-bind="attrs"
+                v-on="on"
+                @click="showDeleteDialog(item)"
+                :disabled="item.name === 'bridge' || item.name === 'host' || item.name === 'none'"
+              >
+                <v-icon small>mdi-delete</v-icon>
+              </v-btn>
+            </template>
+            <span>{{ item.name === 'bridge' || item.name === 'host' || item.name === 'none' ? 'Cannot delete system network' : 'Delete Network' }}</span>
+          </v-tooltip>
         </template>
       </v-data-table>
     </v-card>
@@ -134,9 +202,9 @@ export default {
       },
       headers: [
         { text: 'Name', value: 'name', sortable: true },
-        { text: 'Driver', value: 'driver', sortable: true },
         { text: 'Subnet', value: 'subnet', sortable: false },
         { text: 'Scope', value: 'scope', sortable: true },
+        { text: 'Connected Containers', value: 'containers', sortable: false },
         { text: 'Created', value: 'created_at', sortable: true },
         { text: 'Actions', value: 'actions', sortable: false, align: 'center' },
       ],
@@ -176,6 +244,10 @@ export default {
               subnet: '172.17.0.0/16',
               scope: 'local',
               created_at: '2025-03-15T10:00:00Z',
+              containers: [
+                { id: 'c1', name: 'web-server', ip_address: '172.17.0.2' },
+                { id: 'c2', name: 'database', ip_address: '172.17.0.3' }
+              ]
             },
             {
               id: 'n2',
@@ -184,6 +256,7 @@ export default {
               subnet: 'N/A',
               scope: 'local',
               created_at: '2025-03-15T10:00:00Z',
+              containers: []
             },
             {
               id: 'n3',
@@ -192,6 +265,7 @@ export default {
               subnet: 'N/A',
               scope: 'local',
               created_at: '2025-03-15T10:00:00Z',
+              containers: []
             },
             {
               id: 'n4',
@@ -200,6 +274,9 @@ export default {
               subnet: '172.18.0.0/16',
               scope: 'local',
               created_at: '2025-03-16T09:00:00Z',
+              containers: [
+                { id: 'c3', name: 'app-server', ip_address: '172.18.0.2' }
+              ]
             },
             {
               id: 'n5',
@@ -208,6 +285,7 @@ export default {
               subnet: '10.0.0.0/24',
               scope: 'swarm',
               created_at: '2025-03-16T08:00:00Z',
+              containers: []
             },
           ];
           this.loading = false;
@@ -235,19 +313,38 @@ export default {
           return 'green';
       }
     },
+
+    getDriverColor(driver) {
+      switch (driver) {
+        case 'bridge':
+          return 'primary';
+        case 'host':
+          return 'warning';
+        case 'overlay':
+          return 'success';
+        case 'macvlan':
+          return 'purple';
+        case 'ipvlan':
+          return 'deep-purple';
+        case 'null':
+          return 'grey';
+        default:
+          return 'blue-grey';
+      }
+    },
     showDeleteDialog(network) {
       this.selectedNetwork = network;
       this.deleteDialog = true;
     },
     async deleteNetwork() {
       if (!this.selectedNetwork) return;
-      
+
       try {
         // In a real implementation, this would call the API
         // await axios.delete(`/api/networks/${this.selectedNetwork.id}`, {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
-        
+
         // Mock implementation
         this.networks = this.networks.filter(n => n.id !== this.selectedNetwork.id);
         this.deleteDialog = false;

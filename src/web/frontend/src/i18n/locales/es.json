@@ -1,0 +1,103 @@
+{
+  "app": {
+    "name": "DockerForge",
+    "tagline": "Gestión Simplificada de Docker"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "refresh": "Actualizar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "warning": "Advertencia",
+    "info": "Información",
+    "yes": "Sí",
+    "no": "No",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "confirm": "Confirmar",
+    "actions": "Acciones"
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "containers": "Contenedores",
+    "images": "Imágenes",
+    "volumes": "Volúmenes",
+    "networks": "Redes",
+    "compose": "Compose",
+    "security": "Seguridad",
+    "settings": "Configuración",
+    "help": "Ayuda"
+  },
+  "settings": {
+    "title": "Configuración",
+    "userPreferences": "Preferencias de Usuario",
+    "appearance": {
+      "title": "Apariencia",
+      "theme": "Tema",
+      "themeOptions": {
+        "light": "Claro",
+        "dark": "Oscuro",
+        "system": "Predeterminado del Sistema",
+        "blue": "Azul",
+        "green": "Verde",
+        "purple": "Púrpura",
+        "orange": "Naranja",
+        "red": "Rojo"
+      },
+      "language": "Idioma",
+      "dateFormat": "Formato de Fecha",
+      "timeFormat": "Formato de Hora",
+      "saveButton": "Guardar Configuración de Apariencia"
+    },
+    "notifications": {
+      "title": "Notificaciones",
+      "enable": "Habilitar Notificaciones",
+      "desktop": "Notificaciones de Escritorio",
+      "email": "Notificaciones por Correo",
+      "emailAddress": "Dirección de Correo",
+      "events": "Eventos para Notificar",
+      "eventOptions": {
+        "error": "Errores",
+        "warning": "Advertencias",
+        "security": "Problemas de Seguridad",
+        "resource": "Alertas de Recursos",
+        "container": "Eventos de Contenedores",
+        "image": "Eventos de Imágenes",
+        "volume": "Eventos de Volúmenes",
+        "network": "Eventos de Redes",
+        "backup": "Eventos de Respaldo"
+      },
+      "saveButton": "Guardar Configuración de Notificaciones",
+      "testButton": "Probar Notificaciones"
+    },
+    "display": {
+      "title": "Visualización",
+      "compactView": "Vista Compacta",
+      "compactViewHint": "Usar un diseño más compacto para mostrar más información",
+      "showSystemContainers": "Mostrar Contenedores del Sistema",
+      "showSystemContainersHint": "Mostrar contenedores del sistema en las listas",
+      "refreshInterval": "Intervalo de Actualización (segundos)",
+      "refreshIntervalHint": "Establecer a 0 para desactivar la actualización automática",
+      "defaultPage": "Página Predeterminada",
+      "defaultPageHint": "Seleccione la página que se mostrará al abrir DockerForge",
+      "saveButton": "Guardar Configuración de Visualización"
+    },
+    "keyboard": {
+      "title": "Teclado",
+      "enableShortcuts": "Habilitar Atajos de Teclado",
+      "customShortcuts": "Atajos Personalizados",
+      "recordShortcut": "Grabar Atajo",
+      "resetToDefault": "Restablecer a Predeterminado",
+      "saveButton": "Guardar Configuración de Teclado"
+    },
+    "resetPreferences": "Restablecer Todas las Preferencias",
+    "resetConfirmation": "¿Está seguro de que desea restablecer todas las preferencias a los valores predeterminados? Esta acción no se puede deshacer."
+  }
+}

@@ -1,0 +1,76 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dev-app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/devdb
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    networks:
+      - dev-network
+    command: npm run dev
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: dev-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=devdb
+    volumes:
+      - dev_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: dev-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - dev-network
+    restart: unless-stopped
+
+  adminer:
+    image: adminer
+    container_name: dev-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - dev-network
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  dev_db_data:
+
+networks:
+  dev-network:
+    driver: bridge
+
+metadata:
+  name: dev_environment
+  category: development
+  description: "Development environment with Node.js app, PostgreSQL, Redis, and Adminer"
+  difficulty: beginner
+  tags:
+    - development
+    - node
+    - postgres
+    - redis
+    - adminer

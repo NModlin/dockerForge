@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .logo-text { font-family: Arial, sans-serif; font-weight: bold; }
+    .docker-icon { fill: #007BFF; }
+    .forge-text { fill: #333333; }
+  </style>
+  
+  <!-- Docker Container Icon -->
+  <g class="docker-icon">
+    <rect x="40" y="60" width="30" height="30" rx="3" />
+    <rect x="80" y="60" width="30" height="30" rx="3" />
+    <rect x="120" y="60" width="30" height="30" rx="3" />
+    <rect x="40" y="100" width="30" height="30" rx="3" />
+    <rect x="80" y="100" width="30" height="30" rx="3" />
+  </g>
+  
+  <!-- DockerForge Text -->
+  <text x="100" y="160" text-anchor="middle" class="logo-text forge-text" font-size="24">DockerForge</text>
+</svg>

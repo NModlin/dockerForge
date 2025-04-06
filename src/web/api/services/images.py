@@ -9,6 +9,7 @@ import logging
 import asyncio
 import tempfile
 import os
+import re
 from sqlalchemy.orm import Session
 
 from src.web.api.schemas.images import Image, ImageCreate, ImageUpdate, ImageScan, ImageVulnerability, ImageScanResult, DockerfileValidation, DockerfileBuild
@@ -569,4 +570,130 @@ async def build_image_from_dockerfile(
             }
     except Exception as e:
         logger.error(f"Failed to build image: {e}")
+        raise
+
+
+async def add_tag_to_image(
+    image_id: str,
+    tag: str,
+    is_latest: bool = False,
+    db: Session = None
+) -> Dict[str, Any]:
+    """
+    Add a tag to an image.
+
+    Args:
+        image_id: The ID of the image
+        tag: The tag to add
+        is_latest: Whether to set this tag as the latest tag
+        db: Database session
+
+    Returns:
+        Dict[str, Any]: Result of the operation
+    """
+    try:
+        # Get the image
+        image = await get_image(image_id=image_id, db=db)
+        if not image:
+            raise ValueError(f"Image with ID {image_id} not found")
+
+        # Validate tag name
+        if not tag or not re.match(r'^[a-zA-Z0-9._-]+$', tag):
+            raise ValueError("Invalid tag name. Tag must contain only alphanumeric characters, dots, hyphens, and underscores.")
+
+        # In a real implementation, this would call the Docker API to add the tag
+        # For now, we'll simulate the operation
+        await asyncio.sleep(0.5)  # Simulate API call delay
+
+        # Update the image tags
+        new_tags = list(image.tags) if image.tags else []
+        new_tag = f"{image.name}:{tag}"
+
+        # Check if the tag already exists
+        if new_tag in new_tags:
+            raise ValueError(f"Tag {tag} already exists for image {image.name}")
+
+        # Add the new tag
+        new_tags.append(new_tag)
+
+        # If this is the latest tag, update or add the latest tag
+        if is_latest:
+            latest_tag = f"{image.name}:latest"
+            if latest_tag in new_tags and latest_tag != new_tag:
+                new_tags.remove(latest_tag)
+            if latest_tag not in new_tags:
+                new_tags.append(latest_tag)
+
+        # Update the image in the database
+        if db:
+            image_model = db.query(ImageModel).filter(ImageModel.id == image_id).first()
+            if image_model:
+                image_model.tags = new_tags
+                db.commit()
+
+        return {
+            "success": True,
+            "tags": new_tags,
+            "message": f"Successfully added tag {tag} to image {image.name}"
+        }
+    except Exception as e:
+        logger.error(f"Failed to add tag to image: {e}")
+        raise
+
+
+async def remove_tag_from_image(
+    image_id: str,
+    tag: str,
+    db: Session = None
+) -> Dict[str, Any]:
+    """
+    Remove a tag from an image.
+
+    Args:
+        image_id: The ID of the image
+        tag: The tag to remove
+        db: Database session
+
+    Returns:
+        Dict[str, Any]: Result of the operation
+    """
+    try:
+        # Get the image
+        image = await get_image(image_id=image_id, db=db)
+        if not image:
+            raise ValueError(f"Image with ID {image_id} not found")
+
+        # In a real implementation, this would call the Docker API to remove the tag
+        # For now, we'll simulate the operation
+        await asyncio.sleep(0.5)  # Simulate API call delay
+
+        # Update the image tags
+        new_tags = list(image.tags) if image.tags else []
+        tag_to_remove = f"{image.name}:{tag}"
+
+        # Check if the tag exists
+        if tag_to_remove not in new_tags:
+            raise ValueError(f"Tag {tag} does not exist for image {image.name}")
+
+        # Check if it's the latest tag
+        if tag == "latest":
+            raise ValueError("Cannot remove the 'latest' tag")
+
+        # Remove the tag
+        new_tags.remove(tag_to_remove)
+
+        # Update the image in the database
+        if db:
+            image_model = db.query(ImageModel).filter(ImageModel.id == image_id).first()
+            if image_model:
+                image_model.tags = new_tags
+                db.commit()
+
+        return {
+            "success": True,
+            "tags": new_tags,
+            "message": f"Successfully removed tag {tag} from image {image.name}"
+        }
+    except Exception as e:
+        logger.error(f"Failed to remove tag from image: {e}")
         raise

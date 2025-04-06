@@ -1,6 +1,32 @@
 <template>
   <div class="security-dashboard">
-    <h1 class="text-h4 mb-4">Security Dashboard</h1>
+    <div class="d-flex align-center mb-4">
+      <h1 class="text-h4">Security Dashboard</h1>
+      <v-spacer></v-spacer>
+      <v-btn
+        color="primary"
+        class="mr-2"
+        :to="{ name: 'ComplianceDashboard' }"
+      >
+        <v-icon left>mdi-check-decagram</v-icon>
+        Compliance Dashboard
+      </v-btn>
+      <v-btn
+        color="primary"
+        class="mr-2"
+        :to="{ name: 'SecurityPolicies' }"
+      >
+        <v-icon left>mdi-shield-lock</v-icon>
+        Security Policies
+      </v-btn>
+      <v-btn
+        color="primary"
+        :to="{ name: 'SecurityScan' }"
+      >
+        <v-icon left>mdi-shield-search</v-icon>
+        New Vulnerability Scan
+      </v-btn>
+    </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="d-flex justify-center align-center my-5">
@@ -71,9 +97,9 @@
                 color="primary"
                 block
                 class="mt-4"
-                :to="'/security/vulnerabilities'"
+                :to="{ name: 'SecurityScan' }"
               >
-                View All Vulnerabilities
+                Start New Scan
               </v-btn>
             </v-card-text>
           </v-card>
@@ -110,9 +136,9 @@
                 color="primary"
                 block
                 class="mt-4"
-                :to="'/security/compliance'"
+                :to="{ name: 'PolicyViolations' }"
               >
-                View Compliance Report
+                View Policy Violations
               </v-btn>
             </v-card-text>
           </v-card>
@@ -350,23 +376,23 @@ export default {
         // this.complianceStats = response.data.compliance_stats;
         // this.recentScans = response.data.recent_scans;
         // this.recommendations = response.data.recommendations;
-        
+
         // Mock data for development
         setTimeout(() => {
           this.securityScore = 78;
-          
+
           this.vulnerabilityCounts = {
             critical: 2,
             high: 5,
             medium: 12,
             low: 23,
           };
-          
+
           this.complianceStats = {
             passed: 42,
             failed: 8,
           };
-          
+
           this.recentScans = [
             {
               id: 's1',
@@ -424,7 +450,7 @@ export default {
               scan_date: '2025-03-16T08:30:00Z',
             },
           ];
-          
+
           this.recommendations = [
             {
               id: 'r1',
@@ -467,7 +493,7 @@ export default {
               affected_resources: [],
             },
           ];
-          
+
           this.loading = false;
         }, 1000);
       } catch (error) {
@@ -565,11 +591,11 @@ export default {
       // }, {
       //   headers: { Authorization: `Bearer ${this.token}` },
       // });
-      
+
       // Mock implementation
       this.$set(scan, 'status', 'in-progress');
       this.$set(scan, 'scan_date', new Date().toISOString());
-      
+
       // Simulate scan completion after 3 seconds
       setTimeout(() => {
         this.$set(scan, 'status', 'completed');
@@ -579,7 +605,7 @@ export default {
       try {
         // Start a security workflow for the vulnerability
         const response = await axios.post(`/api/chat/security/start-workflow?vulnerability_id=${scan.id}`);
-        
+
         // Set context data for chat
         this.updateContext({
           currentPage: 'security',
@@ -588,10 +614,10 @@ export default {
           vulnerability_id: scan.id,
           workflow_id: response.data.message.context?.workflow_id
         });
-        
+
         // Open chat sidebar
         this.setActive(true);
-        
+
         // Show notification
         this.$emit('show-notification', {
           type: 'info',
@@ -605,22 +631,22 @@ export default {
         });
       }
     },
-    
+
     async resolveRecommendationWithAI(recommendation) {
       try {
         // Start a security workflow for the recommendation
         const response = await axios.post(`/api/chat/security/start-workflow?vulnerability_id=${recommendation.id}`);
-        
+
         // Prepare context with recommendation data
         this.updateContext({
           currentPage: 'security',
           recommendation_id: recommendation.id,
           workflow_id: response.data.message.context?.workflow_id
         });
-        
+
         // Open chat sidebar
         this.setActive(true);
-        
+
         // Show notification
         this.$emit('show-notification', {
           type: 'info',
@@ -634,22 +660,22 @@ export default {
         });
       }
     },
-    
+
     applyRecommendation(recommendation) {
       // In a real implementation, this would call the API to apply the recommendation
       // await axios.post(`/api/security/recommendations/${recommendation.id}/apply`, {}, {
       //   headers: { Authorization: `Bearer ${this.token}` },
       // });
-      
+
       // Mock implementation - just show a notification
       this.$emit('show-notification', {
         type: 'success',
         message: `Applied recommendation: ${recommendation.title}`,
       });
-      
+
       // Remove the recommendation from the list
       this.recommendations = this.recommendations.filter(r => r.id !== recommendation.id);
-      
+
       // Update security score
       this.securityScore += 5;
       if (this.securityScore > 100) {

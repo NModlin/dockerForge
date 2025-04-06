@@ -245,6 +245,57 @@ const actions = {
       commit('SET_LOADING', false);
     }
   },
+
+  /**
+   * Add a tag to an image
+   */
+  async addImageTag({ commit }, { imageId, tagName, isLatest = false }) {
+    commit('SET_LOADING', true);
+
+    try {
+      const response = await axios.post(`/api/images/${imageId}/tags`, {
+        tag: tagName,
+        is_latest: isLatest
+      });
+
+      // Update the image in the store
+      commit('UPDATE_IMAGE_TAGS', {
+        id: imageId,
+        tags: response.data.tags
+      });
+
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
+
+  /**
+   * Delete a tag from an image
+   */
+  async deleteImageTag({ commit }, { imageId, tagName }) {
+    commit('SET_LOADING', true);
+
+    try {
+      const response = await axios.delete(`/api/images/${imageId}/tags/${tagName}`);
+
+      // Update the image in the store
+      commit('UPDATE_IMAGE_TAGS', {
+        id: imageId,
+        tags: response.data.tags
+      });
+
+      return response.data;
+    } catch (error) {
+      commit('SET_ERROR', error.response?.data?.detail || error.message);
+      throw error;
+    } finally {
+      commit('SET_LOADING', false);
+    }
+  },
 };
 
 // Mutations
@@ -307,6 +358,18 @@ const mutations = {
   },
   CLEAR_BUILD_LOGS(state) {
     state.buildLogs = [];
+  },
+
+  UPDATE_IMAGE_TAGS(state, { id, tags }) {
+    const index = state.images.findIndex(image => image.id === id);
+    if (index !== -1) {
+      state.images[index].tags = tags;
+
+      // If this is the currently selected image, update it too
+      if (state.image && state.image.id === id) {
+        state.image.tags = tags;
+      }
+    }
   },
 };
 

@@ -6,11 +6,14 @@ import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
 import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
+import './themes/theme.css';
 import axios from 'axios';
 
 import App from './App.vue';
 import routes from './router.js';
 import storeConfig from './store.js';
+import i18n from './i18n';
+import { themes, applyTheme } from './themes';
 
 // Configure axios
 axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL || '/api';
@@ -23,38 +26,16 @@ if (token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
+// Get saved theme or default to light
+const savedTheme = localStorage.getItem('theme') || 'light';
+
 // Create Vuetify instance
 const vuetify = createVuetify({
   components,
   directives,
   theme: {
-    defaultTheme: 'dark',
-    themes: {
-      light: {
-        dark: false,
-        colors: {
-          primary: '#007BFF',
-          secondary: '#6C757D',
-          accent: '#17A2B8',
-          error: '#DC3545',
-          warning: '#FFC107',
-          info: '#17A2B8',
-          success: '#28A745',
-        },
-      },
-      dark: {
-        dark: true,
-        colors: {
-          primary: '#0D6EFD',
-          secondary: '#6C757D',
-          accent: '#0DCAF0',
-          error: '#DC3545',
-          warning: '#FFC107',
-          info: '#0DCAF0',
-          success: '#198754',
-        },
-      },
-    },
+    defaultTheme: savedTheme,
+    themes,
   },
 });
 
@@ -86,5 +67,16 @@ const app = createApp(App);
 app.use(router);
 app.use(store);
 app.use(vuetify);
+app.use(i18n);
+
+// Apply theme
+applyTheme(savedTheme, vuetify);
+
+// Listen for system theme changes if using system theme
+if (savedTheme === 'system') {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    applyTheme('system', vuetify);
+  });
+}
 
 app.mount('#app');

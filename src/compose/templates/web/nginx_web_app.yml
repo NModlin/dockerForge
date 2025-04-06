@@ -1,0 +1,58 @@
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf:/etc/nginx/conf.d
+      - ./nginx/html:/usr/share/nginx/html
+    depends_on:
+      - app
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  app:
+    image: node:16
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    command: npm start
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+networks:
+  frontend:
+  backend:
+
+metadata:
+  name: nginx_web_app
+  category: web
+  description: "NGINX web server with Node.js application backend"
+  difficulty: beginner
+  tags:
+    - nginx
+    - node
+    - web
+    - frontend
+    - backend
+  variables:
+    - PORT
+    - NODE_ENV

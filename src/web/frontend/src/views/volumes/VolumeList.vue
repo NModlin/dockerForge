@@ -61,9 +61,64 @@
       >
         <!-- Name Column -->
         <template v-slot:item.name="{ item }">
-          <router-link :to="`/volumes/${item.id}`" class="text-decoration-none">
-            {{ item.name }}
-          </router-link>
+          <div class="d-flex align-center">
+            <v-chip
+              small
+              :color="getVolumeTypeColor(item.type)"
+              text-color="white"
+              class="mr-2"
+            >
+              {{ item.type || 'volume' }}
+            </v-chip>
+            <router-link :to="`/volumes/${item.id}`" class="text-decoration-none">
+              {{ item.name }}
+            </router-link>
+          </div>
+        </template>
+
+        <!-- Driver Column -->
+        <template v-slot:item.driver="{ item }">
+          <v-chip
+            x-small
+            :color="getDriverColor(item.driver)"
+            text-color="white"
+          >
+            {{ item.driver }}
+          </v-chip>
+        </template>
+
+        <!-- Mount Point Column -->
+        <template v-slot:item.mountpoint="{ item }">
+          <div class="text-truncate" style="max-width: 250px;" :title="item.mountpoint">
+            {{ item.mountpoint }}
+          </div>
+        </template>
+
+        <!-- Connected Containers Column -->
+        <template v-slot:item.containers="{ item }">
+          <div v-if="item.mounts && item.mounts.length > 0">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-chip
+                  small
+                  color="primary"
+                  text-color="white"
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ item.mounts.length }} containers
+                </v-chip>
+              </template>
+              <div>
+                <div v-for="(mount, index) in item.mounts" :key="index">
+                  {{ mount.container_name }} ({{ mount.mode }})
+                </div>
+              </div>
+            </v-tooltip>
+          </div>
+          <div v-else class="text-caption grey--text">
+            No containers
+          </div>
         </template>
 
         <!-- Created Column -->
@@ -124,7 +179,7 @@ export default {
         { text: 'Name', value: 'name', sortable: true },
         { text: 'Driver', value: 'driver', sortable: true },
         { text: 'Mount Point', value: 'mountpoint', sortable: false },
-        { text: 'Size', value: 'size', sortable: true },
+        { text: 'Connected Containers', value: 'containers', sortable: false },
         { text: 'Created', value: 'created_at', sortable: true },
         { text: 'Actions', value: 'actions', sortable: false, align: 'center' },
       ],
@@ -161,25 +216,108 @@ export default {
               id: 'v1',
               name: 'postgres_data',
               driver: 'local',
+              type: 'volume',
               mountpoint: '/var/lib/docker/volumes/postgres_data/_data',
               size: '1.2 GB',
               created_at: '2025-03-15T10:00:00Z',
+              mounts: [
+                {
+                  container_id: 'c1',
+                  container_name: 'postgres',
+                  source: '/var/lib/docker/volumes/postgres_data/_data',
+                  destination: '/var/lib/postgresql/data',
+                  mode: 'rw'
+                }
+              ]
             },
             {
               id: 'v2',
               name: 'redis_data',
               driver: 'local',
+              type: 'volume',
               mountpoint: '/var/lib/docker/volumes/redis_data/_data',
               size: '256 MB',
               created_at: '2025-03-15T09:00:00Z',
+              mounts: []
             },
             {
               id: 'v3',
               name: 'nginx_config',
               driver: 'local',
+              type: 'volume',
               mountpoint: '/var/lib/docker/volumes/nginx_config/_data',
               size: '4 MB',
               created_at: '2025-03-15T08:00:00Z',
+              mounts: [
+                {
+                  container_id: 'c2',
+                  container_name: 'nginx',
+                  source: '/var/lib/docker/volumes/nginx_config/_data',
+                  destination: '/etc/nginx/conf.d',
+                  mode: 'ro'
+                }
+              ]
+            },
+            {
+              id: 'v4',
+              name: 'app_logs',
+              driver: 'local',
+              type: 'volume',
+              mountpoint: '/var/lib/docker/volumes/app_logs/_data',
+              size: '128 MB',
+              created_at: '2025-03-14T10:00:00Z',
+              mounts: [
+                {
+                  container_id: 'c3',
+                  container_name: 'app',
+                  source: '/var/lib/docker/volumes/app_logs/_data',
+                  destination: '/app/logs',
+                  mode: 'rw'
+                },
+                {
+                  container_id: 'c4',
+                  container_name: 'log-exporter',
+                  source: '/var/lib/docker/volumes/app_logs/_data',
+                  destination: '/logs',
+                  mode: 'ro'
+                }
+              ]
+            },
+            {
+              id: 'v5',
+              name: '/host/path',
+              driver: 'local',
+              type: 'bind',
+              mountpoint: '/host/path',
+              size: '512 MB',
+              created_at: '2025-03-13T10:00:00Z',
+              mounts: [
+                {
+                  container_id: 'c5',
+                  container_name: 'web-server',
+                  source: '/host/path',
+                  destination: '/usr/share/nginx/html',
+                  mode: 'ro'
+                }
+              ]
+            },
+            {
+              id: 'v6',
+              name: 'tmpfs',
+              driver: 'local',
+              type: 'tmpfs',
+              mountpoint: 'tmpfs',
+              size: '64 MB',
+              created_at: '2025-03-12T10:00:00Z',
+              mounts: [
+                {
+                  container_id: 'c6',
+                  container_name: 'cache-server',
+                  source: 'tmpfs',
+                  destination: '/tmp',
+                  mode: 'rw'
+                }
+              ]
             },
           ];
           this.loading = false;
@@ -202,13 +340,13 @@ export default {
     },
     async deleteVolume() {
       if (!this.selectedVolume) return;
-      
+
       try {
         // In a real implementation, this would call the API
         // await axios.delete(`/api/volumes/${this.selectedVolume.id}`, {
         //   headers: { Authorization: `Bearer ${this.token}` },
         // });
-        
+
         // Mock implementation
         this.volumes = this.volumes.filter(v => v.id !== this.selectedVolume.id);
         this.deleteDialog = false;
@@ -216,6 +354,32 @@ export default {
       } catch (error) {
         this.error = `Failed to delete volume ${this.selectedVolume.name}`;
         this.deleteDialog = false;
+      }
+    },
+
+    getVolumeTypeColor(type) {
+      switch (type) {
+        case 'volume':
+          return 'primary';
+        case 'bind':
+          return 'warning';
+        case 'tmpfs':
+          return 'purple';
+        default:
+          return 'grey';
+      }
+    },
+
+    getDriverColor(driver) {
+      switch (driver) {
+        case 'local':
+          return 'success';
+        case 'nfs':
+          return 'orange';
+        case 'cifs':
+          return 'blue';
+        default:
+          return 'grey';
       }
     },
   },

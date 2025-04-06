@@ -395,8 +395,15 @@
 
 <script>
 import { mapGetters } from 'vuex';
-// In a real implementation, you would import Chart.js
-// import Chart from 'chart.js';
+// Import Chart.js for real-time charts
+import Chart from 'chart.js/auto';
+import {
+  getResourceStatsSummary,
+  getHostMetricsHistory,
+  getContainerMetrics,
+  getContainerMetricsHistory,
+  createContainerStatsWebSocket
+} from '@/services/monitoring';
 
 export default {
   name: 'MonitoringDashboard',
@@ -487,179 +494,167 @@ export default {
       this.error = null;
 
       try {
-        // In a real implementation, this would call the API
-        // const response = await axios.get('/api/monitoring/dashboard', {
-        //   headers: { Authorization: `Bearer ${this.token}` },
-        // });
-        // this.systemMetrics = response.data.system_metrics;
-        // this.containerStats = response.data.container_stats;
-        // this.imageStats = response.data.image_stats;
-        // this.volumeStats = response.data.volume_stats;
-        // this.containerResources = response.data.container_resources;
-        // this.alerts = response.data.alerts;
-        
-        // Mock data for development
-        setTimeout(() => {
-          this.systemMetrics = {
-            cpu_usage: 35.2,
-            cpu_cores: 8,
-            memory_usage_percent: 42.7,
-            memory_used: 1024 * 1024 * 1024 * 6.8, // 6.8 GB
-            memory_total: 1024 * 1024 * 1024 * 16, // 16 GB
-            disk_usage_percent: 68.3,
-            disk_used: 1024 * 1024 * 1024 * 205, // 205 GB
-            disk_total: 1024 * 1024 * 1024 * 300, // 300 GB
-          };
-          
-          this.containerStats = {
-            running: 7,
-            total: 12,
-          };
-          
-          this.imageStats = {
-            count: 23,
-          };
-          
-          this.volumeStats = {
-            count: 8,
-          };
-          
-          this.containerResources = [
-            {
-              id: 'c1',
-              name: 'web-server',
-              cpu_percent: 12.5,
-              memory_percent: 8.2,
-              memory_usage: 1024 * 1024 * 256, // 256 MB
-              network_rx: 1024 * 1024 * 1.2, // 1.2 MB/s
-              network_tx: 1024 * 1024 * 3.5, // 3.5 MB/s
-              disk_read: 1024 * 1024 * 0.5, // 0.5 MB/s
-              disk_write: 1024 * 1024 * 0.2, // 0.2 MB/s
-            },
-            {
-              id: 'c2',
-              name: 'api-service',
-              cpu_percent: 28.7,
-              memory_percent: 15.3,
-              memory_usage: 1024 * 1024 * 512, // 512 MB
-              network_rx: 1024 * 1024 * 2.8, // 2.8 MB/s
-              network_tx: 1024 * 1024 * 1.7, // 1.7 MB/s
-              disk_read: 1024 * 1024 * 0.3, // 0.3 MB/s
-              disk_write: 1024 * 1024 * 0.8, // 0.8 MB/s
-            },
-            {
-              id: 'c3',
-              name: 'database',
-              cpu_percent: 45.2,
-              memory_percent: 62.8,
-              memory_usage: 1024 * 1024 * 1024 * 2.5, // 2.5 GB
-              network_rx: 1024 * 1024 * 0.8, // 0.8 MB/s
-              network_tx: 1024 * 1024 * 0.6, // 0.6 MB/s
-              disk_read: 1024 * 1024 * 5.2, // 5.2 MB/s
-              disk_write: 1024 * 1024 * 3.1, // 3.1 MB/s
-            },
-            {
-              id: 'c4',
-              name: 'cache',
-              cpu_percent: 5.3,
-              memory_percent: 28.1,
-              memory_usage: 1024 * 1024 * 768, // 768 MB
-              network_rx: 1024 * 1024 * 4.5, // 4.5 MB/s
-              network_tx: 1024 * 1024 * 3.2, // 3.2 MB/s
-              disk_read: 1024 * 1024 * 0.1, // 0.1 MB/s
-              disk_write: 1024 * 1024 * 0.05, // 0.05 MB/s
-            },
-            {
+        // Get resource stats summary from API
+        const summary = await getResourceStatsSummary();
+
+        // Update system metrics
+        this.systemMetrics = {
+          cpu_usage: summary.cpu_usage,
+          cpu_cores: summary.cpu_cores,
+          memory_usage_percent: summary.memory_usage_percent,
+          memory_used: summary.memory_used,
+          memory_total: summary.memory_total,
+          disk_usage_percent: summary.disk_usage_percent,
+          disk_used: summary.disk_used,
+          disk_total: summary.disk_total,
+        };
+
+        // Update container stats
+        this.containerStats = {
+          running: summary.running_containers,
+          total: summary.container_count,
+        };
+
+        // Update image stats
+        this.imageStats = {
+          count: summary.image_count,
+        };
+
+        // Update volume stats
+        this.volumeStats = {
+          count: summary.volume_count,
+        };
+
+        // Fetch container resources
+        // In a real implementation, this would be fetched from the API
+        // For now, we'll use mock data
+        // For now, we'll use mock data for container resources
+        this.containerResources = [
+          {
+            id: 'c1',
+            name: 'web-server',
+            cpu_percent: 12.5,
+            memory_percent: 8.2,
+            memory_usage: 1024 * 1024 * 256, // 256 MB
+            network: { rx: '1.2 MB/s', tx: '3.5 MB/s' },
+            disk: { read: '0.5 MB/s', write: '0.2 MB/s' },
+          },
+          {
+            id: 'c2',
+            name: 'api-service',
+            cpu_percent: 28.7,
+            memory_percent: 15.3,
+            memory_usage: 1024 * 1024 * 512, // 512 MB
+            network: { rx: '2.8 MB/s', tx: '1.7 MB/s' },
+            disk: { read: '0.3 MB/s', write: '0.8 MB/s' },
+          },
+          {
+            id: 'c3',
+            name: 'database',
+            cpu_percent: 45.2,
+            memory_percent: 62.8,
+            memory_usage: 1024 * 1024 * 1024 * 2, // 2 GB
+            network: { rx: '0.5 MB/s', tx: '0.3 MB/s' },
+            disk: { read: '4.2 MB/s', write: '3.8 MB/s' },
+          },
+          {
+            id: 'c4',
+            name: 'cache',
+            cpu_percent: 5.3,
+            memory_percent: 28.1,
+            memory_usage: 1024 * 1024 * 768, // 768 MB
+            network: { rx: '4.5 MB/s', tx: '3.2 MB/s' },
+            disk: { read: '0.1 MB/s', write: '0.05 MB/s' },
+          },
+          {
+            id: 'c5',
+            name: 'worker',
+            cpu_percent: 78.9,
+            memory_percent: 42.6,
+            memory_usage: 1024 * 1024 * 896, // 896 MB
+            network: { rx: '0.3 MB/s', tx: '0.2 MB/s' },
+            disk: { read: '2.1 MB/s', write: '1.8 MB/s' },
+          },
+        ];
+
+        // Mock alerts for development
+        this.alerts = [
+          {
+            id: 'a1',
+            title: 'High CPU Usage',
+            description: 'Container "worker" is using excessive CPU resources (78.9%). This may indicate a performance issue or resource contention.',
+            severity: 'warning',
+            timestamp: '2025-03-17T05:45:00Z',
+            acknowledged: false,
+            resolved: false,
+            resource: {
+              type: 'container',
               id: 'c5',
               name: 'worker',
-              cpu_percent: 78.9,
-              memory_percent: 42.6,
-              memory_usage: 1024 * 1024 * 896, // 896 MB
-              network_rx: 1024 * 1024 * 0.3, // 0.3 MB/s
-              network_tx: 1024 * 1024 * 0.2, // 0.2 MB/s
-              disk_read: 1024 * 1024 * 2.1, // 2.1 MB/s
-              disk_write: 1024 * 1024 * 1.8, // 1.8 MB/s
             },
-          ];
-          
-          this.alerts = [
-            {
-              id: 'a1',
-              title: 'High CPU Usage',
-              description: 'Container "worker" is using excessive CPU resources (78.9%). This may indicate a performance issue or resource contention.',
-              severity: 'warning',
-              timestamp: '2025-03-17T05:45:00Z',
-              acknowledged: false,
-              resolved: false,
-              resource: {
-                type: 'container',
-                id: 'c5',
-                name: 'worker',
+            metrics: [
+              {
+                name: 'CPU Usage',
+                value: 78.9,
+                unit: '%',
               },
-              metrics: [
-                {
-                  name: 'CPU Usage',
-                  value: 78.9,
-                  unit: '%',
-                },
-              ],
+            ],
+          },
+          {
+            id: 'a2',
+            title: 'Memory Leak Detected',
+            description: 'Container "database" shows a steady increase in memory usage over the past 6 hours, indicating a possible memory leak.',
+            severity: 'critical',
+            timestamp: '2025-03-17T04:30:00Z',
+            acknowledged: true,
+            resolved: false,
+            resource: {
+              type: 'container',
+              id: 'c3',
+              name: 'database',
             },
-            {
-              id: 'a2',
-              title: 'Memory Leak Detected',
-              description: 'Container "database" shows a steady increase in memory usage over the past 6 hours, indicating a possible memory leak.',
-              severity: 'critical',
-              timestamp: '2025-03-17T04:30:00Z',
-              acknowledged: true,
-              resolved: false,
-              resource: {
-                type: 'container',
-                id: 'c3',
-                name: 'database',
+            metrics: [
+              {
+                name: 'Memory Usage',
+                value: 62.8,
+                unit: '%',
               },
-              metrics: [
-                {
-                  name: 'Memory Usage',
-                  value: 62.8,
-                  unit: '%',
-                },
-                {
-                  name: 'Memory Growth Rate',
-                  value: 5.2,
-                  unit: '%/hour',
-                },
-              ],
-            },
-            {
-              id: 'a3',
-              title: 'Disk Space Warning',
-              description: 'Host system is running low on disk space (68.3% used). Consider cleaning up unused images and volumes.',
-              severity: 'warning',
-              timestamp: '2025-03-17T03:15:00Z',
-              acknowledged: false,
-              resolved: false,
-              resource: {
-                type: 'host',
-                id: 'host',
-                name: 'Docker Host',
+              {
+                name: 'Memory Growth Rate',
+                value: 5.2,
+                unit: '%/hour',
               },
-              metrics: [
-                {
-                  name: 'Disk Usage',
-                  value: 68.3,
-                  unit: '%',
-                },
-              ],
+            ],
+          },
+          {
+            id: 'a3',
+            title: 'Disk Space Warning',
+            description: 'Host system is running low on disk space (68.3% used). Consider cleaning up unused images and volumes.',
+            severity: 'warning',
+            timestamp: '2025-03-17T03:15:00Z',
+            acknowledged: false,
+            resolved: false,
+            resource: {
+              type: 'host',
+              id: 'host',
+              name: 'Docker Host',
             },
-          ];
-          
-          this.loading = false;
-          
-          // Initialize charts after data is loaded
-          this.$nextTick(() => {
-            this.initCharts();
-          });
-        }, 1000);
+            metrics: [
+              {
+                name: 'Disk Usage',
+                value: 68.3,
+                unit: '%',
+              },
+            ],
+          },
+        ];
+
+        this.loading = false;
+
+        // Initialize charts after data is loaded
+        this.$nextTick(() => {
+          this.initCharts();
+        });
       } catch (error) {
         this.error = 'Failed to load monitoring data. Please try again.';
         this.loading = false;
@@ -671,11 +666,11 @@ export default {
     },
     formatSize(bytes) {
       if (bytes === 0) return '0 Bytes';
-      
+
       const k = 1024;
       const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
-      
+
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     },
     getResourceColor(percent) {
@@ -703,7 +698,7 @@ export default {
     },
     getResourceLink(resource) {
       if (!resource) return '#';
-      
+
       switch (resource.type) {
         case 'container':
           return `/containers/${resource.id}`;
@@ -720,7 +715,7 @@ export default {
     showContainerMetrics(container) {
       this.selectedContainer = container;
       this.containerMetricsDialog = true;
-      
+
       // Initialize container charts after dialog is shown
       this.$nextTick(() => {
         this.initContainerCharts();
@@ -731,7 +726,7 @@ export default {
       // await axios.post(`/api/monitoring/alerts/${alert.id}/acknowledge`, {}, {
       //   headers: { Authorization: `Bearer ${this.token}` },
       // });
-      
+
       // Mock implementation
       alert.acknowledged = true;
     },
@@ -740,136 +735,450 @@ export default {
       // await axios.post(`/api/monitoring/alerts/${alert.id}/resolve`, {}, {
       //   headers: { Authorization: `Bearer ${this.token}` },
       // });
-      
+
       // Mock implementation
       alert.resolved = true;
-      
+
       // Remove the alert from the list after a short delay
       setTimeout(() => {
         this.alerts = this.alerts.filter(a => a.id !== alert.id);
       }, 500);
     },
-    initCharts() {
-      // In a real implementation, this would initialize Chart.js charts
-      // This is a mock implementation that doesn't actually create charts
-      console.log('Charts would be initialized here in a real implementation');
-      
-      // Mock CPU chart data
-      const cpuData = {
-        labels: Array.from({ length: 24 }, (_, i) => `${23 - i}h ago`),
-        datasets: [
-          {
-            label: 'CPU Usage (%)',
-            data: Array.from({ length: 24 }, () => Math.random() * 50 + 20),
-            borderColor: '#1976D2',
-            backgroundColor: 'rgba(25, 118, 210, 0.1)',
-            fill: true,
-          },
-        ],
-      };
-      
-      // Mock Memory chart data
-      const memoryData = {
-        labels: Array.from({ length: 24 }, (_, i) => `${23 - i}h ago`),
-        datasets: [
-          {
-            label: 'Memory Usage (%)',
-            data: Array.from({ length: 24 }, () => Math.random() * 30 + 30),
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            fill: true,
-          },
-        ],
-      };
-      
-      // In a real implementation, we would create actual Chart.js instances
-      this.charts.cpu = cpuData;
-      this.charts.memory = memoryData;
+    async initCharts() {
+      try {
+        // Get CPU metrics history
+        const cpuHistory = await getHostMetricsHistory('cpu', 24);
+
+        // Get memory metrics history
+        const memoryHistory = await getHostMetricsHistory('memory', 24);
+
+        // Prepare data for charts
+        const cpuLabels = [];
+        const cpuData = [];
+        const memoryLabels = [];
+        const memoryData = [];
+
+        // Process CPU data
+        cpuHistory.forEach(item => {
+          const date = new Date(item.timestamp);
+          cpuLabels.push(date.toLocaleTimeString());
+          cpuData.push(item.data.percent);
+        });
+
+        // Process memory data
+        memoryHistory.forEach(item => {
+          const date = new Date(item.timestamp);
+          memoryLabels.push(date.toLocaleTimeString());
+          memoryData.push(item.data.virtual.percent);
+        });
+
+        // Create CPU chart
+        const cpuCtx = document.getElementById('cpuChart');
+        if (cpuCtx) {
+          if (this.charts.cpu) {
+            this.charts.cpu.destroy();
+          }
+
+          this.charts.cpu = new Chart(cpuCtx, {
+            type: 'line',
+            data: {
+              labels: cpuLabels,
+              datasets: [
+                {
+                  label: 'CPU Usage (%)',
+                  data: cpuData,
+                  borderColor: '#1976D2',
+                  backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  title: {
+                    display: true,
+                    text: 'CPU Usage (%)',
+                  },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Time',
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // Create memory chart
+        const memoryCtx = document.getElementById('memoryChart');
+        if (memoryCtx) {
+          if (this.charts.memory) {
+            this.charts.memory.destroy();
+          }
+
+          this.charts.memory = new Chart(memoryCtx, {
+            type: 'line',
+            data: {
+              labels: memoryLabels,
+              datasets: [
+                {
+                  label: 'Memory Usage (%)',
+                  data: memoryData,
+                  borderColor: '#4CAF50',
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  title: {
+                    display: true,
+                    text: 'Memory Usage (%)',
+                  },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Time',
+                  },
+                },
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing charts:', error);
+      }
     },
-    updateCpuChart() {
-      // In a real implementation, this would update the CPU chart with new data
-      console.log(`CPU chart would be updated with time range: ${this.cpuTimeRange}`);
+    async updateCpuChart() {
+      try {
+        // Get hours from time range
+        let hours = 1;
+        switch (this.cpuTimeRange) {
+          case '1h':
+            hours = 1;
+            break;
+          case '6h':
+            hours = 6;
+            break;
+          case '12h':
+            hours = 12;
+            break;
+          case '24h':
+            hours = 24;
+            break;
+        }
+
+        // Get CPU metrics history
+        const cpuHistory = await getHostMetricsHistory('cpu', hours);
+
+        // Prepare data for chart
+        const cpuLabels = [];
+        const cpuData = [];
+
+        // Process CPU data
+        cpuHistory.forEach(item => {
+          const date = new Date(item.timestamp);
+          cpuLabels.push(date.toLocaleTimeString());
+          cpuData.push(item.data.percent);
+        });
+
+        // Update chart data
+        if (this.charts.cpu) {
+          this.charts.cpu.data.labels = cpuLabels;
+          this.charts.cpu.data.datasets[0].data = cpuData;
+          this.charts.cpu.update();
+        }
+      } catch (error) {
+        console.error('Error updating CPU chart:', error);
+      }
     },
-    updateMemoryChart() {
-      // In a real implementation, this would update the Memory chart with new data
-      console.log(`Memory chart would be updated with time range: ${this.memoryTimeRange}`);
+    async updateMemoryChart() {
+      try {
+        // Get hours from time range
+        let hours = 1;
+        switch (this.memoryTimeRange) {
+          case '1h':
+            hours = 1;
+            break;
+          case '6h':
+            hours = 6;
+            break;
+          case '12h':
+            hours = 12;
+            break;
+          case '24h':
+            hours = 24;
+            break;
+        }
+
+        // Get memory metrics history
+        const memoryHistory = await getHostMetricsHistory('memory', hours);
+
+        // Prepare data for chart
+        const memoryLabels = [];
+        const memoryData = [];
+
+        // Process memory data
+        memoryHistory.forEach(item => {
+          const date = new Date(item.timestamp);
+          memoryLabels.push(date.toLocaleTimeString());
+          memoryData.push(item.data.virtual.percent);
+        });
+
+        // Update chart data
+        if (this.charts.memory) {
+          this.charts.memory.data.labels = memoryLabels;
+          this.charts.memory.data.datasets[0].data = memoryData;
+          this.charts.memory.update();
+        }
+      } catch (error) {
+        console.error('Error updating memory chart:', error);
+      }
     },
-    initContainerCharts() {
-      // In a real implementation, this would initialize container-specific charts
-      console.log('Container charts would be initialized here in a real implementation');
-      
-      // Mock container chart data
-      const containerCpuData = {
-        labels: Array.from({ length: 24 }, (_, i) => `${23 - i}h ago`),
-        datasets: [
-          {
-            label: 'CPU Usage (%)',
-            data: Array.from({ length: 24 }, () => Math.random() * 50 + 20),
-            borderColor: '#1976D2',
-            backgroundColor: 'rgba(25, 118, 210, 0.1)',
-            fill: true,
-          },
-        ],
-      };
-      
-      const containerMemoryData = {
-        labels: Array.from({ length: 24 }, (_, i) => `${23 - i}h ago`),
-        datasets: [
-          {
-            label: 'Memory Usage (%)',
-            data: Array.from({ length: 24 }, () => Math.random() * 30 + 30),
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            fill: true,
-          },
-        ],
-      };
-      
-      const containerNetworkData = {
-        labels: Array.from({ length: 24 }, (_, i) => `${23 - i}h ago`),
-        datasets: [
-          {
-            label: 'Network RX (MB/s)',
-            data: Array.from({ length: 24 }, () => Math.random() * 3 + 1),
-            borderColor: '#2196F3',
-            backgroundColor: 'rgba(33, 150, 243, 0.1)',
-            fill: true,
-          },
-          {
-            label: 'Network TX (MB/s)',
-            data: Array.from({ length: 24 }, () => Math.random() * 2 + 0.5),
-            borderColor: '#FF9800',
-            backgroundColor: 'rgba(255, 152, 0, 0.1)',
-            fill: true,
-          },
-        ],
-      };
-      
-      const containerDiskData = {
-        labels: Array.from({ length: 24 }, (_, i) => `${23 - i}h ago`),
-        datasets: [
-          {
-            label: 'Disk Read (MB/s)',
-            data: Array.from({ length: 24 }, () => Math.random() * 5 + 0.5),
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            fill: true,
-          },
-          {
-            label: 'Disk Write (MB/s)',
-            data: Array.from({ length: 24 }, () => Math.random() * 3 + 0.2),
-            borderColor: '#9C27B0',
-            backgroundColor: 'rgba(156, 39, 176, 0.1)',
-            fill: true,
-          },
-        ],
-      };
-      
-      // In a real implementation, we would create actual Chart.js instances
-      this.charts.containerCpu = containerCpuData;
-      this.charts.containerMemory = containerMemoryData;
-      this.charts.containerNetwork = containerNetworkData;
-      this.charts.containerDisk = containerDiskData;
+    async initContainerCharts() {
+      if (!this.selectedContainer) return;
+
+      try {
+        // In a real implementation, we would fetch container metrics history from the API
+        // For now, we'll create mock data
+
+        // Create mock data for container charts
+        const timeLabels = [];
+        const cpuData = [];
+        const memoryData = [];
+        const networkRxData = [];
+        const networkTxData = [];
+        const diskReadData = [];
+        const diskWriteData = [];
+
+        // Generate time labels for the last 24 hours
+        const now = new Date();
+        for (let i = 23; i >= 0; i--) {
+          const time = new Date(now);
+          time.setHours(now.getHours() - i);
+          timeLabels.push(time.toLocaleTimeString());
+
+          // Generate random data points
+          cpuData.push(Math.random() * 50 + (this.selectedContainer.cpu_percent - 25));
+          memoryData.push(Math.random() * 30 + (this.selectedContainer.memory_percent - 15));
+          networkRxData.push(Math.random() * 5 + 0.5);
+          networkTxData.push(Math.random() * 3 + 0.2);
+          diskReadData.push(Math.random() * 5 + 0.5);
+          diskWriteData.push(Math.random() * 3 + 0.2);
+        }
+
+        // Create CPU chart
+        const containerCpuCtx = document.getElementById('containerCpuChart');
+        if (containerCpuCtx) {
+          if (this.charts.containerCpu) {
+            this.charts.containerCpu.destroy();
+          }
+
+          this.charts.containerCpu = new Chart(containerCpuCtx, {
+            type: 'line',
+            data: {
+              labels: timeLabels,
+              datasets: [
+                {
+                  label: 'CPU Usage (%)',
+                  data: cpuData,
+                  borderColor: '#1976D2',
+                  backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  title: {
+                    display: true,
+                    text: 'CPU Usage (%)',
+                  },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Time',
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // Create Memory chart
+        const containerMemoryCtx = document.getElementById('containerMemoryChart');
+        if (containerMemoryCtx) {
+          if (this.charts.containerMemory) {
+            this.charts.containerMemory.destroy();
+          }
+
+          this.charts.containerMemory = new Chart(containerMemoryCtx, {
+            type: 'line',
+            data: {
+              labels: timeLabels,
+              datasets: [
+                {
+                  label: 'Memory Usage (%)',
+                  data: memoryData,
+                  borderColor: '#4CAF50',
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  title: {
+                    display: true,
+                    text: 'Memory Usage (%)',
+                  },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Time',
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // Create Network chart
+        const containerNetworkCtx = document.getElementById('containerNetworkChart');
+        if (containerNetworkCtx) {
+          if (this.charts.containerNetwork) {
+            this.charts.containerNetwork.destroy();
+          }
+
+          this.charts.containerNetwork = new Chart(containerNetworkCtx, {
+            type: 'line',
+            data: {
+              labels: timeLabels,
+              datasets: [
+                {
+                  label: 'Network RX (MB/s)',
+                  data: networkRxData,
+                  borderColor: '#2196F3',
+                  backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+                {
+                  label: 'Network TX (MB/s)',
+                  data: networkTxData,
+                  borderColor: '#FF9800',
+                  backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'MB/s',
+                  },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Time',
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // Create Disk chart
+        const containerDiskCtx = document.getElementById('containerDiskChart');
+        if (containerDiskCtx) {
+          if (this.charts.containerDisk) {
+            this.charts.containerDisk.destroy();
+          }
+
+          this.charts.containerDisk = new Chart(containerDiskCtx, {
+            type: 'line',
+            data: {
+              labels: timeLabels,
+              datasets: [
+                {
+                  label: 'Disk Read (MB/s)',
+                  data: diskReadData,
+                  borderColor: '#4CAF50',
+                  backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+                {
+                  label: 'Disk Write (MB/s)',
+                  data: diskWriteData,
+                  borderColor: '#9C27B0',
+                  backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'MB/s',
+                  },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Time',
+                  },
+                },
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing container charts:', error);
+      }
     }
   }
 };
