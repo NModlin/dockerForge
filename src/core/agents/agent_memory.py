@@ -9,7 +9,6 @@ and maintain context between executions.
 import json
 import logging
 import os
-import pickle
 import sqlite3
 import time
 from datetime import datetime
@@ -84,8 +83,9 @@ class FileMemoryStore(MemoryStore):
         """Save a value to a file"""
         path = self._get_path(key)
         try:
-            with open(path, "wb") as f:
-                pickle.dump(value, f)
+            # Convert value to JSON-serializable format
+            with open(path, "w") as f:
+                json.dump(value, f)
         except Exception as e:
             logger.error(f"Error saving to memory: {e}")
             raise
@@ -97,8 +97,8 @@ class FileMemoryStore(MemoryStore):
             return default
 
         try:
-            with open(path, "rb") as f:
-                return pickle.load(f)
+            with open(path, "r") as f:
+                return json.load(f)
         except Exception as e:
             logger.error(f"Error loading from memory: {e}")
             return default
@@ -200,8 +200,8 @@ class SQLiteMemoryStore(MemoryStore):
         try:
             cursor = conn.cursor()
 
-            # Serialize the value
-            binary_data = pickle.dumps(value)
+            # Serialize the value to JSON
+            json_data = json.dumps(value)
 
             # Insert or replace the value
             cursor.execute(
@@ -210,7 +210,7 @@ class SQLiteMemoryStore(MemoryStore):
             (agent_id, store_name, key, value, updated_at)
             VALUES (?, ?, ?, ?, ?)
             """,
-                (self.agent_id, self.name, key, binary_data, int(time.time())),
+                (self.agent_id, self.name, key, json_data, int(time.time())),
             )
 
             conn.commit()
@@ -240,8 +240,8 @@ class SQLiteMemoryStore(MemoryStore):
             if row is None:
                 return default
 
-            # Deserialize the value
-            return pickle.loads(row[0])
+            # Deserialize the value from JSON
+            return json.loads(row[0])
 
         except Exception as e:
             logger.error(f"Error loading from memory: {e}")

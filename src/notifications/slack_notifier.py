@@ -184,11 +184,12 @@ class SlackNotifier:
             # Create payload
             payload = self._create_slack_payload(notification)
 
-            # Send notification
+            # Send notification with a timeout to prevent hanging
             response = requests.post(
                 config["webhook_url"],
                 json=payload,
                 headers={"Content-Type": "application/json"},
+                timeout=10  # 10 seconds timeout
             )
 
             # Check response

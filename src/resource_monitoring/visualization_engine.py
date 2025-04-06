@@ -1680,7 +1680,9 @@ class VisualizationEngine:
 
             # Save the HTML report
             if output_file is None:
-                output_file = tempfile.mktemp(suffix=".html")
+                # Use mkstemp instead of mktemp for security
+                fd, output_file = tempfile.mkstemp(suffix=".html")
+                os.close(fd)  # Close the file descriptor
 
             with open(output_file, "w") as f:
                 f.write(html_content)
