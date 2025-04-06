@@ -91,9 +91,11 @@ class ComposeOperations:
         """
         try:
             # Run docker-compose config to validate
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path, "config", "--quiet"]
             result = subprocess.run(
-                f"{self.compose_command} -f {file_path} config --quiet",
-                shell=True,
+                cmd,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -132,26 +134,27 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path}"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path]
 
             # Add options
             if detach:
-                cmd += " -d"
+                cmd.append("-d")
 
             if build:
-                cmd += " --build"
+                cmd.append("--build")
 
-            cmd += " up"
+            cmd.append("up")
 
             # Add services if specified
             if services:
-                cmd += " " + " ".join(services)
+                cmd.extend(services)
 
             # Run command
-            logger.info(f"Starting Docker Compose services: {cmd}")
+            logger.info(f"Starting Docker Compose services: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -185,22 +188,23 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path}"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path]
 
             # Add options
             if volumes:
-                cmd += " -v"
+                cmd.append("-v")
 
             if remove_orphans:
-                cmd += " --remove-orphans"
+                cmd.append("--remove-orphans")
 
-            cmd += " down"
+            cmd.append("down")
 
             # Run command
-            logger.info(f"Stopping Docker Compose services: {cmd}")
+            logger.info(f"Stopping Docker Compose services: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -231,17 +235,18 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path} restart"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path, "restart"]
 
             # Add services if specified
             if services:
-                cmd += " " + " ".join(services)
+                cmd.extend(services)
 
             # Run command
-            logger.info(f"Restarting Docker Compose services: {cmd}")
+            logger.info(f"Restarting Docker Compose services: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -272,17 +277,18 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path} pull"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path, "pull"]
 
             # Add services if specified
             if services:
-                cmd += " " + " ".join(services)
+                cmd.extend(services)
 
             # Run command
-            logger.info(f"Pulling Docker Compose images: {cmd}")
+            logger.info(f"Pulling Docker Compose images: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -314,23 +320,24 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path}"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path]
 
             # Add options
             if no_cache:
-                cmd += " --no-cache"
+                cmd.append("--no-cache")
 
-            cmd += " build"
+            cmd.append("build")
 
             # Add services if specified
             if services:
-                cmd += " " + " ".join(services)
+                cmd.extend(services)
 
             # Run command
-            logger.info(f"Building Docker Compose images: {cmd}")
+            logger.info(f"Building Docker Compose images: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -369,23 +376,25 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path}"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path]
 
             # Add options
             if follow:
-                cmd += " -f"
+                cmd.append("-f")
 
-            cmd += f" --tail={tail} logs"
+            cmd.append(f"--tail={tail}")
+            cmd.append("logs")
 
             # Add services if specified
             if services:
-                cmd += " " + " ".join(services)
+                cmd.extend(services)
 
             # Run command
-            logger.info(f"Getting Docker Compose logs: {cmd}")
+            logger.info(f"Getting Docker Compose logs: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -413,17 +422,18 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path} ps"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path, "ps"]
 
             # Add services if specified
             if services:
-                cmd += " " + " ".join(services)
+                cmd.extend(services)
 
             # Run command
-            logger.info(f"Listing Docker Compose containers: {cmd}")
+            logger.info(f"Listing Docker Compose containers: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -454,13 +464,17 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path} exec {service} {command}"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path, "exec", service]
+
+            # Add the command parts
+            cmd.extend(command.split())
 
             # Run command
-            logger.info(f"Executing command in Docker Compose container: {cmd}")
+            logger.info(f"Executing command in Docker Compose container: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -592,9 +606,11 @@ class ComposeOperations:
         """
         try:
             # Run docker-compose config
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path, "config"]
             result = subprocess.run(
-                f"{self.compose_command} -f {file_path} config",
-                shell=True,
+                cmd,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -624,13 +640,17 @@ class ComposeOperations:
         """
         try:
             # Build command
-            cmd = f"{self.compose_command} -f {file_path} {command}"
+            cmd_parts = self.compose_command.split()
+            cmd = cmd_parts + ["-f", file_path]
+
+            # Add the command parts
+            cmd.extend(command.split())
 
             # Run command
-            logger.info(f"Running Docker Compose command: {cmd}")
+            logger.info(f"Running Docker Compose command: {' '.join(cmd)}")
             result = subprocess.run(
                 cmd,
-                shell=True,
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,

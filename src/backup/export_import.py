@@ -136,6 +136,12 @@ class ExportImportManager:
                 try:
                     # Decompress file
                     with tarfile.open(input_path, "r:gz") as f_in:
+                        # Validate tarfile members to prevent path traversal attacks
+                        for member in f_in.getmembers():
+                            # Check for path traversal attempts
+                            if member.name.startswith('/') or '..' in member.name:
+                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                        # Extract validated files
                         f_in.extractall(path=os.path.dirname(temp_path))
 
                     # Find extracted file
@@ -286,9 +292,21 @@ class ExportImportManager:
                 # Extract archive
                 if input_path.endswith(".gz"):
                     with tarfile.open(input_path, "r:gz") as tar:
+                        # Validate tarfile members to prevent path traversal attacks
+                        for member in tar.getmembers():
+                            # Check for path traversal attempts
+                            if member.name.startswith('/') or '..' in member.name:
+                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                        # Extract validated files
                         tar.extractall(path=temp_dir)
                 else:
                     with tarfile.open(input_path, "r") as tar:
+                        # Validate tarfile members to prevent path traversal attacks
+                        for member in tar.getmembers():
+                            # Check for path traversal attempts
+                            if member.name.startswith('/') or '..' in member.name:
+                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                        # Extract validated files
                         tar.extractall(path=temp_dir)
 
                 # Check if required files exist
@@ -447,9 +465,21 @@ class ExportImportManager:
                 # Extract archive
                 if input_path.endswith(".gz"):
                     with tarfile.open(input_path, "r:gz") as tar:
+                        # Validate tarfile members to prevent path traversal attacks
+                        for member in tar.getmembers():
+                            # Check for path traversal attempts
+                            if member.name.startswith('/') or '..' in member.name:
+                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                        # Extract validated files
                         tar.extractall(path=temp_dir)
                 else:
                     with tarfile.open(input_path, "r") as tar:
+                        # Validate tarfile members to prevent path traversal attacks
+                        for member in tar.getmembers():
+                            # Check for path traversal attempts
+                            if member.name.startswith('/') or '..' in member.name:
+                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                        # Extract validated files
                         tar.extractall(path=temp_dir)
 
                 # Check if required files exist
