@@ -1328,163 +1328,121 @@ class VisualizationEngine:
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; }}
         h1, h2, h3 {{ color: #333; }}
+        .section {{ margin-bottom: 30px; }}
+        .chart {{ margin-bottom: 20px; }}
+        .chart img {{ max-width: 100%; }}
+        table {{ border-collapse: collapse; width: 100%; }}
+        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+        th {{ background-color: #f2f2f2; }}
     </style>
 </head>
 <body>
     <h1>DockerForge Resource Monitoring Report</h1>
-    <!-- Report content would be inserted here -->
-</body>
-</html>"""
+    <p>Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+    <p>Duration: {duration} hours</p>
+"""
 
-            # Write HTML content to file
+            # Add container list section
+            html_content += """    <div class="section">
+        <h2>Containers</h2>
+        <ul>"""
+
+            for container_id in container_ids:
+                html_content += f"\n            <li>{container_id}</li>"
+
+            html_content += """\n        </ul>
+    </div>"""
+
+            # Add comparative analysis section
+            comparative_components = [c for c in components if c.get('type') == 'comparative']
+            if comparative_components:
+                html_content += """\n    <div class="section">
+        <h2>Comparative Analysis</h2>"""
+
+                for component in comparative_components:
+                    metric_type = component.get('metric_type', '')
+                    file_path = component.get('file', '')
+
+                    if file_path and file_path.endswith('.html'):
+                        # For HTML files, embed using iframe
+                        html_content += f"""\n        <div class="chart">
+            <h3>{metric_type.capitalize()} Comparison</h3>
+            <iframe src="{os.path.basename(file_path)}" width="100%" height="500px" frameborder="0"></iframe>
+        </div>"""
+                    elif file_path:
+                        # For image files, embed using img tag
+                        html_content += f"""\n        <div class="chart">
+            <h3>{metric_type.capitalize()} Comparison</h3>
+            <img src="{os.path.basename(file_path)}" alt="{metric_type.capitalize()} Comparison">
+        </div>"""
+
+                html_content += """\n    </div>"""
+
+            # Add heatmap section
+            heatmap_components = [c for c in components if c.get('type') == 'heatmap']
+            if heatmap_components:
+                html_content += """\n    <div class="section">
+        <h2>Resource Heatmaps</h2>"""
+
+                for component in heatmap_components:
+                    metric_type = component.get('metric_type', '')
+                    file_path = component.get('file', '')
+
+                    if file_path and file_path.endswith('.html'):
+                        # For HTML files, embed using iframe
+                        html_content += f"""\n        <div class="chart">
+            <h3>{metric_type.capitalize()} Heatmap</h3>
+            <iframe src="{os.path.basename(file_path)}" width="100%" height="500px" frameborder="0"></iframe>
+        </div>"""
+                    elif file_path:
+                        # For image files, embed using img tag
+                        html_content += f"""\n        <div class="chart">
+            <h3>{metric_type.capitalize()} Heatmap</h3>
+            <img src="{os.path.basename(file_path)}" alt="{metric_type.capitalize()} Heatmap">
+        </div>"""
+
+                html_content += """\n    </div>"""
+
+            # Add individual container sections
+            for container_id in container_ids:
+                html_content += f"""\n    <div class="section">
+        <h2>Container: {container_id[:12] if len(container_id) > 12 else container_id}</h2>"""
+
+                container_components = [c for c in components if c.get('type') == 'time_series' and c.get('container_id') == container_id]
+                for component in container_components:
+                    metric_type = component.get('metric_type', '')
+                    file_path = component.get('file', '')
+
+                    if file_path and file_path.endswith('.html'):
+                        # For HTML files, embed using iframe
+                        html_content += f"""\n        <div class="chart">
+            <h3>{metric_type.capitalize()} Usage</h3>
+            <iframe src="{os.path.basename(file_path)}" width="100%" height="500px" frameborder="0"></iframe>
+        </div>"""
+                    elif file_path:
+                        # For image files, embed using img tag
+                        html_content += f"""\n        <div class="chart">
+            <h3>{metric_type.capitalize()} Usage</h3>
+            <img src="{os.path.basename(file_path)}" alt="{metric_type.capitalize()} Usage for {container_id[:12] if len(container_id) > 12 else container_id}">
+        </div>"""
+
+                html_content += """\n    </div>"""
+
+            # Close HTML document
+            html_content += """\n</body>\n</html>"""
+
+            # Save the HTML report
             if output_file is None:
                 output_file = tempfile.mktemp(suffix='.html')
 
             with open(output_file, 'w') as f:
                 f.write(html_content)
 
-            return output_file
-        except Exception as e:
-            logger.error(f"Error compiling HTML report: {e}")
-            return None
-    <p>Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-    <p>Duration: {duration} hours</p>
-
-    <div class="section">
-        <h2>Containers</h2>
-        <ul>
-"""
-
-            # Add container list
-            for container_id in container_ids:
-                html_content += f"            <li>{container_id}</li>\n"
-
-            html_content += """        </ul>
-    </div>
-
-"""
-
-            # Add comparative analysis section
-            comparative_components = [c for c in components if c['type'] == 'comparative']
-            if comparative_components:
-                html_content += """    <div class="section">
-        <h2>Comparative Analysis</h2>
-"""
-
-                for component in comparative_components:
-                    metric_type = component['metric_type']
-                    file_path = component['file']
-
-                    if file_path.endswith('.html'):
-                        # For HTML files, embed using iframe
-                        html_content += f"""        <div class="chart">
-            <h3>{metric_type.capitalize()} Comparison</h3>
-            <iframe src="{os.path.basename(file_path)}" width="100%" height="500px" frameborder="0"></iframe>
-        </div>
-"""
-                    else:
-                        # For image files, embed using img tag
-                        html_content += f"""        <div class="chart">
-            <h3>{metric_type.capitalize()} Comparison</h3>
-            <img src="{os.path.basename(file_path)}" alt="{metric_type.capitalize()} Comparison">
-        </div>
-"""
-
-                html_content += """    </div>
-
-"""
-
-            # Add heatmap section
-            heatmap_components = [c for c in components if c['type'] == 'heatmap']
-            if heatmap_components:
-                html_content += """    <div class="section">
-        <h2>Resource Heatmaps</h2>
-"""
-
-                for component in heatmap_components:
-                    metric_type = component['metric_type']
-                    file_path = component['file']
-
-                    if file_path.endswith('.html'):
-                        # For HTML files, embed using iframe
-                        html_content += f"""        <div class="chart">
-            <h3>{metric_type.capitalize()} Heatmap</h3>
-            <iframe src="{os.path.basename(file_path)}" width="100%" height="500px" frameborder="0"></iframe>
-        </div>
-"""
-                    else:
-                        # For image files, embed using img tag
-                        html_content += f"""        <div class="chart">
-            <h3>{metric_type.capitalize()} Heatmap</h3>
-            <img src="{os.path.basename(file_path)}" alt="{metric_type.capitalize()} Heatmap">
-        </div>
-"""
-
-                html_content += """    </div>
-
-"""
-
-            # Add individual container sections
-            for container_id in container_ids:
-                html_content += f"""    <div class="section">
-        <h2>Container: {container_id[:12]}</h2>
-"""
-
-                container_components = [c for c in components if c['type'] == 'time_series' and c['container_id'] == container_id]
-                for component in container_components:
-                    metric_type = component['metric_type']
-                    file_path = component['file']
-
-                    if file_path.endswith('.html'):
-                        # For HTML files, embed using iframe
-                        html_content += f"""        <div class="chart">
-            <h3>{metric_type.capitalize()} Usage</h3>
-            <iframe src="{os.path.basename(file_path)}" width="100%" height="500px" frameborder="0"></iframe>
-        </div>
-"""
-                    else:
-                        # For image files, embed using img tag
-                        html_content += f"""        <div class="chart">
-            <h3>{metric_type.capitalize()} Usage</h3>
-            <img src="{os.path.basename(file_path)}" alt="{metric_type.capitalize()} Usage for {container_id[:12]}">
-        </div>
-"""
-
-                html_content += """    </div>
-
-"""
-
-            html_content += """</body>
-</html>
-"""
-
-            # Save the HTML report
-            if not output_file:
-                output_file = os.path.join(
-                    self.output_dir,
-                    f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-                )
-            else:
-                # Ensure the output file has the correct extension
-                if not output_file.endswith(".html"):
-                    output_file = f"{output_file}.html"
-
-                # If output_file doesn't include a path, add the default output directory
-                if not os.path.dirname(output_file):
-                    output_file = os.path.join(self.output_dir, output_file)
-
-            # Create directory if it doesn't exist
-            os.makedirs(os.path.dirname(output_file), exist_ok=True)
-
-            # Write HTML file
-            with open(output_file, 'w') as f:
-                f.write(html_content)
-
-            # Copy all component files to the same directory as the report
+            # Copy component files to the same directory as the report
             report_dir = os.path.dirname(output_file)
             for component in components:
-                file_path = component['file']
-                if os.path.exists(file_path):
+                file_path = component.get('file', '')
+                if file_path and os.path.exists(file_path):
                     import shutil
                     shutil.copy2(file_path, os.path.join(report_dir, os.path.basename(file_path)))
 
