@@ -240,5 +240,7 @@ async def general_exception_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
 
+    # Use environment variables for host and port with secure defaults
+    host = os.getenv("HOST", "127.0.0.1")  # Default to localhost for security
     port = int(os.getenv("PORT", 54321))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("main:app", host=host, port=port, reload=True)

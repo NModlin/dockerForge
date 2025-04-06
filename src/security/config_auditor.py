@@ -110,8 +110,9 @@ class ConfigAuditor:
             # Set the path
             self.docker_bench_path = os.path.join(clone_dir, "docker-bench-security.sh")
 
-            # Make the script executable
-            os.chmod(self.docker_bench_path, 0o755)
+            # Make the script executable with more restrictive permissions
+            # 0o700 gives read, write, execute permissions only to the owner
+            os.chmod(self.docker_bench_path, 0o700)
 
             logger.info("Docker Bench Security installed successfully")
             return True

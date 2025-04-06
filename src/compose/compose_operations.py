@@ -56,8 +56,8 @@ class ComposeOperations:
             if result.returncode == 0:
                 logger.debug("Using 'docker compose' command")
                 return "docker compose"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Error checking for 'docker compose' command: {e}")
 
         try:
             # Try docker-compose (old style)
@@ -71,8 +71,8 @@ class ComposeOperations:
             if result.returncode == 0:
                 logger.debug("Using 'docker-compose' command")
                 return "docker-compose"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Error checking for 'docker-compose' command: {e}")
 
         # Default to new style
         logger.warning(
