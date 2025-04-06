@@ -186,11 +186,7 @@ class HostMetricsCollector:
         except Exception as e:
             logger.debug(f"Error getting CPU frequency: {e}")
             # Set default values for CPU frequency
-            cpu_metrics["frequency"] = {
-                "current": 0,
-                "min": 0,
-                "max": 0
-            }
+            cpu_metrics["frequency"] = {"current": 0, "min": 0, "max": 0}
 
         # Add CPU times
         cpu_times = psutil.cpu_times_percent()

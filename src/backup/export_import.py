@@ -141,8 +141,10 @@ class ExportImportManager:
                         extract_dir = os.path.dirname(temp_path)
                         for member in f_in.getmembers():
                             # Check for path traversal attempts
-                            if member.name.startswith('/') or '..' in member.name:
-                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                            if member.name.startswith("/") or ".." in member.name:
+                                raise ValueError(
+                                    f"Potentially insecure path in archive: {member.name}"
+                                )
                             # Extract only safe files
                             f_in.extract(member, path=extract_dir)
 
@@ -297,8 +299,10 @@ class ExportImportManager:
                         # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
-                            if member.name.startswith('/') or '..' in member.name:
-                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                            if member.name.startswith("/") or ".." in member.name:
+                                raise ValueError(
+                                    f"Potentially insecure path in archive: {member.name}"
+                                )
                             # Extract only safe files
                             tar.extract(member, path=temp_dir)
                 else:
@@ -306,8 +310,10 @@ class ExportImportManager:
                         # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
-                            if member.name.startswith('/') or '..' in member.name:
-                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                            if member.name.startswith("/") or ".." in member.name:
+                                raise ValueError(
+                                    f"Potentially insecure path in archive: {member.name}"
+                                )
                             # Extract only safe files
                             tar.extract(member, path=temp_dir)
 
@@ -470,8 +476,10 @@ class ExportImportManager:
                         # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
-                            if member.name.startswith('/') or '..' in member.name:
-                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                            if member.name.startswith("/") or ".." in member.name:
+                                raise ValueError(
+                                    f"Potentially insecure path in archive: {member.name}"
+                                )
                             # Extract only safe files
                             tar.extract(member, path=temp_dir)
                 else:
@@ -479,8 +487,10 @@ class ExportImportManager:
                         # Validate and extract files one by one
                         for member in tar.getmembers():
                             # Check for path traversal attempts
-                            if member.name.startswith('/') or '..' in member.name:
-                                raise ValueError(f"Potentially insecure path in archive: {member.name}")
+                            if member.name.startswith("/") or ".." in member.name:
+                                raise ValueError(
+                                    f"Potentially insecure path in archive: {member.name}"
+                                )
                             # Extract only safe files
                             tar.extract(member, path=temp_dir)
 

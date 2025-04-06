@@ -189,7 +189,7 @@ class SlackNotifier:
                 config["webhook_url"],
                 json=payload,
                 headers={"Content-Type": "application/json"},
-                timeout=10  # 10 seconds timeout
+                timeout=10,  # 10 seconds timeout
             )
 
             # Check response

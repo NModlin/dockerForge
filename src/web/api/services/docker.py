@@ -858,7 +858,11 @@ def parse_ports(ports_dict: Dict[str, Any]) -> List[Dict[str, Any]]:
             ports_list.append(
                 {
                     # Use actual IP or localhost if not specified
-                    "host_ip": host_port.get("HostIp") if host_port.get("HostIp") else "127.0.0.1",
+                    "host_ip": (
+                        host_port.get("HostIp")
+                        if host_port.get("HostIp")
+                        else "127.0.0.1"
+                    ),
                     "host_port": int(host_port.get("HostPort")),
                     "container_port": int(port),
                     "protocol": protocol,

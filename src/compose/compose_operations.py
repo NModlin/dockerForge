@@ -471,7 +471,9 @@ class ComposeOperations:
             cmd.extend(command.split())
 
             # Run command
-            logger.info(f"Executing command in Docker Compose container: {' '.join(cmd)}")
+            logger.info(
+                f"Executing command in Docker Compose container: {' '.join(cmd)}"
+            )
             result = subprocess.run(
                 cmd,
                 shell=False,

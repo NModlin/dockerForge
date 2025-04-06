@@ -528,7 +528,13 @@ class WindowsAdapter(PlatformAdapter):
 
                 # Use the Windows 'start' command without shell=True
                 # For Windows, we need to use the full path to the Docker Desktop executable
-                cmd = ["cmd", "/c", "start", "\"Docker Desktop\"", "\"C:\Program Files\Docker\Docker\Docker Desktop.exe\""]
+                cmd = [
+                    "cmd",
+                    "/c",
+                    "start",
+                    '"Docker Desktop"',
+                    '"C:\Program Files\Docker\Docker\Docker Desktop.exe"',
+                ]
                 success, stdout, stderr = self.execute_command(cmd, shell=False)
 
                 if success:

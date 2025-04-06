@@ -356,7 +356,9 @@ class TerminalSession:
                     )
                 except Exception as socket_err:
                     # Log the error but continue with cleanup
-                    logger.error(f"Failed to send error message to socket: {socket_err}")
+                    logger.error(
+                        f"Failed to send error message to socket: {socket_err}"
+                    )
         finally:
             # Close the session
             self.close()
